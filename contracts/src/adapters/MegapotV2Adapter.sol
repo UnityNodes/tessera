@@ -62,6 +62,7 @@ contract MegapotV2Adapter is IMegapotAdapter {
         tickets[0] = _quickPick(recipient);
 
         (address[] memory referrers, uint256[] memory split) = _referral(referrer);
+        // forge-lint: disable-next-line(unsafe-typecast)
         megapot.buyTickets(tickets, recipient, referrers, split, bytes32("tessera"));
     }
 
