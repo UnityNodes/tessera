@@ -210,7 +210,12 @@ function Status({
     case "confirming":
       return <p className={dim}>Buying your ticket and drawing a slot…</p>;
     case "revealing":
-      return (
+      return open.resumed ? (
+        <p className={dim}>
+          Welcome back. You opened this case before you left, it was drawn and paid
+          for then, and it is still yours. Fetching what is inside.
+        </p>
+      ) : (
         <p className={dim}>
           Your slot is drawn and paid for. The covalidators are decrypting it, this
           takes a few seconds and we do not control it.

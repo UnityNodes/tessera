@@ -50,9 +50,11 @@ const cache = new Map<string, Revealed>();
 
 const STORE_KEY = "tessera.revealed.v1";
 
+const store = () => (typeof window === "undefined" ? null : window.localStorage);
+
 if (typeof window !== "undefined") {
   try {
-    const saved = JSON.parse(sessionStorage.getItem(STORE_KEY) ?? "{}");
+    const saved = JSON.parse(store()?.getItem(STORE_KEY) ?? "{}");
     for (const [k, v] of Object.entries(saved)) cache.set(k, v as Revealed);
   } catch {}
 }
@@ -61,22 +63,65 @@ function remember(items: Revealed[]) {
   for (const r of items) cache.set(r.handle.toLowerCase(), r);
   if (typeof window === "undefined") return;
   try {
-    sessionStorage.setItem(STORE_KEY, JSON.stringify(Object.fromEntries(cache)));
+    store()?.setItem(STORE_KEY, JSON.stringify(Object.fromEntries(cache)));
   } catch {}
 }
 
 /**
  *
  */
+/**
+ *
+ */
+let foreground = 0;
+const idleWaiters: (() => void)[] = [];
+
+function releaseIdle() {
+  if (foreground === 0) {
+    while (idleWaiters.length) idleWaiters.shift()!();
+  }
+}
+
+async function waitForQuiet(signal?: AbortSignal) {
+  if (foreground === 0) return;
+  await new Promise<void>((resolve) => {
+    idleWaiters.push(resolve);
+    signal?.addEventListener("abort", () => resolve(), { once: true });
+  });
+}
+
 export async function revealHandles(
   handles: string[],
-  opts: { signal?: AbortSignal; onAttempt?: (n: number, elapsedMs: number) => void } = {},
+  opts: {
+    signal?: AbortSignal;
+    onAttempt?: (n: number, elapsedMs: number) => void;
+    priority?: "foreground" | "background";
+  } = {},
 ): Promise<Revealed[]> {
   const missing = handles.filter((h) => !cache.has(h.toLowerCase()));
   if (missing.length === 0) {
     return handles.map((h) => cache.get(h.toLowerCase())!);
   }
 
+  const background = opts.priority === "background";
+  if (background) await waitForQuiet(opts.signal);
+  else foreground++;
+
+  try {
+    return await pollUntilRevealed(missing, handles, opts);
+  } finally {
+    if (!background) {
+      foreground--;
+      releaseIdle();
+    }
+  }
+}
+
+async function pollUntilRevealed(
+  missing: string[],
+  handles: string[],
+  opts: { signal?: AbortSignal; onAttempt?: (n: number, elapsedMs: number) => void },
+): Promise<Revealed[]> {
   const zap = await warmInco();
   const started = Date.now();
   let attempt = 0;

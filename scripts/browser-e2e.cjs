@@ -78,9 +78,38 @@ const PROVIDER = `
 
 const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
 
+/**
+ *
+ */
+async function ensureConnected(page) {
+  const connected = page.getByRole("button", { name: /Disconnect/ });
+  const connect = page.getByRole("button", { name: /Test Wallet|Injected/ }).first();
+
+  const auto = await connected.waitFor({ timeout: 8000 }).then(() => true).catch(() => false);
+  if (auto) return "already";
+  try {
+    await connect.click({ timeout: 25000 });
+  } catch (e) {
+    console.error(`  : ${JSON.stringify(await page.getByRole("button").allTextContents())}`);
+    console.error(`  : ${await page.evaluate(() => typeof window.ethereum)}`);
+    await page.screenshot({ path: `${SHOTS}/e2e-connect-failed.png` });
+    throw e;
+  }
+  await connected.waitFor({ timeout: 25000 });
+  return "connected";
+}
+
+
 (async () => {
   const browser = await chromium.launch({ executablePath: CHROME });
-  const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } });
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 1000 } });
+  await ctx.exposeFunction("__rpc", (method, params) =>
+    handle(method, params).catch((e) => {
+      throw new Error(e.shortMessage || e.message);
+    }),
+  );
+  await ctx.addInitScript(PROVIDER);
+  const page = await ctx.newPage();
 
   const errors = [];
   page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
@@ -90,19 +119,10 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
   });
   page.on("pageerror", (e) => errors.push(String(e.message)));
 
-  await page.exposeFunction("__rpc", (method, params) =>
-    handle(method, params).catch((e) => {
-      throw new Error(e.shortMessage || e.message);
-    }),
-  );
-  await page.addInitScript(PROVIDER);
-
   console.log(`${account.address}`);
   await page.goto(URL, { waitUntil: "domcontentloaded" });
 
-  await page.getByRole("button", { name: /Test Wallet|Injected/ }).first().click();
-  await page.getByRole("button", { name: /Get \$20 test/ }).waitFor({ timeout: 20000 });
-  console.log("✓ '");
+  console.log(`✓ ${await ensureConnected(page)}`);
 
   const dollars = await page.getByText(/^\$\d/).first().textContent();
   if (dollars === "$0" || dollars === "$0.0") {
@@ -130,6 +150,29 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
   const prize = await page.locator("main").getByText(/slot \d+ of \d+/).first().textContent();
   console.log(`  ${prize.trim()}`);
   await shot(page, "e2e-revealed");
+
+  if (process.env.TEST_RESUME) {
+    const second = await ctx.newPage();
+    await second.goto(URL, { waitUntil: "domcontentloaded" });
+    await ensureConnected(second);
+    const btn = second.getByRole("button", { name: /Open a case|Approve once/ });
+    await btn.waitFor({ timeout: 30000 });
+    await btn.click();
+    await second.getByText(/covalidators are decrypting/).waitFor({ timeout: 90000 });
+    console.log("▶ ");
+    await second.close();
+
+    const back = await ctx.newPage();
+    await back.goto(URL, { waitUntil: "domcontentloaded" });
+    await ensureConnected(back);
+    await back.getByText(/Welcome back/).waitFor({ timeout: 30000 });
+    console.log("✓ '");
+    await back.getByText(/slot \d+ of \d+/).waitFor({ timeout: 90000 });
+    const got = await back.getByText(/slot \d+ of \d+/).first().textContent();
+    console.log(`✓ : ${got.trim()}`);
+    await back.screenshot({ path: `${SHOTS}/e2e-resumed.png` });
+    await back.close();
+  }
 
   const redeem = page.getByRole("button", { name: /Redeem five shards/ });
   if (await redeem.count()) {

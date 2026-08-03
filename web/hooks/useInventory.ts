@@ -66,7 +66,9 @@ export function useInventory(shardSlots: number) {
         })),
       })) as { result?: boolean }[];
 
-      const revealed = await revealHandles(list.map((s) => s.handle)).catch(() => []);
+      const revealed = await revealHandles(list.map((s) => s.handle), {
+        priority: "background",
+      }).catch(() => []);
       const byHandle = new Map(revealed.map((r) => [r.handle.toLowerCase(), r]));
 
       return list.map((s, i) => {

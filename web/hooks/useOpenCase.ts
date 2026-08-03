@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAccount, useConfig } from "wagmi";
 import { simulateContract, writeContract, waitForTransactionReceipt } from "wagmi/actions";
 import { maxUint256 } from "viem";
 import { TESSERA_DECK_ABI } from "@/lib/abi";
 import { DECK_ADDRESS, TICKET_TOKEN, TOKEN_ABI, txUrl } from "@/lib/chain";
 import { revealHandles } from "@/lib/inco";
+import { forgetPending, pendingFor, rememberPending } from "@/lib/pending";
 import { explain, type Explained } from "@/lib/errors";
 
 /**
@@ -31,6 +32,7 @@ export interface OpenState {
   txUrl?: string;
   error?: Explained;
   waitedMs: number;
+  resumed?: boolean;
 }
 
 const IDLE: OpenState = { phase: "idle", waitedMs: 0 };
@@ -43,8 +45,63 @@ export function useOpenCase(onSettled?: () => void) {
 
   const reset = useCallback(() => {
     abort.current?.abort();
+    forgetPending();
     setState(IDLE);
   }, []);
+
+  /**
+   */
+  const awaitReveal = useCallback(
+    async (handle: `0x${string}`, ctl: AbortController) => {
+      const startedWaiting = Date.now();
+      setState((s) => ({ ...s, phase: "revealing", waitedMs: 0 }));
+
+      const [revealed] = await revealHandles([handle], {
+        signal: ctl.signal,
+        onAttempt: () =>
+          setState((s) =>
+            s.phase === "revealing" ? { ...s, waitedMs: Date.now() - startedWaiting } : s,
+          ),
+      });
+      if (ctl.signal.aborted) return;
+
+      forgetPending();
+      setState((s) => ({
+        ...s,
+        phase: "done",
+        value: revealed.value,
+        waitedMs: Date.now() - startedWaiting,
+      }));
+      onSettled?.();
+    },
+    [onSettled],
+  );
+
+  /**
+   */
+  useEffect(() => {
+    const p = pendingFor(address);
+    if (!p || state.phase !== "idle") return;
+
+    const ctl = new AbortController();
+    abort.current = ctl;
+    setState({
+      phase: "revealing",
+      resumed: true,
+      index: p.index,
+      handle: p.handle,
+      txHash: p.txHash,
+      txUrl: txUrl(p.txHash),
+      waitedMs: 0,
+    });
+    awaitReveal(p.handle, ctl).catch((err) => {
+      if (ctl.signal.aborted) return;
+      setState((s) => ({ ...s, phase: "failed", error: explain(err) }));
+    });
+
+    return () => ctl.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address]);
 
   const open = useCallback(
     async ({ needsApproval }: { needsApproval: boolean }) => {
@@ -92,32 +149,22 @@ export function useOpenCase(onSettled?: () => void) {
         }
         if (ctl.signal.aborted) return;
 
-        const startedWaiting = Date.now();
-        setState((s) => ({ ...s, phase: "revealing", waitedMs: 0 }));
-
-        const [revealed] = await revealHandles([handle], {
-          signal: ctl.signal,
-          onAttempt: () =>
-            setState((s) =>
-              s.phase === "revealing" ? { ...s, waitedMs: Date.now() - startedWaiting } : s,
-            ),
+        rememberPending({
+          address,
+          index: Number(index),
+          handle,
+          txHash: hash,
+          at: Date.now(),
         });
 
-        if (ctl.signal.aborted) return;
-        setState((s) => ({
-          ...s,
-          phase: "done",
-          value: revealed.value,
-          waitedMs: Date.now() - startedWaiting,
-        }));
-        onSettled?.();
+        await awaitReveal(handle, ctl);
       } catch (err) {
         if (ctl.signal.aborted) return;
         setState((s) => ({ ...s, phase: "failed", error: explain(err) }));
         onSettled?.();
       }
     },
-    [address, config, onSettled],
+    [address, config, onSettled, awaitReveal],
   );
 
   return { state, open, reset };
