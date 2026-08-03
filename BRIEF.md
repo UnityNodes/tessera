@@ -2,9 +2,10 @@
 
 Inco Summer Game Jam. .
 
-**Base Sepolia**
-`contracts/src/TesseraDeck.sol`. Megapot . .
-Git .
+`openCase()` Megapot
+. Base . `redeem()`
+. 44 -Base Sepolia Base mainnet .
+.
 
 . tessera .
 , .
@@ -75,24 +76,72 @@ MPUSDC      0xA4253E7C13525287C56550b8708100f93E60509f
 - `withdrawReferralFees()` `referralFeesClaimable(address)`
 - `ERC20InsufficientAllowance` , `approve`
 
+### ⚠️ Cannot refer yourself
+
+Legacy-`Cannot refer yourself`,
+`referrer == msg.sender`. **
+**. , .
+
+(`test/MegapotRules.t.sol`):
+
+| msg.sender | referrer | recipient | |
+|---|---|---|---|
+| X | X | | ❌ `Cannot refer yourself` |
+| X | X | X | ❌ `Cannot refer yourself` |
+| X | Y | | ✅ $0.10 Y |
+| X | | | ✅ |
+| X | `address(0)` | | ✅ |
+| | X | | ✅ |
+
+➡️ ****, . :
+(), (`TesseraDeck`), ().
+, `withdrawReferralFees()`
+`TesseraDeck`, calldata ABI .
+
+, ,
+, .
+
 ###
 
 CREATE2): executor `0x4b99…8624`, verifier `0x8677…0f09`.
-. .
+.
+.
 
 
-| | Base Sepolia `0x6f03c7…c5De` | Base mainnet `0x3bAe64…42a2` |
-|---|---|---|
-| | 1e6 ✅ | 1e6 ✅ |
-| | `roundDurationInSeconds` = **300 ** | `drawingDurationInSeconds` = **86400 ** |
-| `referralFeeBps()` | 1000 | **** |
-| `lastJackpotEndTime()` | | **** |
-| `purchaseTickets(address,uint256,address)` | | **** |
+| | Base Sepolia `0x6f03c7…c5De` | Base mainnet `0xbEDd4F…1B95` | Base mainnet `0x3bAe6430…42a2` |
+|---|---|---|---|
+| ABI | legacy | **legacy, ** | |
+| | 1e6 | 1e6 | 1e6 |
+| | 300 | 86280 | 86400 |
+| | 1000 bps | 1000 bps | 1e17 (=10%) |
+| | `purchaseTickets` | `purchaseTickets` | `buyTickets` |
+| | | | **NFT** |
+| | 1500 bps | 3000 bps | `protocolFee()` = 0 |
+| | | **, ** | **, #132** |
 
-`buyTickets(Ticket[], address, address[], uint256[], bytes32)`.
+Sepolia `0xbEDd4F` **, 62**
+.
 
-➡️ **'**, : ,
-, . , .
+, `referralFeeBps()`
+`lastJackpotEndTime()` , `purchaseTickets` .
+`0x3bAe6430…42a2` : `0xbEDd4F…1B95`
+.
+
+(`test/MegapotV2Rules.t.sol`), :
+
+- '**** `[1, normalBallMax]` (30)
+- **** ()
+- **`getDrawingState(id)[10]`**, 10.
+  `bonusballMin` (5), `bonusballSoftCap` (65),
+  `bonusballHardCap` (80).
+-
+-
+- **** legacy
+- `1e17` = **10%**, 8%
+
+➡️ **'**: `IMegapotAdapter`, ,
+`MegapotLegacyAdapter` `MegapotV2Adapter`.
+.
 
 ➡️ **Sepolia.** , :
 5 ,
@@ -332,26 +381,44 @@ SDK 49 :
 
 : `ConfidentialDeck` (. ).
 
-(`contracts/src/TesseraDeck.sol`):
-
-| | |
-|---|---|
-| `createDeck(n)` | ✅ Sepolia |
-| `openCase()` | ✅ + `reveal` |
-| `deckFee(n)` | ✅ Inco |
-| `myHandle`, `myCount`, `remaining` | ✅ |
+```
+TesseraDeck ──$1──> MegapotAdapter ──purchaseTickets/buyTickets──> Megapot
+     ▲   referrer=TesseraDeck ──────────────────────────┘  │
+     │                                                     ▼
+     └──────── sweepFees() ◄──── 10% ───┘
+```
 
 :
 
 | | |
 |---|---|
-| `openCase()` | $1 MPUSDC → `purchaseTickets` = → |
-| `redeem()` | 5 → |
-| `sweepFees()` | `withdrawReferralFees()` Megapot |
+| `src/TesseraDeck.sol` | : , `openCase()`, `redeem()`, |
+| `src/interfaces/IMegapotAdapter.sol` | Megapot |
+| `src/adapters/MegapotLegacyAdapter.sol` | Sepolia `0x6f03c7…` + mainnet `0xbEDd4F…` |
+| `src/adapters/MegapotV2Adapter.sol` | mainnet `0x3bAe6430…`, quick-pick |
 
-Megapot ****, : `purchaseTickets`,
-`buyTickets`. .
-, .
+| | |
+|---|---|
+| `createDeck(n, shards)` | ✅ , |
+| `openCase()` | ✅ Megapot + + `reveal`, |
+| `redeem(idx[5], values[5], sigs[5])` | ✅ 5 → |
+| `sweepFees()` | ✅ Megapot , |
+| `deckFee(n)`, `myHandle`, `remaining`, `treasury` | ✅ |
+
+.
+,
+`e.verifyDecryption` (Inco, `Lib.sol:840`). ,
+, '.
+: `1..shardSlots` .
+
+
+| | |
+|---|---|
+| `openCase()` | 400 903 |
+| `openCase()` | **211 914** |
+| `redeem()` -sweep | ~220 000 |
+
+161 377 Megapot ~50k .
 
 - (, , )
 - (, , )
@@ -372,18 +439,18 @@ RPC .
 
 ## 6.
 
-, .
-, 10-.
+. :
 
-. .
-:
+1. **Base Sepolia** `scripts/e2e-open.cjs`
+   -. `.env`
+   , .
+2. , `@inco/lightning-js` Next.js (ESM , CJS ).
+3. : **** ~8 .
+4. ; `redeem()` 5
+   `attestedReveal` .
+5. 10-.
 
-1. `git init`, .
-2. `TesseraDeck` Megapot: `openCase()`
-   $1 MPUSDC `purchaseTickets` .
-3. `redeem()` 5 , `withdrawReferralFees()`.
-4. , `@inco/lightning-js` Next.js (ESM , CJS ).
-5. : **** ~8 .
+.
 
 : `0x0D84EDCa486E3724b9f5AAb529edB141176c661e`,
 `.env` (`.gitignore`), ~0.046 ETH Sepolia.
@@ -391,9 +458,14 @@ RPC .
 ## 7.
 
 - (200 / 500 / 1000)
-- : ,
+- .
+  : ****, `shardSlots = size / 2`.
+  ', . 40%.
 -
-- 5 ,
+- -: `0xbEDd4F…` (
+  , ABI, Sepolia) `0x3bAe6430…`,
+  . ,
+  12-
 
 ---
 
@@ -402,7 +474,8 @@ RPC .
 | | | |
 |---|---|---|
 | 3 | , , | ✅ |
-| 46 | Megapot `openCase()`, , , `redeem()` | |
+| 3 | Megapot `openCase()`, , , `redeem()` | ✅ , 3 |
+| 46 | Sepolia, e2e, | |
 | 78 | , , | |
 | 911 | , | |
 | 1213 | Sepolia + , -, README | |

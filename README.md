@@ -15,8 +15,10 @@ out of 400 slots"* is verifiable rather than a marketing claim.
 
 ## Status
 
-Research complete, core verified on live Base Sepolia. Megapot integration and
-frontend are next. See [BRIEF.md](BRIEF.md) for the full technical record.
+Contracts done and covered. One transaction buys a real Megapot ticket and
+draws a case; five shards redeem for another ticket, paid out of the game's own
+referral income. 44 fork tests run against live Base Sepolia and Base mainnet.
+Frontend is next. See [BRIEF.md](BRIEF.md) for the full technical record.
 
 ## How it works
 
@@ -38,7 +40,8 @@ Measured with live transactions on Base Sepolia, not taken from documentation.
 | Click → prize | **7.7 – 9.2 s** (avg 8.4 s) |
 | Of which: covalidator | 6.2 – 8.0 s |
 | Of which: transaction | 0.9 – 1.4 s |
-| Gas per open | 161 377 |
+| Gas per open, ticket included | 211 914 warm, 400 903 first |
+| Referral earned per open | $0.10 of every $1 |
 | Inco fee per open | **0** |
 | Inco fee per deck (1000 slots) | 0.002 ETH, once per season |
 
@@ -49,23 +52,30 @@ fixed duration.
 ## Layout
 
 ```
-contracts/   Solidity. Own confidential deck on raw @inco/lightning primitives.
-scripts/     Latency measurement against live Base Sepolia.
-BRIEF.md     Full technical record: addresses, measurements, decisions, traps.
+contracts/src/            TesseraDeck: the game, the deck, shards, treasury.
+contracts/src/adapters/   One interface, two Megapot ABIs.
+contracts/test/           Fork tests against live Base Sepolia and Base mainnet.
+scripts/                  Latency measurement against live Base Sepolia.
+BRIEF.md                  Full technical record: addresses, measurements, traps.
 ```
 
-## Deployed (Base Sepolia)
+## Addresses in use
 
 | | |
 |---|---|
-| Inco executor | `0x4b9911b0191B0b6a6eA8F2Ed562e20Cff5AC8624` |
-| Megapot jackpot | `0x6f03c7BCaDAdBf5E6F5900DA3d56AdD8FbDac5De` |
-| MPUSDC (test) | `0xA4253E7C13525287C56550b8708100f93E60509f` |
+| Inco executor (both chains) | `0x4b9911b0191B0b6a6eA8F2Ed562e20Cff5AC8624` |
+| Megapot, Base Sepolia | `0x6f03c7BCaDAdBf5E6F5900DA3d56AdD8FbDac5De` |
+| MPUSDC (test, free mint) | `0xA4253E7C13525287C56550b8708100f93E60509f` |
+| Megapot legacy, Base mainnet | `0xbEDd4F2beBE9E3E636161E644759f3cbe3d51B95` |
+| Megapot new, Base mainnet | `0x3bAe643002069dBCbcd62B1A4eb4C4A397d042a2` |
+
+Base has two live Megapot contracts with different ABIs. Both are supported;
+the mainnet deploy is one constructor argument, not a rewrite.
 
 ## Running
 
 ```bash
-cd contracts && npm install && forge build
+cd contracts && npm install && forge build && forge test
 ```
 
 ```bash
