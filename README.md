@@ -68,7 +68,7 @@ BRIEF.md                  Full technical record: addresses, measurements, traps.
 
 | | |
 |---|---|
-| TesseraDeck | `0x790bA6ACA3d0e5b0320faaf15d12b9e6C8D98311` |
+| TesseraDeck | `0x55FbDFA462e44955F715aF98A60e4ec4B6e71EEe` |
 | MegapotLegacyAdapter | `0xcEFd98581bb131a505e9De53d7f9b191fe94E074` |
 
 Deck of 100 slots, 40 of them shards.

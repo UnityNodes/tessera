@@ -209,4 +209,79 @@ contract TesseraRedeemTest is Test {
         assertGe(earnedPerDeck, spentPerDeck, unicode"");
         console.log("earned per deck:", earnedPerDeck, "spent:", spentPerDeck);
     }
+
+    //
+
+    function _exhaust() internal {
+        vm.startPrank(player);
+        MPUSDC.approve(address(deck), type(uint256).max);
+        for (uint256 i = deck.drawn(); i < DECK; i++) {
+            deck.openCase();
+        }
+        vm.stopPrank();
+    }
+
+    function _newSeason(uint16 n, uint16 shards) internal {
+        uint256 fee = deck.deckFee(n);
+        vm.prank(owner);
+        deck.createDeck{value: fee}(n, shards);
+    }
+
+    function test_season_incrementsAndRecordsItsDropTable() public {
+        assertEq(deck.season(), 1);
+        assertEq(deck.shardSlotsOfSeason(1), SHARDS);
+
+        _exhaust();
+        _newSeason(20, 10);
+
+        assertEq(deck.season(), 2);
+        assertEq(deck.shardSlotsOfSeason(1), SHARDS, unicode"1 ");
+        assertEq(deck.shardSlotsOfSeason(2), 10);
+        assertEq(deck.slotSeason(player, 0), 1, unicode"1");
+    }
+
+    function test_redeem_oldCosmeticStaysCosmeticAfterGenerousSeason() public {
+        _exhaust();
+        _newSeason(20, 10); // 1..10 1..16
+
+        _attest(true);
+        uint256 cosmeticInSeasonOne = uint256(SHARDS) + 1;
+        (uint256[] memory idx, uint256[] memory vals, bytes[][] memory sigs) =
+            _args([uint256(0), 1, 2, 3, 4], [uint256(1), 2, 3, 4, cosmeticInSeasonOne]);
+
+        bytes32 h4 = deck.handleOf(player, 4);
+        vm.prank(player);
+        vm.expectRevert(
+            abi.encodeWithSelector(TesseraDeck.NotAShard.selector, h4, cosmeticInSeasonOne)
+        );
+        deck.redeem(idx, vals, sigs);
+    }
+
+    function test_redeem_oldShardSurvivesStingierSeason() public {
+        _exhaust();
+        _newSeason(20, 2); // 1..2
+
+        _attest(true);
+        (uint256[] memory idx, uint256[] memory vals, bytes[][] memory sigs) =
+            _args([uint256(0), 1, 2, 3, 4], [uint256(5), 6, 7, 8, 9]);
+
+        assertFalse(deck.isShardValue(5), unicode"");
+        assertEq(deck.shardMaxFor(player, 0), SHARDS, unicode"");
+
+        vm.prank(player);
+        uint256 paid = deck.redeem(idx, vals, sigs);
+        assertEq(paid, 1_000_000);
+    }
+
+    function test_createDeck_rejectsShardsAboveBreakEven() public {
+        _exhaust();
+        uint256 fee = deck.deckFee(20);
+        vm.prank(owner);
+        vm.expectRevert(TesseraDeck.TooManyShardSlots.selector);
+        deck.createDeck{value: fee}(20, 11);
+
+        vm.prank(owner);
+        deck.createDeck{value: fee}(20, 10);
+        assertEq(deck.shardSlots(), 10);
+    }
 }

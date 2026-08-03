@@ -25,13 +25,23 @@ contract TesseraDeck is ReentrancyGuardTransient {
 
     uint16 public shardSlots;
 
+    uint32 public season;
+
+    ///
+    mapping(uint32 => uint16) public shardSlotsOfSeason;
+
     uint256 public constant SHARDS_PER_TICKET = 5;
 
-    mapping(address => euint256[]) private slots;
+    struct Slot {
+        euint256 card;
+        uint32 season;
+    }
+
+    mapping(address => Slot[]) private slots;
 
     mapping(bytes32 => bool) public shardSpent;
 
-    event DeckCreated(uint16 size, uint16 shardSlots, uint256 feePaid);
+    event DeckCreated(uint32 indexed season, uint16 size, uint16 shardSlots, uint256 feePaid);
     event CaseOpened(address indexed player, uint16 index, bytes32 handle, uint256 paid);
     event SlotRevealed(address indexed player, uint256 index);
     event FeesSwept(uint256 amount);
@@ -71,14 +81,16 @@ contract TesseraDeck is ReentrancyGuardTransient {
 
     function createDeck(uint16 n, uint16 shards) external payable onlyOwner {
         require(n > 0, "n=0");
-        if (shards > n) revert TooManyShardSlots();
+        if (uint256(shards) * 2 > uint256(n)) revert TooManyShardSlots();
         if (size != 0 && drawn < size) revert DeckInPlay();
         deck = e.shuffledRange(1, n + 1, ETypes.Uint256);
         e.allowThis(deck);
         size = n;
         shardSlots = shards;
         drawn = 0;
-        emit DeckCreated(n, shards, msg.value);
+        season += 1;
+        shardSlotsOfSeason[season] = shards;
+        emit DeckCreated(season, n, shards, msg.value);
     }
 
 
@@ -102,7 +114,7 @@ contract TesseraDeck is ReentrancyGuardTransient {
         e.allowThis(card);
         e.allow(card, msg.sender);
         e.reveal(card);
-        slots[msg.sender].push(card);
+        slots[msg.sender].push(Slot({card: card, season: season}));
 
         handle = euint256.unwrap(card);
         emit CaseOpened(msg.sender, index, handle, price);
@@ -110,7 +122,7 @@ contract TesseraDeck is ReentrancyGuardTransient {
     }
 
     function revealMine(uint256 i) external {
-        euint256 card = slots[msg.sender][i];
+        euint256 card = slots[msg.sender][i].card;
         e.allowThis(card);
         e.reveal(card);
         emit SlotRevealed(msg.sender, i);
@@ -132,12 +144,14 @@ contract TesseraDeck is ReentrancyGuardTransient {
         bytes32[] memory handles = new bytes32[](SHARDS_PER_TICKET);
 
         for (uint256 i = 0; i < SHARDS_PER_TICKET; i++) {
-            euint256 card = slots[msg.sender][slotIndexes[i]];
+            Slot storage slot = slots[msg.sender][slotIndexes[i]];
+            euint256 card = slot.card;
             bytes32 handle = euint256.unwrap(card);
 
             if (shardSpent[handle]) revert ShardAlreadySpent(handle);
             if (!e.verifyDecryption(card, values[i], signatures[i])) revert BadAttestation(handle);
-            if (values[i] == 0 || values[i] > shardSlots) revert NotAShard(handle, values[i]);
+            uint16 shardMax = shardSlotsOfSeason[slot.season];
+            if (values[i] == 0 || values[i] > shardMax) revert NotAShard(handle, values[i]);
 
             shardSpent[handle] = true;
             handles[i] = handle;
@@ -175,11 +189,19 @@ contract TesseraDeck is ReentrancyGuardTransient {
 
 
     function myHandle(uint256 i) external view returns (bytes32) {
-        return euint256.unwrap(slots[msg.sender][i]);
+        return euint256.unwrap(slots[msg.sender][i].card);
     }
 
     function handleOf(address player, uint256 i) external view returns (bytes32) {
-        return euint256.unwrap(slots[player][i]);
+        return euint256.unwrap(slots[player][i].card);
+    }
+
+    function slotSeason(address player, uint256 i) external view returns (uint32) {
+        return slots[player][i].season;
+    }
+
+    function shardMaxFor(address player, uint256 i) external view returns (uint16) {
+        return shardSlotsOfSeason[slots[player][i].season];
     }
 
     function myCount() external view returns (uint256) {

@@ -7,6 +7,7 @@ import { ConnectBar } from "@/components/ConnectBar";
 import { Button } from "@/components/ui/Button";
 import { Panel, DataRow } from "@/components/ui/Panel";
 import { Tessera } from "@/components/Tessera";
+import { Case } from "@/components/Case";
 import { PoolCounter } from "@/components/PoolCounter";
 import { ShardMeter } from "@/components/ShardMeter";
 import { useDeck } from "@/hooks/useDeck";
@@ -39,12 +40,12 @@ export default function Home() {
   const shards = spendableShards(inventory.data);
   const canRedeem = shards.length >= SHARDS_PER_TICKET;
 
-  const tileState =
+  const casePhase =
     open.state.phase === "done"
-      ? "revealed"
+      ? "opened"
       : open.state.phase === "revealing" || open.state.phase === "confirming"
         ? "waiting"
-        : "sealed";
+        : "idle";
 
   const busy = ["approving", "signing", "confirming", "revealing"].includes(open.state.phase);
 
@@ -66,7 +67,17 @@ export default function Home() {
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         <Panel label="Open">
           <div className="flex flex-col items-center gap-8 py-6">
-            <Tessera state={tileState} value={open.state.value} deck={shape} size={140} />
+            <Case
+              phase={casePhase}
+              value={open.state.value}
+              deck={shape}
+              size={280}
+              onClick={
+                isConnected && !deck.deckEmpty && deck.canAfford && !busy
+                  ? () => open.open({ needsApproval: deck.needsApproval })
+                  : undefined
+              }
+            />
 
             <div className="min-h-[4.5rem] text-center">
               <Status open={open.state} deck={shape} />
