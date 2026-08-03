@@ -411,14 +411,43 @@ TesseraDeck ──$1──> MegapotAdapter ──purchaseTickets/buyTickets─�
 , '.
 : `1..shardSlots` .
 
+### ✅ Base Sepolia (3 , )
+
+```
+TesseraDeck           0x790bA6ACA3d0e5b0320faaf15d12b9e6C8D98311
+MegapotLegacyAdapter  0xcEFd98581bb131a505e9De53d7f9b191fe94E074
+100 , 40
+```
+
+
+| | | | **** | |
+|---|---|---|---|---|
+| 1 | 1638 ms | 7706 ms | **9.3 ** | 25 |
+| 2 | 1251 ms | 6376 ms | **7.6 ** | 12 |
+| 3 | 1562 ms | 6805 ms | **8.4 ** | 88 |
+| 4 | 1170 ms | 5941 ms | **7.1 ** | 79 |
+| 5 | 763 ms | 8624 ms | **9.4 ** | 17 |
+
+, , .
+
+(25, 12, 17, 33, 36), `redeem()`
+$1 , Megapot .
+1549 ms, 409 152, `status 1`.
+
+: $10, **11 ** (93 500 bps).
+
 
 | | |
 |---|---|
-| `openCase()` | 400 903 |
-| `openCase()` | **211 914** |
-| `redeem()` -sweep | ~220 000 |
+| `openCase()` | 383 450 |
+| `openCase()` | **282 604** |
+| `redeem()` -sweep | 409 152 |
+| `createDeck(100)` | 146 145 |
 
-161 377 Megapot ~50k .
+⚠️ -211 914 `openCase()`
+. forge-
+, .
+. **282 604.**
 
 - (, , )
 - (, , )
@@ -441,14 +470,19 @@ RPC .
 
 . :
 
-1. **Base Sepolia** `scripts/e2e-open.cjs`
-   -. `.env`
-   , .
-2. , `@inco/lightning-js` Next.js (ESM , CJS ).
-3. : **** ~8 .
-4. ; `redeem()` 5
-   `attestedReveal` .
-5. 10-.
+1. , `@inco/lightning-js` Next.js (ESM , CJS ).
+2. : **** 7.19.4 .
+3. .
+   `scripts/e2e-redeem.cjs`, .
+4. 10-.
+
+⚠️ : `0x0D84…661e` ,
+**`0xAe389544FBb71850e32d20829f48F6c26B5c46ad`**, `.env`,
+0.0959 ETH Sepolia.
+
+SDK, : `covalidatorSignatures`
+'`{0: , 1: , …}`, `Uint8Array`.
+`toHex(Uint8Array.from(Object.values(sig)))`.
 
 .
 

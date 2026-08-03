@@ -37,13 +37,18 @@ Measured with live transactions on Base Sepolia, not taken from documentation.
 
 | | |
 |---|---|
-| Click → prize | **7.7 – 9.2 s** (avg 8.4 s) |
-| Of which: covalidator | 6.2 – 8.0 s |
-| Of which: transaction | 0.9 – 1.4 s |
-| Gas per open, ticket included | 211 914 warm, 400 903 first |
+| Click → prize, ticket included | **7.1 – 9.4 s** (avg 8.4 s) |
+| Of which: covalidator | 5.9 – 8.6 s |
+| Of which: transaction | 0.8 – 1.6 s |
+| Gas per open, ticket included | 282 604 (383 450 first) |
+| Gas per redeem | 409 152 |
 | Referral earned per open | $0.10 of every $1 |
 | Inco fee per open | **0** |
 | Inco fee per deck (1000 slots) | 0.002 ETH, once per season |
+
+The whole loop closed on chain: ten paid opens, five shards redeemed, and the
+player ends up holding **eleven** real tickets. The eleventh was bought by the
+game out of the referral fees the first ten produced.
 
 The covalidator wait dominates and is outside our control. The roulette animation
 is therefore **adaptive**, it loops until the result lands rather than running a
@@ -58,6 +63,15 @@ contracts/test/           Fork tests against live Base Sepolia and Base mainnet.
 scripts/                  Latency measurement against live Base Sepolia.
 BRIEF.md                  Full technical record: addresses, measurements, traps.
 ```
+
+## Live on Base Sepolia
+
+| | |
+|---|---|
+| TesseraDeck | `0x790bA6ACA3d0e5b0320faaf15d12b9e6C8D98311` |
+| MegapotLegacyAdapter | `0xcEFd98581bb131a505e9De53d7f9b191fe94E074` |
+
+Deck of 100 slots, 40 of them shards.
 
 ## Addresses in use
 
@@ -80,6 +94,10 @@ cd contracts && npm install && forge build && forge test
 
 ```bash
 cd scripts && npm install && node e2e-open.cjs <contract> <privateKey>
+```
+
+```bash
+cd scripts && node e2e-redeem.cjs <contract> <privateKey>
 ```
 
 Requires `.env`, copy `.env.example` and fill it in. Base Sepolia only;
