@@ -30,7 +30,7 @@ contract TesseraDeckForkTest is Test {
         vm.deal(owner, 1 ether);
         uint256 fee = deck.deckFee(20);
         vm.prank(owner);
-        deck.createDeck{value: fee}(20);
+        deck.createDeck{value: fee}(20, 8);
 
         IMintable(address(MPUSDC)).mint(player, 100e6);
     }
@@ -159,14 +159,14 @@ contract TesseraDeckForkTest is Test {
         uint256 fee = deck.deckFee(10);
         vm.prank(player);
         vm.expectRevert(TesseraDeck.NotOwner.selector);
-        deck.createDeck{value: fee}(10);
+        deck.createDeck{value: fee}(10, 4);
     }
 
     function test_createDeck_revertsWhileDeckInPlay() public {
         uint256 fee = deck.deckFee(10);
         vm.prank(owner);
         vm.expectRevert(TesseraDeck.DeckInPlay.selector);
-        deck.createDeck{value: fee}(10);
+        deck.createDeck{value: fee}(10, 4);
     }
 
     function test_createDeck_allowedAfterDeckExhausted() public {
@@ -179,7 +179,7 @@ contract TesseraDeckForkTest is Test {
 
         uint256 fee = deck.deckFee(10);
         vm.prank(owner);
-        deck.createDeck{value: fee}(10);
+        deck.createDeck{value: fee}(10, 4);
         assertEq(deck.size(), 10);
         assertEq(deck.drawn(), 0);
     }

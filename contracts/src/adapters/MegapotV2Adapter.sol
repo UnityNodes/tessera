@@ -97,6 +97,7 @@ contract MegapotV2Adapter is IMegapotAdapter {
         }
 
         t.normals = normals;
+        // forge-lint: disable-next-line(unsafe-typecast)
         t.bonusball = uint8(seed % bonusCap) + 1;
     }
 
