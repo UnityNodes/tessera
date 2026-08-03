@@ -144,7 +144,7 @@ async function ensureConnected(page) {
   console.log(`  , : ${tWait} ms`);
   await shot(page, "e2e-waiting");
 
-  await page.getByRole("button", { name: /Open another/ }).waitFor({ timeout: 90000 });
+  await page.getByRole("button", { name: /Open another/ }).waitFor({ timeout: 120000 });
   console.log(`⏱ : ${Date.now() - t0} ms`);
 
   const prize = await page.locator("main").getByText(/slot \d+ of \d+/).first().textContent();

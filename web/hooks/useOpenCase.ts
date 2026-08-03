@@ -20,6 +20,7 @@ export type OpenPhase =
   | "signing"
   | "confirming"
   | "revealing"
+  | "landing"
   | "done"
   | "failed";
 
@@ -86,10 +87,13 @@ export function useOpenCase(onSettled?: () => void) {
       forgetPending();
       setState((s) => ({
         ...s,
-        phase: "done",
+        phase: "landing",
         value: revealed.value,
         waitedMs: Date.now() - startedWaiting,
       }));
+      await new Promise((r) => setTimeout(r, 2000));
+      if (ctl.signal.aborted) return;
+      setState((s) => ({ ...s, phase: "done" }));
       onSettled?.();
     },
     [onSettled],

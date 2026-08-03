@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Panel, DataRow } from "@/components/ui/Panel";
 import { Tessera } from "@/components/Tessera";
 import { Case } from "@/components/Case";
+import { Roll } from "@/components/Roll";
 import { PoolCounter } from "@/components/PoolCounter";
 import { ShardMeter } from "@/components/ShardMeter";
 import { useDeck } from "@/hooks/useDeck";
@@ -15,7 +16,7 @@ import { useOpenCase } from "@/hooks/useOpenCase";
 import { useInventory, useRefreshInventory, heldWeight, pickForRedeem } from "@/hooks/useInventory";
 import { useRedeem } from "@/hooks/useRedeem";
 import { usePool } from "@/hooks/usePool";
-import { specOf, slotsPerTier } from "@/lib/deck";
+import { specOf, slotsPerTier, weightOf } from "@/lib/deck";
 import { addressUrl, DECK_ADDRESS } from "@/lib/chain";
 
 export default function Home() {
@@ -45,7 +46,10 @@ export default function Home() {
         ? "waiting"
         : "idle";
 
-  const busy = ["approving", "signing", "confirming", "revealing"].includes(open.state.phase);
+  const busy = ["approving", "signing", "confirming", "revealing", "landing"].includes(
+    open.state.phase,
+  );
+  const rolling = open.state.phase === "revealing" || open.state.phase === "landing";
   const canOpen = isConnected && !deck.deckEmpty && deck.canAfford && !busy;
 
   return (
@@ -88,13 +92,24 @@ export default function Home() {
       <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr]">
         <Panel label="Open">
           <div className="flex flex-col items-center gap-7 py-4">
-            <Case
-              phase={casePhase}
-              value={open.state.value}
-              deck={shape}
-              size={300}
-              onClick={canOpen ? () => open.open({ needsApproval: deck.needsApproval }) : undefined}
-            />
+            {rolling ? (
+              <Roll
+                running
+                landedWeight={
+                  open.state.value != null ? weightOf(open.state.value, shape) : undefined
+                }
+                deck={shape}
+                pool={pool.data}
+              />
+            ) : (
+              <Case
+                phase={casePhase}
+                value={open.state.value}
+                deck={shape}
+                size={300}
+                onClick={canOpen ? () => open.open({ needsApproval: deck.needsApproval }) : undefined}
+              />
+            )}
 
             <div className="min-h-[4.5rem] text-center">
               <Status open={open.state} deck={shape} />
@@ -238,6 +253,8 @@ function Status({
       return <p className={dim}>Confirm in your wallet.</p>;
     case "confirming":
       return <p className={dim}>Buying your ticket and drawing a slot…</p>;
+    case "landing":
+      return <p className={dim}>&nbsp;</p>;
     case "revealing":
       return open.resumed ? (
         <p className={dim}>
