@@ -1,0 +1,206 @@
+@import "tailwindcss";
+
+/* ──────────────────────────────────────────────────────────────────────────
+
+
+   ────────────────────────────────────────────────────────────────────────── */
+
+@theme {
+  --color-grout: #0f0d0b;         /* , */
+  --color-basalt: #17141140;      /* ⌐ , */
+  --color-stone-900: #171411;
+  --color-stone-800: #1f1b17;
+  --color-stone-700: #2a2420;
+  --color-stone-600: #3a322c;
+  --color-stone-500: #4e443c;
+
+  --color-travertine: #e9e0d1;
+  --color-travertine-dim: #b3a996;
+  --color-travertine-faint: #7c7365;
+
+  --color-sinopia-400: #d9673d;
+  --color-sinopia-500: #c2542e;
+  --color-sinopia-600: #9d4224;
+  --color-sinopia-900: #3d1c11;
+
+  --color-ochre-300: #e3c473;
+  --color-ochre-400: #d9b25c;
+  --color-ochre-500: #c9a227;
+  --color-ochre-900: #3b3010;
+
+  --color-patina-400: #6f9e85;
+  --color-patina-500: #4e7a63;
+  --color-patina-900: #16261f;
+
+  --color-lapis-400: #3f76a0;
+  --color-lapis-500: #2f5a7a;
+  --color-lapis-900: #0f2231;
+
+  --font-display: var(--font-bodoni), "Times New Roman", serif;
+  --font-body: var(--font-newsreader), Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  --spacing-tile: 4.5rem;
+  --spacing-grout: 2px;
+
+  --ease-stone: cubic-bezier(0.16, 0.84, 0.28, 1);
+  --ease-settle: cubic-bezier(0.34, 1.3, 0.5, 1);
+}
+
+:root {
+  --grain-opacity: 0.055;
+  --edge: color-mix(in oklab, var(--color-travertine) 9%, transparent);
+  --edge-strong: color-mix(in oklab, var(--color-travertine) 18%, transparent);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@layer base {
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-grout);
+  color: var(--color-travertine);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+
+  background-image:
+    radial-gradient(
+      120rem 70rem at 12% -18%,
+      color-mix(in oklab, var(--color-sinopia-900) 55%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      90rem 60rem at 92% 8%,
+      color-mix(in oklab, var(--color-lapis-900) 60%, transparent),
+      transparent 58%
+    ),
+    linear-gradient(var(--edge) 1px, transparent 1px),
+    linear-gradient(90deg, var(--edge) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, var(--spacing-tile) var(--spacing-tile),
+    var(--spacing-tile) var(--spacing-tile);
+  background-attachment: fixed;
+}
+
+}
+
+@layer components {
+
+
+.t-inscription {
+  font-family: var(--font-display);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  line-height: 1.15;
+}
+
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+}
+
+.t-chain {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.t-label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--color-travertine-faint);
+}
+
+
+.surface {
+  background: linear-gradient(
+    160deg,
+    var(--color-stone-800),
+    var(--color-stone-900) 60%
+  );
+  border: 1px solid var(--edge);
+  box-shadow:
+    inset 0 1px 0 var(--edge),
+    0 1px 0 rgb(0 0 0 / 0.5),
+    0 1.5rem 3rem -1.5rem rgb(0 0 0 / 0.8);
+}
+
+
+.tessera {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: linear-gradient(
+    155deg,
+    color-mix(in oklab, var(--tile-tint, var(--color-stone-600)) 78%, white 6%),
+    var(--tile-tint, var(--color-stone-700))
+  );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    inset 0 -1px 0 rgb(0 0 0 / 0.45),
+    0 2px 3px rgb(0 0 0 / 0.5);
+}
+
+.tessera--sealed {
+  --tile-tint: var(--color-lapis-900);
+  animation: seal-breathe 3.4s var(--ease-stone) infinite;
+}
+
+@keyframes seal-breathe {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.1),
+      inset 0 0 0 1px color-mix(in oklab, var(--color-lapis-400) 22%, transparent),
+      0 2px 3px rgb(0 0 0 / 0.5);
+  }
+  50% {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.14),
+      inset 0 0 0 1px color-mix(in oklab, var(--color-lapis-400) 55%, transparent),
+      0 2px 12px color-mix(in oklab, var(--color-lapis-500) 30%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tessera--sealed {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+}
+
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-ochre-400);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--color-sinopia-600);
+  color: var(--color-travertine);
+}

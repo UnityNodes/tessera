@@ -1,0 +1,151 @@
+- generic [active] [ref=f2e1]:
+  - main [ref=f2e2]:
+    - generic [ref=f2e3]:
+      - paragraph [ref=f2e4]: Tessera · design system
+      - heading "A floor that keeps its own secret" [level=1] [ref=f2e5]: A floor that keepsits own secret
+      - paragraph [ref=f2e6]: "Every surface here behaves like stone set in grout: it has thickness, it catches light from one direction, and it sinks when pressed. Nothing glows for its own sake."
+    - generic [ref=f2e7]:
+      - generic [ref=f2e8]:
+        - generic [ref=f2e9]: "01"
+        - heading "Pigments" [level=2] [ref=f2e10]
+      - paragraph [ref=f2e11]:
+        - text: Taken from real Roman pigments rather than picked for prettiness. Lapis was the costliest colour in the empire, which is why it means
+        - emphasis [ref=f2e12]: paid for, not yet seen
+        - text: .
+      - generic [ref=f2e13]:
+        - generic [ref=f2e16]:
+          - generic [ref=f2e17]: Grout
+          - text: ground
+        - generic [ref=f2e20]:
+          - generic [ref=f2e21]: Stone
+          - text: surface
+        - generic [ref=f2e24]:
+          - generic [ref=f2e25]: Travertine
+          - text: text
+        - generic [ref=f2e28]:
+          - generic [ref=f2e29]: Sinopia
+          - text: action
+        - generic [ref=f2e32]:
+          - generic [ref=f2e33]: Ochre
+          - text: shards, rarity
+        - generic [ref=f2e36]:
+          - generic [ref=f2e37]: Verdigris
+          - text: confirmed
+        - generic [ref=f2e40]:
+          - generic [ref=f2e41]: Lapis
+          - text: sealed
+    - generic [ref=f2e42]:
+      - generic [ref=f2e43]:
+        - generic [ref=f2e44]: "02"
+        - heading "Voice" [level=2] [ref=f2e45]
+      - generic [ref=f2e46]:
+        - generic [ref=f2e47]:
+          - generic [ref=f2e48]: Inscription · Bodoni Moda
+          - paragraph [ref=f2e49]: Open the case
+        - generic [ref=f2e50]:
+          - generic [ref=f2e51]: Body · Newsreader
+          - paragraph [ref=f2e52]: The pool is drawn without replacement, so the counter saying three legendaries remain out of four hundred is a fact you can check, not a claim you have to trust.
+        - generic [ref=f2e53]:
+          - generic [ref=f2e54]: On chain · IBM Plex Mono
+          - paragraph [ref=f2e55]: 0x790bA6ACA3d0e5b0320faaf15d12b9e6C8D98311 · 282 604 gas · 8.4 s
+    - generic [ref=f2e56]:
+      - generic [ref=f2e57]:
+        - generic [ref=f2e58]: "03"
+        - heading "The tile" [level=2] [ref=f2e59]
+      - paragraph [ref=f2e60]: "One component carries the whole game. Sealed, it breathes lapis. While the covalidators work it takes a slow sweep, six to eight seconds we do not control, so the motion must not look impatient. Revealed, it turns over: it was always there, just face down."
+      - generic [ref=f2e61]:
+        - generic [ref=f2e62]:
+          - generic [ref=f2e63]:
+            - button "Sealed slot, contents not yet revealed" [disabled] [ref=f2e65]
+            - generic [ref=f2e69]: sealed
+          - generic [ref=f2e70]:
+            - button "Sealed slot, contents not yet revealed" [disabled] [ref=f2e72]
+            - generic [ref=f2e78]: waiting
+          - generic [ref=f2e79]:
+            - button "Shard, slot value 12" [disabled] [ref=f2e81]:
+              - generic [ref=f2e82]: "12"
+            - generic [ref=f2e85]: revealed
+        - generic [ref=f2e86]:
+          - button "Sealed slot, contents not yet revealed" [disabled] [ref=f2e87]:
+            - generic [ref=f2e88]: "17"
+          - button "Next state" [ref=f2e92]
+      - generic [ref=f2e93]:
+        - generic [ref=f2e94]:
+          - generic [ref=f2e95]: "7"
+          - generic [ref=f2e98]: Shard
+          - generic [ref=f2e99]: Five of these buy another real ticket
+        - generic [ref=f2e100]:
+          - generic [ref=f2e101]: "44"
+          - generic [ref=f2e104]: Lapis
+          - generic [ref=f2e105]: The costliest pigment in the empire
+        - generic [ref=f2e106]:
+          - generic [ref=f2e107]: "58"
+          - generic [ref=f2e110]: Verdigris
+          - generic [ref=f2e111]: Bronze that has met the weather
+        - generic [ref=f2e112]:
+          - generic [ref=f2e113]: "76"
+          - generic [ref=f2e116]: Sinopia
+          - generic [ref=f2e117]: Red earth from Sinope
+        - generic [ref=f2e118]:
+          - generic [ref=f2e119]: "93"
+          - generic [ref=f2e122]: Grout
+          - generic [ref=f2e123]: What holds the floor together
+    - generic [ref=f2e124]:
+      - generic [ref=f2e125]:
+        - generic [ref=f2e126]: "04"
+        - heading "Actions" [level=2] [ref=f2e127]
+      - generic [ref=f2e128]:
+        - button "Open a case · $1" [ref=f2e129]
+        - button "Redeem shards" [ref=f2e130]
+        - button "View on Basescan" [ref=f2e131]
+        - button "Deck empty" [disabled] [ref=f2e132]
+    - generic [ref=f2e133]:
+      - generic [ref=f2e134]:
+        - generic [ref=f2e135]: "05"
+        - heading "Counters" [level=2] [ref=f2e136]
+      - generic [ref=f2e137]:
+        - generic [ref=f2e138]:
+          - generic [ref=f2e139]: Verifiable, not promised
+          - generic [ref=f2e141]:
+            - generic [ref=f2e142]:
+              - generic [ref=f2e143]: Season pool
+              - generic [ref=f2e144]: 87 of 100 unopened
+            - img "87 of 100 slots still sealed, 40 of them shards" [ref=f2e145]
+            - generic [ref=f2e246]:
+              - generic [ref=f2e247]: 40 shard slots
+              - generic [ref=f2e250]: cosmetic
+              - generic [ref=f2e253]: 13 opened
+        - generic [ref=f2e256]:
+          - generic [ref=f2e257]: Inventory
+          - generic [ref=f2e258]:
+            - generic [ref=f2e259]:
+              - generic [ref=f2e260]:
+                - generic [ref=f2e261]: Shards
+                - generic [ref=f2e262]: 3 held
+              - paragraph [ref=f2e269]: 2 more shards and the game buys you another real ticket.
+            - generic [ref=f2e270]:
+              - button "−" [ref=f2e271]
+              - button "+" [ref=f2e272]
+    - generic [ref=f2e273]:
+      - generic [ref=f2e274]:
+        - generic [ref=f2e275]: "06"
+        - heading "Chain facts" [level=2] [ref=f2e276]
+      - generic [ref=f2e277]:
+        - generic [ref=f2e278]: Base Sepolia · live
+        - generic [ref=f2e279]:
+          - generic [ref=f2e280]:
+            - generic [ref=f2e281]: deck
+            - generic [ref=f2e283]: 0x790b…8311
+          - generic [ref=f2e284]:
+            - generic [ref=f2e285]: click to prize
+            - generic [ref=f2e287]: 8.4 s
+          - generic [ref=f2e288]:
+            - generic [ref=f2e289]: gas per open
+            - generic [ref=f2e291]: 282 604
+          - generic [ref=f2e292]:
+            - generic [ref=f2e293]: referral per $1
+            - generic [ref=f2e295]: $0.10
+          - generic [ref=f2e296]:
+            - generic [ref=f2e297]: inco fee per open
+            - generic [ref=f2e299]: "0"
+  - alert [ref=f2e300]

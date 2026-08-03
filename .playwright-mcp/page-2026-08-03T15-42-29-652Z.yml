@@ -1,0 +1,3 @@
+- generic [ref=e1]:
+  - button "SDK…" [active] [ref=e4]
+  - alert [ref=e3]
