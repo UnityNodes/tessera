@@ -17,6 +17,11 @@ export const RPC_URL =
 
 export const EXPLORER = "https://sepolia.basescan.org";
 
+/**
+ *
+ */
+export const DECK_FROM_BLOCK = BigInt(process.env.NEXT_PUBLIC_DECK_FROM_BLOCK ?? "45005600");
+
 export const txUrl = (hash: string) => `${EXPLORER}/tx/${hash}`;
 export const addressUrl = (a: string) => `${EXPLORER}/address/${a}`;
 

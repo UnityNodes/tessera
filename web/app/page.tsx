@@ -16,6 +16,8 @@ import { useOpenCase } from "@/hooks/useOpenCase";
 import { useInventory, useRefreshInventory, heldWeight, pickForRedeem } from "@/hooks/useInventory";
 import { useRedeem } from "@/hooks/useRedeem";
 import { usePool } from "@/hooks/usePool";
+import { useFeed } from "@/hooks/useFeed";
+import { Feed } from "@/components/Feed";
 import { specOf, slotsPerTier, weightOf } from "@/lib/deck";
 import { addressUrl, DECK_ADDRESS } from "@/lib/chain";
 
@@ -28,6 +30,7 @@ export default function Home() {
   const inventory = useInventory(shape);
   const refreshInventory = useRefreshInventory();
   const pool = usePool(shape, deck.drawn);
+  const feed = useFeed(shape);
 
   const refresh = useCallback(async () => {
     await Promise.all([deck.refetch(), refreshInventory(), pool.refetch()]);
@@ -154,7 +157,11 @@ export default function Home() {
 
         <div className="flex flex-col gap-6">
           <Panel label="Verifiable, not promised">
-            <PoolCounter pool={pool.data} />
+            <PoolCounter deck={shape} drawn={deck.drawn} pool={pool.data} />
+          </Panel>
+
+          <Panel label="Live from the same deck">
+            <Feed items={feed} />
           </Panel>
 
           <Panel label="Your inventory">

@@ -1,19 +1,9 @@
 "use client";
 
-import { useConfig } from "wagmi";
-import { getPublicClient } from "wagmi/actions";
 import { useQuery } from "@tanstack/react-query";
-import { parseAbiItem } from "viem";
-import { DECK_ADDRESS } from "@/lib/chain";
 import { revealHandles } from "@/lib/inco";
 import { weightOf, slotsPerTier, type DeckShape } from "@/lib/deck";
-
-const DECK_CREATED = parseAbiItem(
-  "event DeckCreated(uint32 indexed season, uint16 size, uint16 shardSlots, uint256 feePaid)",
-);
-const CASE_OPENED = parseAbiItem(
-  "event CaseOpened(address indexed player, uint16 index, bytes32 handle, uint256 paid)",
-);
+import { useOpens } from "./useOpens";
 
 export interface PoolTier {
   spec: ReturnType<typeof slotsPerTier>[number]["spec"];
@@ -37,35 +27,14 @@ export interface PoolState {
  *
  */
 export function usePool(deck: DeckShape, drawn: number) {
-  const config = useConfig();
+  const opens = useOpens();
+  const handles = (opens.data ?? []).map((o) => o.handle);
 
   return useQuery({
-    queryKey: ["pool", deck.size, drawn, deck.tiers.length],
+    queryKey: ["pool", deck.size, drawn, deck.tiers.length, handles.length],
     enabled: deck.size > 0 && deck.tiers.length > 0,
     staleTime: 20_000,
     queryFn: async (): Promise<PoolState> => {
-      const client = getPublicClient(config);
-      if (!client) throw new Error("no client");
-
-      const decks = await client.getLogs({
-        address: DECK_ADDRESS,
-        event: DECK_CREATED,
-        fromBlock: "earliest",
-        toBlock: "latest",
-      });
-      const fromBlock = decks.length ? decks[decks.length - 1].blockNumber! : 0n;
-
-      const opens = await client.getLogs({
-        address: DECK_ADDRESS,
-        event: CASE_OPENED,
-        fromBlock,
-        toBlock: "latest",
-      });
-
-      const handles = opens
-        .map((l) => l.args.handle)
-        .filter((h): h is `0x${string}` => Boolean(h));
-
       const revealed = await revealHandles(handles, { priority: "background" }).catch(() => []);
 
       const drawnByWeight = new Map<number, number>();

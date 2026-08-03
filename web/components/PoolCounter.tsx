@@ -1,28 +1,36 @@
 "use client";
 
 import { motion } from "motion/react";
+import { slotsPerTier, type DeckShape } from "@/lib/deck";
 import type { PoolState } from "@/hooks/usePool";
 
 /**
  *
  *
  */
-export function PoolCounter({ pool }: { pool?: PoolState }) {
-  if (!pool) {
-    return <p className="t-label">counting the pool…</p>;
-  }
+export function PoolCounter({ deck, drawn, pool }: { deck: DeckShape; drawn: number; pool?: PoolState }) {
+  const counting = !pool;
+  const tiers =
+    pool?.tiers ??
+    slotsPerTier(deck)
+      .filter((t) => t.weight > 0)
+      .map((t) => ({ spec: t.spec, weight: t.weight, total: t.count, left: t.count }));
+  const remaining = pool?.remaining ?? Math.max(0, deck.size - drawn);
+  const size = pool?.size ?? deck.size;
+  const prizesLeft = tiers.reduce((n, t) => n + t.left, 0);
+  const oddsNext = remaining > 0 ? prizesLeft / remaining : 0;
 
   return (
     <div>
       <div className="mb-5 flex items-baseline justify-between gap-4">
         <span className="t-label">still in the pool</span>
         <span className="t-chain text-[0.8125rem] text-[var(--color-travertine-dim)]">
-          {pool.remaining} of {pool.size} unopened
+          {remaining} of {size} unopened
         </span>
       </div>
 
       <div className="space-y-3">
-        {pool.tiers.map((t) => (
+        {tiers.map((t) => (
           <div key={t.weight} className="flex items-center gap-3">
             <span
               className="h-7 w-1.5 shrink-0 rounded-full"
@@ -55,20 +63,26 @@ export function PoolCounter({ pool }: { pool?: PoolState }) {
       </div>
 
       <p className="mt-5 border-t border-[var(--edge)] pt-4 text-[0.9375rem] text-[var(--color-travertine-dim)]">
-        {pool.prizesLeft === 0 ? (
+        {counting ? (
+          <>
+            Counting what is still in the pool. Every opened slot is publicly
+            revealed, so this is arithmetic anyone can repeat, it just takes a
+            moment to fetch.
+          </>
+        ) : prizesLeft === 0 ? (
           <>Every prize in this season has been drawn. What is left is grout.</>
         ) : (
           <>
             <span className="t-chain text-[var(--color-travertine)]">
-              {(pool.oddsNext * 100).toFixed(1)}%
+              {(oddsNext * 100).toFixed(1)}%
             </span>{" "}
             of the unopened slots still carry something. Nobody set that number, it
-            is what remains after {pool.drawn} opens.
+            is what remains after {pool!.drawn} opens.
           </>
         )}
-        {pool.unknown > 0 && (
+        {!counting && pool!.unknown > 0 && (
           <span className="block mt-1 text-[var(--color-travertine-faint)]">
-            {pool.unknown} opened slots not yet decrypted, so the count may still move.
+            {pool!.unknown} opened slots not yet decrypted, so the count may still move.
           </span>
         )}
       </p>
