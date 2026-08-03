@@ -74,5 +74,5 @@ export function tierOf(value: number, deck: DeckShape): TierSpec {
 export const SHARDS_PER_TICKET = 5;
 
 export function shardsToNextTicket(held: number): number {
-  return (SHARDS_PER_TICKET - (held % SHARDS_PER_TICKET)) % SHARDS_PER_TICKET;
+  return SHARDS_PER_TICKET - (held % SHARDS_PER_TICKET);
 }
