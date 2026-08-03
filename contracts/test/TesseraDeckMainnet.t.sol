@@ -37,8 +37,12 @@ contract TesseraDeckMainnetForkTest is Test {
         vm.prank(owner);
         deck = new TesseraDeck(adapter);
         uint256 fee = deck.deckFee(20);
+        uint16[] memory upTo = new uint16[](1);
+        uint16[] memory weight = new uint16[](1);
+        upTo[0] = 3;
+        weight[0] = 1;
         vm.prank(owner);
-        deck.createDeck{value: fee}(20, 8);
+        deck.createDeck{value: fee}(20, upTo, weight);
     }
 
     function test_openCase_onNewMainnetJackpot() public {

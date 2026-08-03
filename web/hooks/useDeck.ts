@@ -19,7 +19,7 @@ export function useDeck() {
     contracts: [
       { ...deck, functionName: "size" },
       { ...deck, functionName: "drawn" },
-      { ...deck, functionName: "shardSlots" },
+      { ...deck, functionName: "season" },
       { ...deck, functionName: "treasury" },
       { ...deck, functionName: "feesClaimable" },
       { ...deck, functionName: "adapter" },
@@ -28,6 +28,15 @@ export function useDeck() {
   });
 
   const adapter = chain.data?.[5]?.result as `0x${string}` | undefined;
+  const season = Number((chain.data?.[2]?.result as number | undefined) ?? 0);
+
+  const tierTable = useReadContract({
+    address: DECK_ADDRESS,
+    abi: TESSERA_DECK_ABI,
+    functionName: "tiers",
+    args: [season],
+    query: { enabled: season > 0, staleTime: Infinity },
+  });
 
   const price = useReadContract({
     address: adapter,
@@ -63,7 +72,10 @@ export function useDeck() {
     size,
     drawn,
     remaining: size - drawn,
-    shardSlots: asNumber(2),
+    season,
+    tiers: ((tierTable.data as readonly { upTo: number; weight: number }[] | undefined) ?? []).map(
+      (t) => ({ upTo: Number(t.upTo), weight: Number(t.weight) }),
+    ),
     treasury: asBig(3),
     feesClaimable: asBig(4),
     adapter,
@@ -81,7 +93,7 @@ export function useDeck() {
 
     isLoading: chain.isLoading || (Boolean(address) && player.isLoading),
     refetch: async () => {
-      await Promise.all([chain.refetch(), player.refetch(), price.refetch()]);
+      await Promise.all([chain.refetch(), player.refetch(), price.refetch(), tierTable.refetch()]);
     },
   };
 }

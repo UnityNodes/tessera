@@ -1,7 +1,7 @@
 export const TESSERA_DECK_ABI = [
   {
     "type": "function",
-    "name": "SHARDS_PER_TICKET",
+    "name": "WEIGHT_PER_TICKET",
     "inputs": [],
     "outputs": [
       {
@@ -54,9 +54,14 @@ export const TESSERA_DECK_ABI = [
         "internalType": "uint16"
       },
       {
-        "name": "shards",
-        "type": "uint16",
-        "internalType": "uint16"
+        "name": "upTo",
+        "type": "uint16[]",
+        "internalType": "uint16[]"
+      },
+      {
+        "name": "weight",
+        "type": "uint16[]",
+        "internalType": "uint16[]"
       }
     ],
     "outputs": [],
@@ -127,25 +132,6 @@ export const TESSERA_DECK_ABI = [
         "name": "",
         "type": "bytes32",
         "internalType": "bytes32"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "isShardValue",
-    "inputs": [
-      {
-        "name": "value",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool",
-        "internalType": "bool"
       }
     ],
     "stateMutability": "view"
@@ -235,6 +221,11 @@ export const TESSERA_DECK_ABI = [
     ],
     "outputs": [
       {
+        "name": "tickets",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
         "name": "paid",
         "type": "uint256",
         "internalType": "uint256"
@@ -277,62 +268,6 @@ export const TESSERA_DECK_ABI = [
         "name": "",
         "type": "uint32",
         "internalType": "uint32"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "shardMaxFor",
-    "inputs": [
-      {
-        "name": "player",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "i",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint16",
-        "internalType": "uint16"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "shardSlots",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint16",
-        "internalType": "uint16"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "shardSlotsOfSeason",
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint32",
-        "internalType": "uint32"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint16",
-        "internalType": "uint16"
       }
     ],
     "stateMutability": "view"
@@ -421,6 +356,37 @@ export const TESSERA_DECK_ABI = [
   },
   {
     "type": "function",
+    "name": "tiers",
+    "inputs": [
+      {
+        "name": "forSeason",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple[]",
+        "internalType": "struct TesseraDeck.Tier[]",
+        "components": [
+          {
+            "name": "upTo",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "weight",
+            "type": "uint16",
+            "internalType": "uint16"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "transferOwnership",
     "inputs": [
       {
@@ -441,6 +407,78 @@ export const TESSERA_DECK_ABI = [
         "name": "",
         "type": "uint256",
         "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "weightNow",
+    "inputs": [
+      {
+        "name": "value",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "weightOf",
+    "inputs": [
+      {
+        "name": "forSeason",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "value",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "weightOfSlot",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "i",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "value",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint16",
+        "internalType": "uint16"
       }
     ],
     "stateMutability": "view"
@@ -493,7 +531,7 @@ export const TESSERA_DECK_ABI = [
         "internalType": "uint16"
       },
       {
-        "name": "shardSlots",
+        "name": "totalWeight",
         "type": "uint16",
         "indexed": false,
         "internalType": "uint16"
@@ -556,6 +594,18 @@ export const TESSERA_DECK_ABI = [
         "internalType": "bytes32[]"
       },
       {
+        "name": "weight",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "tickets",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
         "name": "paid",
         "type": "uint256",
         "indexed": false,
@@ -596,6 +646,11 @@ export const TESSERA_DECK_ABI = [
   },
   {
     "type": "error",
+    "name": "BadTierTable",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "ClaimFailed",
     "inputs": [
       {
@@ -617,15 +672,15 @@ export const TESSERA_DECK_ABI = [
   },
   {
     "type": "error",
-    "name": "NotAShard",
+    "name": "NotEnoughWeight",
     "inputs": [
       {
-        "name": "handle",
-        "type": "bytes32",
-        "internalType": "bytes32"
+        "name": "weight",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        "name": "value",
+        "name": "need",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -696,7 +751,18 @@ export const TESSERA_DECK_ABI = [
   },
   {
     "type": "error",
-    "name": "WrongShardCount",
-    "inputs": []
+    "name": "WorthlessSlot",
+    "inputs": [
+      {
+        "name": "handle",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "value",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
   }
 ] as const;

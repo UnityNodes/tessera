@@ -414,7 +414,7 @@ TesseraDeck ──$1──> MegapotAdapter ──purchaseTickets/buyTickets─�
 ### ✅ Base Sepolia (3 , )
 
 ```
-TesseraDeck           0x55FbDFA462e44955F715aF98A60e4ec4B6e71EEe
+TesseraDeck           0xaD0E81de4A9aA1F86C5CD68e54fd3997a62b7BeD
 MegapotLegacyAdapter  0xcEFd98581bb131a505e9De53d7f9b191fe94E074
 100 , 40
 ```

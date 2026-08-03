@@ -174,15 +174,15 @@ async function ensureConnected(page) {
     await back.close();
   }
 
-  const redeem = page.getByRole("button", { name: /Redeem five shards/ });
+  const redeem = page.getByRole("button", { name: /Claim real tickets/ });
   if (await redeem.count()) {
     console.log("▶ ");
     await redeem.click();
-    await page.getByText(/bought you another real ticket/).waitFor({ timeout: 90000 });
+    await page.getByText(/bought you \d+ more real ticket/).waitFor({ timeout: 90000 });
     console.log("✓ ");
     await shot(page, "e2e-redeemed");
   } else {
-    const held = await page.getByText(/more shards and the game/).textContent();
+    const held = await page.getByText(/more weight and the game/).textContent();
     console.log(`  ${held.trim()}`);
   }
 

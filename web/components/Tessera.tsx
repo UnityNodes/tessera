@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { tierOf, type DeckShape } from "@/lib/deck";
+import { specOf, type DeckShape } from "@/lib/deck";
 
 export type TileState = "sealed" | "waiting" | "revealed";
 
@@ -20,7 +20,7 @@ interface Props {
  *
  */
 export function Tessera({ state, value, deck, size = 72, delay = 0, onClick }: Props) {
-  const spec = state === "revealed" && value != null ? tierOf(value, deck) : null;
+  const spec = state === "revealed" && value != null ? specOf(value, deck) : null;
 
   return (
     <motion.button

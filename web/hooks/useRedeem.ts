@@ -5,7 +5,7 @@ import { useAccount, useConfig } from "wagmi";
 import { simulateContract, writeContract, waitForTransactionReceipt } from "wagmi/actions";
 import { TESSERA_DECK_ABI } from "@/lib/abi";
 import { DECK_ADDRESS, txUrl } from "@/lib/chain";
-import { SHARDS_PER_TICKET } from "@/lib/deck";
+
 import { explain, type Explained } from "@/lib/errors";
 import type { Slot } from "./useInventory";
 
@@ -16,6 +16,7 @@ export interface RedeemState {
   txHash?: `0x${string}`;
   txUrl?: string;
   burned?: number[];
+  tickets?: number;
   error?: Explained;
 }
 
@@ -33,8 +34,8 @@ export function useRedeem(onSettled?: () => void) {
   const redeem = useCallback(
     async (shards: Slot[]) => {
       if (!address) return;
-      const five = shards.slice(0, SHARDS_PER_TICKET);
-      if (five.length < SHARDS_PER_TICKET) return;
+      const five = shards;
+      if (five.length === 0) return;
 
       try {
         setState({ phase: "signing" });
@@ -57,11 +58,13 @@ export function useRedeem(onSettled?: () => void) {
         const receipt = await waitForTransactionReceipt(config, { hash });
         if (receipt.status !== "success") throw new Error("The transaction reverted on chain");
 
+        const [tickets] = (sim.result as readonly [bigint, bigint]) ?? [0n];
         setState({
           phase: "done",
           txHash: hash,
           txUrl: txUrl(hash),
           burned: five.map((s) => s.index),
+          tickets: Number(tickets),
         });
         onSettled?.();
       } catch (err) {

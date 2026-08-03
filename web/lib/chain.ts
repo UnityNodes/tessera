@@ -6,7 +6,7 @@ import { parseAbi } from "viem";
 export const CHAIN = baseSepolia;
 
 export const DECK_ADDRESS = (process.env.NEXT_PUBLIC_DECK_ADDRESS ??
-  "0x55FbDFA462e44955F715aF98A60e4ec4B6e71EEe") as `0x${string}`;
+  "0xaD0E81de4A9aA1F86C5CD68e54fd3997a62b7BeD") as `0x${string}`;
 
 export const TICKET_TOKEN = "0xA4253E7C13525287C56550b8708100f93E60509f" as const;
 

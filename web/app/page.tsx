@@ -12,33 +12,31 @@ import { PoolCounter } from "@/components/PoolCounter";
 import { ShardMeter } from "@/components/ShardMeter";
 import { useDeck } from "@/hooks/useDeck";
 import { useOpenCase } from "@/hooks/useOpenCase";
-import { useInventory, useRefreshInventory, spendableShards } from "@/hooks/useInventory";
+import { useInventory, useRefreshInventory, heldWeight, pickForRedeem } from "@/hooks/useInventory";
 import { useRedeem } from "@/hooks/useRedeem";
-import { tierOf, SHARDS_PER_TICKET } from "@/lib/deck";
+import { usePool } from "@/hooks/usePool";
+import { specOf, slotsPerTier } from "@/lib/deck";
 import { addressUrl, DECK_ADDRESS } from "@/lib/chain";
 
-/**
- *
- */
 export default function Home() {
   const { isConnected } = useAccount();
   const deck = useDeck();
 
-  const inventory = useInventory(deck.shardSlots);
+  const shape = useMemo(() => ({ size: deck.size, tiers: deck.tiers }), [deck.size, deck.tiers]);
+
+  const inventory = useInventory(shape);
   const refreshInventory = useRefreshInventory();
+  const pool = usePool(shape, deck.drawn);
+
   const refresh = useCallback(async () => {
-    await Promise.all([deck.refetch(), refreshInventory()]);
-  }, [deck, refreshInventory]);
+    await Promise.all([deck.refetch(), refreshInventory(), pool.refetch()]);
+  }, [deck, refreshInventory, pool]);
+
   const open = useOpenCase(refresh);
   const redeem = useRedeem(refresh);
 
-  const shape = useMemo(
-    () => ({ size: deck.size, shardSlots: deck.shardSlots }),
-    [deck.size, deck.shardSlots],
-  );
-
-  const shards = spendableShards(inventory.data);
-  const canRedeem = shards.length >= SHARDS_PER_TICKET;
+  const weight = heldWeight(inventory.data);
+  const toRedeem = pickForRedeem(inventory.data);
 
   const casePhase =
     open.state.phase === "done"
@@ -48,13 +46,14 @@ export default function Home() {
         : "idle";
 
   const busy = ["approving", "signing", "confirming", "revealing"].includes(open.state.phase);
+  const canOpen = isConnected && !deck.deckEmpty && deck.canAfford && !busy;
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-6 py-16 md:py-24">
-      <header className="mb-16 flex flex-wrap items-start justify-between gap-6">
+    <main className="mx-auto w-full max-w-5xl px-6 py-12 md:py-20">
+      <header className="mb-10 flex flex-wrap items-start justify-between gap-6">
         <div>
-          <p className="t-label mb-4">Tessera · Base Sepolia</p>
-          <h1 className="t-display text-[clamp(2.25rem,6vw,3.75rem)]">
+          <p className="t-label mb-4">Tessera · Base Sepolia · season {deck.season}</p>
+          <h1 className="t-display text-[clamp(2rem,5.5vw,3.5rem)]">
             One dollar buys a real
             <br />
             lottery ticket.{" "}
@@ -64,19 +63,37 @@ export default function Home() {
         <ConnectBar onMinted={refresh} />
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
+      <div className="mb-8 flex flex-wrap gap-3">
+        {slotsPerTier(shape).map((t) => (
+          <div key={t.weight} className="surface flex items-center gap-3 rounded-[3px] px-4 py-3">
+            <span
+              className="h-8 w-8 shrink-0 rounded-[2px]"
+              style={{
+                background: t.spec.tint,
+                boxShadow: "inset 0 0 0 1px var(--edge-strong), inset 0 1px 0 rgb(255 255 255/0.1)",
+              }}
+            />
+            <span>
+              <span className="t-inscription block text-[0.6875rem]" style={{ color: t.spec.ink }}>
+                {t.count}× {t.spec.name}
+              </span>
+              <span className="block text-[0.8125rem] text-[var(--color-travertine-faint)]">
+                {t.spec.note}
+              </span>
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr]">
         <Panel label="Open">
-          <div className="flex flex-col items-center gap-8 py-6">
+          <div className="flex flex-col items-center gap-7 py-4">
             <Case
               phase={casePhase}
               value={open.state.value}
               deck={shape}
-              size={280}
-              onClick={
-                isConnected && !deck.deckEmpty && deck.canAfford && !busy
-                  ? () => open.open({ needsApproval: deck.needsApproval })
-                  : undefined
-              }
+              size={300}
+              onClick={canOpen ? () => open.open({ needsApproval: deck.needsApproval }) : undefined}
             />
 
             <div className="min-h-[4.5rem] text-center">
@@ -96,7 +113,7 @@ export default function Home() {
                 You need $1 in test dollars. Mint some above, they are free.
               </p>
             ) : open.state.phase === "done" || open.state.phase === "failed" ? (
-              <Button onClick={open.reset}>Open another</Button>
+              <Button onClick={open.reset}>Open another · $1</Button>
             ) : (
               <Button
                 block
@@ -122,31 +139,32 @@ export default function Home() {
 
         <div className="flex flex-col gap-6">
           <Panel label="Verifiable, not promised">
-            <PoolCounter size={deck.size} drawn={deck.drawn} shardSlots={deck.shardSlots} />
+            <PoolCounter pool={pool.data} />
           </Panel>
 
           <Panel label="Your inventory">
-            <ShardMeter held={shards.length} />
+            <ShardMeter weight={weight} />
 
-            {canRedeem && (
+            {toRedeem.length > 0 && (
               <Button
                 block
                 className="mt-6"
                 variant="quiet"
                 disabled={redeem.state.phase === "signing" || redeem.state.phase === "confirming"}
-                onClick={() => redeem.redeem(shards)}
+                onClick={() => redeem.redeem(toRedeem)}
               >
                 {redeem.state.phase === "signing"
                   ? "Confirm in wallet…"
                   : redeem.state.phase === "confirming"
-                    ? "Redeeming…"
-                    : "Redeem five shards"}
+                    ? "Claiming…"
+                    : "Claim real tickets"}
               </Button>
             )}
 
             {redeem.state.phase === "done" && (
               <p className="mt-4 text-[0.9375rem] text-[var(--color-patina-400)]">
-                Redeemed. The game bought you another real ticket.
+                Claimed. The game bought you {redeem.state.tickets ?? 1} more real ticket
+                {(redeem.state.tickets ?? 1) > 1 ? "s" : ""}.
               </p>
             )}
             {redeem.state.error && (
@@ -183,12 +201,12 @@ export default function Home() {
             ))}
           </div>
           <p className="mt-5 text-[0.9375rem] text-[var(--color-travertine-dim)]">
-            Dimmed tiles are shards already spent on a ticket.
+            Dimmed tiles are already claimed.
           </p>
         </Panel>
       )}
 
-      <footer className="mt-16 border-t border-[var(--edge)] pt-8">
+      <footer className="mt-14 border-t border-[var(--edge)] pt-8">
         <a
           href={addressUrl(DECK_ADDRESS)}
           target="_blank"
@@ -209,7 +227,7 @@ function Status({
   deck,
 }: {
   open: ReturnType<typeof useOpenCase>["state"];
-  deck: { size: number; shardSlots: number };
+  deck: { size: number; tiers: { upTo: number; weight: number }[] };
 }) {
   const dim = "text-[0.9375rem] text-[var(--color-travertine-dim)]";
 
@@ -223,17 +241,17 @@ function Status({
     case "revealing":
       return open.resumed ? (
         <p className={dim}>
-          Welcome back. You opened this case before you left, it was drawn and paid
-          for then, and it is still yours. Fetching what is inside.
+          Welcome back. You opened this case before you left, it was drawn and paid for
+          then, and it is still yours. Fetching what is inside.
         </p>
       ) : (
         <p className={dim}>
-          Your slot is drawn and paid for. The covalidators are decrypting it, this
-          takes a few seconds and we do not control it.
+          Your slot is drawn and paid for. The covalidators are decrypting it, this takes
+          a few seconds and we do not control it.
         </p>
       );
     case "done": {
-      const spec = tierOf(open.value!, deck);
+      const spec = specOf(open.value!, deck);
       return (
         <div>
           <p className="t-inscription text-lg" style={{ color: spec.ink }}>
@@ -259,8 +277,8 @@ function Status({
     default:
       return (
         <p className={dim}>
-          A real Megapot ticket, and one slot from an encrypted pool that was sealed
-          before anyone opened anything.
+          A real Megapot ticket, and one slot from an encrypted pool that was sealed before
+          anyone opened anything.
         </p>
       );
   }

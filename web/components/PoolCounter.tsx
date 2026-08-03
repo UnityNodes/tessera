@@ -1,78 +1,77 @@
 "use client";
 
 import { motion } from "motion/react";
-
-interface Props {
-  size: number;
-  drawn: number;
-  shardSlots: number;
-}
+import type { PoolState } from "@/hooks/usePool";
 
 /**
  *
+ *
  */
-export function PoolCounter({ size, drawn, shardSlots }: Props) {
-  const remaining = size - drawn;
-  const marks = Math.min(size, 100);
-  const scale = size / marks;
-  const drawnMarks = Math.round(drawn / scale);
-  const shardMarks = Math.round(shardSlots / scale);
+export function PoolCounter({ pool }: { pool?: PoolState }) {
+  if (!pool) {
+    return <p className="t-label">counting the pool…</p>;
+  }
 
   return (
     <div>
-      <div className="flex items-baseline justify-between gap-4 mb-4">
-        <span className="t-label">Season pool</span>
+      <div className="mb-5 flex items-baseline justify-between gap-4">
+        <span className="t-label">still in the pool</span>
         <span className="t-chain text-[0.8125rem] text-[var(--color-travertine-dim)]">
-          {remaining} of {size} unopened
+          {pool.remaining} of {pool.size} unopened
         </span>
       </div>
 
-      <div
-        className="flex gap-[2px] items-end h-12"
-        role="img"
-        aria-label={`${remaining} of ${size} slots still sealed, ${shardSlots} of them shards`}
-      >
-        {Array.from({ length: marks }, (_, i) => {
-          const isDrawn = i < drawnMarks;
-          const isShardBand = i % Math.max(1, Math.round(marks / shardMarks)) === 0;
-          return (
-            <motion.span
-              key={i}
-              initial={{ scaleY: 0.2, opacity: 0 }}
-              animate={{ scaleY: 1, opacity: 1 }}
-              transition={{ delay: i * 0.004, duration: 0.4 }}
-              className="flex-1 origin-bottom rounded-[1px]"
-              style={{
-                height: isShardBand ? "100%" : "62%",
-                background: isDrawn
-                  ? "var(--color-stone-700)"
-                  : isShardBand
-                    ? "var(--color-ochre-500)"
-                    : "var(--color-stone-500)",
-                opacity: isDrawn ? 0.45 : 1,
-              }}
+      <div className="space-y-3">
+        {pool.tiers.map((t) => (
+          <div key={t.weight} className="flex items-center gap-3">
+            <span
+              className="h-7 w-1.5 shrink-0 rounded-full"
+              style={{ background: t.spec.ink, opacity: t.left > 0 ? 1 : 0.2 }}
             />
-          );
-        })}
+            <span className="min-w-0 flex-1">
+              <span
+                className="t-inscription block text-[0.6875rem]"
+                style={{ color: t.left > 0 ? t.spec.ink : "var(--color-travertine-faint)" }}
+              >
+                {t.spec.name}
+              </span>
+              <span className="block text-[0.8125rem] text-[var(--color-travertine-faint)]">
+                {t.spec.note}
+              </span>
+            </span>
+            <span className="t-chain shrink-0 text-right text-[1.0625rem]">
+              <motion.span
+                key={t.left}
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{ color: t.left > 0 ? "var(--color-travertine)" : "var(--color-travertine-faint)" }}
+              >
+                {t.left}
+              </motion.span>
+              <span className="text-[var(--color-travertine-faint)]"> / {t.total}</span>
+            </span>
+          </div>
+        ))}
       </div>
 
-      <div className="flex gap-6 mt-4">
-        <Legend tint="var(--color-ochre-500)" text={`${shardSlots} shard slots`} />
-        <Legend tint="var(--color-stone-500)" text="cosmetic" />
-        <Legend tint="var(--color-stone-700)" text={`${drawn} opened`} />
-      </div>
+      <p className="mt-5 border-t border-[var(--edge)] pt-4 text-[0.9375rem] text-[var(--color-travertine-dim)]">
+        {pool.prizesLeft === 0 ? (
+          <>Every prize in this season has been drawn. What is left is grout.</>
+        ) : (
+          <>
+            <span className="t-chain text-[var(--color-travertine)]">
+              {(pool.oddsNext * 100).toFixed(1)}%
+            </span>{" "}
+            of the unopened slots still carry something. Nobody set that number, it
+            is what remains after {pool.drawn} opens.
+          </>
+        )}
+        {pool.unknown > 0 && (
+          <span className="block mt-1 text-[var(--color-travertine-faint)]">
+            {pool.unknown} opened slots not yet decrypted, so the count may still move.
+          </span>
+        )}
+      </p>
     </div>
-  );
-}
-
-function Legend({ tint, text }: { tint: string; text: string }) {
-  return (
-    <span className="flex items-center gap-2">
-      <span
-        className="h-2.5 w-2.5 rounded-[1px] shrink-0"
-        style={{ background: tint }}
-      />
-      <span className="t-label">{text}</span>
-    </span>
   );
 }

@@ -2,77 +2,91 @@
  *
  */
 
-export type Tier = "shard" | "lapis" | "bronze" | "terracotta" | "grout";
+export interface Tier {
+  upTo: number;
+  weight: number;
+}
+
+export interface DeckShape {
+  size: number;
+  tiers: Tier[];
+}
+
+export function weightOf(value: number, deck: DeckShape): number {
+  for (const t of deck.tiers) {
+    if (value <= t.upTo) return t.weight;
+  }
+  return 0;
+}
+
+export const WEIGHT_PER_TICKET = 5;
 
 export interface TierSpec {
-  tier: Tier;
   name: string;
   note: string;
   tint: string;
   ink: string;
-}
-
-export const TIERS: Record<Tier, TierSpec> = {
-  shard: {
-    tier: "shard",
-    name: "Shard",
-    note: "Five of these buy another real ticket",
-    tint: "var(--color-ochre-900)",
-    ink: "var(--color-ochre-300)",
-  },
-  lapis: {
-    tier: "lapis",
-    name: "Lapis",
-    note: "The costliest pigment in the empire",
-    tint: "var(--color-lapis-900)",
-    ink: "var(--color-lapis-400)",
-  },
-  bronze: {
-    tier: "bronze",
-    name: "Verdigris",
-    note: "Bronze that has met the weather",
-    tint: "var(--color-patina-900)",
-    ink: "var(--color-patina-400)",
-  },
-  terracotta: {
-    tier: "terracotta",
-    name: "Sinopia",
-    note: "Red earth from Sinope",
-    tint: "var(--color-sinopia-900)",
-    ink: "var(--color-sinopia-400)",
-  },
-  grout: {
-    tier: "grout",
-    name: "Grout",
-    note: "What holds the floor together",
-    tint: "var(--color-stone-700)",
-    ink: "var(--color-travertine-dim)",
-  },
-};
-
-export interface DeckShape {
-  size: number;
-  shardSlots: number;
+  tickets: number;
 }
 
 /**
  *
  */
-export function tierOf(value: number, deck: DeckShape): TierSpec {
-  if (value >= 1 && value <= deck.shardSlots) return TIERS.shard;
-
-  const rest = deck.size - deck.shardSlots;
-  const offset = value - deck.shardSlots; // 1..rest
-  const share = offset / rest;
-
-  if (share <= 0.1) return TIERS.lapis;
-  if (share <= 0.3) return TIERS.bronze;
-  if (share <= 0.6) return TIERS.terracotta;
-  return TIERS.grout;
+export function specFor(weight: number): TierSpec {
+  if (weight >= 25) {
+    return {
+      name: "Porphyry",
+      note: "Five real tickets, at once",
+      tint: "var(--color-porphyry-900)",
+      ink: "var(--color-porphyry-300)",
+      tickets: weight / WEIGHT_PER_TICKET,
+    };
+  }
+  if (weight >= WEIGHT_PER_TICKET) {
+    return {
+      name: "Aureus",
+      note: "A whole real ticket",
+      tint: "var(--color-ochre-900)",
+      ink: "var(--color-ochre-300)",
+      tickets: weight / WEIGHT_PER_TICKET,
+    };
+  }
+  if (weight > 0) {
+    return {
+      name: "Shard",
+      note: "Five of these make a ticket",
+      tint: "var(--color-patina-900)",
+      ink: "var(--color-patina-400)",
+      tickets: 0,
+    };
+  }
+  return {
+    name: "Grout",
+    note: "What holds the floor together",
+    tint: "var(--color-stone-700)",
+    ink: "var(--color-travertine-faint)",
+    tickets: 0,
+  };
 }
 
-export const SHARDS_PER_TICKET = 5;
+export function specOf(value: number, deck: DeckShape): TierSpec {
+  return specFor(weightOf(value, deck));
+}
 
-export function shardsToNextTicket(held: number): number {
-  return SHARDS_PER_TICKET - (held % SHARDS_PER_TICKET);
+export function weightToNextTicket(held: number): number {
+  return WEIGHT_PER_TICKET - (held % WEIGHT_PER_TICKET);
+}
+
+/**
+ */
+export function slotsPerTier(deck: DeckShape): { spec: TierSpec; count: number; weight: number }[] {
+  const out: { spec: TierSpec; count: number; weight: number }[] = [];
+  let prev = 0;
+  for (const t of deck.tiers) {
+    out.push({ spec: specFor(t.weight), count: t.upTo - prev, weight: t.weight });
+    prev = t.upTo;
+  }
+  const rest = deck.size - prev;
+  if (rest > 0) out.push({ spec: specFor(0), count: rest, weight: 0 });
+  return out;
 }

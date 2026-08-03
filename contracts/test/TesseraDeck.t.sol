@@ -20,6 +20,15 @@ contract TesseraDeckForkTest is Test {
     address owner = makeAddr("owner");
     address player = makeAddr("player");
 
+    function _tiers() internal pure returns (uint16[] memory upTo, uint16[] memory weight) {
+        upTo = new uint16[](2);
+        weight = new uint16[](2);
+        upTo[0] = 1;
+        weight[0] = 5; // 1
+        upTo[1] = 3;
+        weight[1] = 1; // 2-3
+    }
+
     function setUp() public {
         vm.createSelectFork(vm.envOr("BASE_SEPOLIA_RPC_URL", string("https://sepolia.base.org")));
 
@@ -30,7 +39,8 @@ contract TesseraDeckForkTest is Test {
         vm.deal(owner, 1 ether);
         uint256 fee = deck.deckFee(20);
         vm.prank(owner);
-        deck.createDeck{value: fee}(20, 8);
+        (uint16[] memory upTo, uint16[] memory weight) = _tiers();
+        deck.createDeck{value: fee}(20, upTo, weight);
 
         IMintable(address(MPUSDC)).mint(player, 100e6);
     }
@@ -159,14 +169,22 @@ contract TesseraDeckForkTest is Test {
         uint256 fee = deck.deckFee(10);
         vm.prank(player);
         vm.expectRevert(TesseraDeck.NotOwner.selector);
-        deck.createDeck{value: fee}(10, 4);
+        uint16[] memory upTo = new uint16[](1);
+        uint16[] memory weight = new uint16[](1);
+        upTo[0] = 3;
+        weight[0] = 1; // 3 10/2
+        deck.createDeck{value: fee}(10, upTo, weight);
     }
 
     function test_createDeck_revertsWhileDeckInPlay() public {
         uint256 fee = deck.deckFee(10);
         vm.prank(owner);
         vm.expectRevert(TesseraDeck.DeckInPlay.selector);
-        deck.createDeck{value: fee}(10, 4);
+        uint16[] memory upTo = new uint16[](1);
+        uint16[] memory weight = new uint16[](1);
+        upTo[0] = 3;
+        weight[0] = 1; // 3 10/2
+        deck.createDeck{value: fee}(10, upTo, weight);
     }
 
     function test_createDeck_allowedAfterDeckExhausted() public {
@@ -179,7 +197,11 @@ contract TesseraDeckForkTest is Test {
 
         uint256 fee = deck.deckFee(10);
         vm.prank(owner);
-        deck.createDeck{value: fee}(10, 4);
+        uint16[] memory upTo = new uint16[](1);
+        uint16[] memory weight = new uint16[](1);
+        upTo[0] = 3;
+        weight[0] = 1; // 3 10/2
+        deck.createDeck{value: fee}(10, upTo, weight);
         assertEq(deck.size(), 10);
         assertEq(deck.drawn(), 0);
     }

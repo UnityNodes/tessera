@@ -1,28 +1,28 @@
 "use client";
 
 import { motion } from "motion/react";
-import { SHARDS_PER_TICKET, shardsToNextTicket } from "@/lib/deck";
+import { WEIGHT_PER_TICKET, weightToNextTicket } from "@/lib/deck";
 
 /**
  *
  */
-export function ShardMeter({ held }: { held: number }) {
-  const inProgress = held % SHARDS_PER_TICKET;
-  const readyTickets = Math.floor(held / SHARDS_PER_TICKET);
-  const missing = shardsToNextTicket(held);
+export function ShardMeter({ weight }: { weight: number }) {
+  const ready = Math.floor(weight / WEIGHT_PER_TICKET);
+  const inProgress = weight % WEIGHT_PER_TICKET;
+  const missing = weightToNextTicket(weight);
 
   return (
     <div>
-      <div className="flex items-baseline justify-between gap-4 mb-4">
-        <span className="t-label">Shards</span>
+      <div className="mb-4 flex items-baseline justify-between gap-4">
+        <span className="t-label">redeemable weight</span>
         <span className="t-chain text-[0.8125rem] text-[var(--color-travertine-dim)]">
-          {held} held
+          {weight} held
         </span>
       </div>
 
       <div className="flex gap-[3px]">
-        {Array.from({ length: SHARDS_PER_TICKET }, (_, i) => {
-          const filled = i < inProgress;
+        {Array.from({ length: WEIGHT_PER_TICKET }, (_, i) => {
+          const filled = ready > 0 || i < inProgress;
           return (
             <motion.span
               key={i}
@@ -43,18 +43,18 @@ export function ShardMeter({ held }: { held: number }) {
       </div>
 
       <p className="mt-4 text-[0.9375rem] text-[var(--color-travertine-dim)]">
-        {readyTickets > 0 ? (
+        {ready > 0 ? (
           <>
             <span className="t-chain text-[var(--color-ochre-300)]">
-              {readyTickets} ticket{readyTickets > 1 ? "s" : ""}
+              {ready} real ticket{ready > 1 ? "s" : ""}
             </span>{" "}
-            ready to redeem
-            {missing > 0 && <>, {missing} more shards for the next</>}.
+            ready to claim
+            {inProgress > 0 && <>, and {missing} more weight toward the next</>}.
           </>
         ) : (
           <>
-            <span className="t-chain text-[var(--color-travertine)]">{missing}</span>{" "}
-            more shards and the game buys you another real ticket.
+            <span className="t-chain text-[var(--color-travertine)]">{missing}</span> more
+            weight and the game buys you a real ticket.
           </>
         )}
       </p>

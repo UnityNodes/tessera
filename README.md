@@ -68,10 +68,15 @@ BRIEF.md                  Full technical record: addresses, measurements, traps.
 
 | | |
 |---|---|
-| TesseraDeck | `0x55FbDFA462e44955F715aF98A60e4ec4B6e71EEe` |
+| TesseraDeck | `0xaD0E81de4A9aA1F86C5CD68e54fd3997a62b7BeD` |
 | MegapotLegacyAdapter | `0xcEFd98581bb131a505e9De53d7f9b191fe94E074` |
 
-Deck of 100 slots, 40 of them shards.
+Season 1, 100 slots: **1 Porphyry** (five real tickets at once), 3 Aureus
+(one ticket each), 8 Shards (five make a ticket), 88 Grout (nothing).
+
+Because every opened slot is publicly revealed, anyone can count whether the
+Porphyry is still in the pool. That is the game: not a stated probability, but
+a finite pile you can watch empty.
 
 ## Addresses in use
 

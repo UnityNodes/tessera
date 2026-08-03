@@ -23,14 +23,18 @@ contract TesseraDeck is ReentrancyGuardTransient {
     uint16 public size;
     uint16 public drawn;
 
-    uint16 public shardSlots;
-
     uint32 public season;
 
-    ///
-    mapping(uint32 => uint16) public shardSlotsOfSeason;
+    struct Tier {
+        uint16 upTo;
+        uint16 weight;
+    }
 
-    uint256 public constant SHARDS_PER_TICKET = 5;
+    ///
+    mapping(uint32 => Tier[]) private tiersOfSeason;
+
+    ///
+    uint256 public constant WEIGHT_PER_TICKET = 5;
 
     struct Slot {
         euint256 card;
@@ -41,11 +45,11 @@ contract TesseraDeck is ReentrancyGuardTransient {
 
     mapping(bytes32 => bool) public shardSpent;
 
-    event DeckCreated(uint32 indexed season, uint16 size, uint16 shardSlots, uint256 feePaid);
+    event DeckCreated(uint32 indexed season, uint16 size, uint16 totalWeight, uint256 feePaid);
     event CaseOpened(address indexed player, uint16 index, bytes32 handle, uint256 paid);
     event SlotRevealed(address indexed player, uint256 index);
     event FeesSwept(uint256 amount);
-    event ShardsRedeemed(address indexed player, bytes32[] handles, uint256 paid);
+    event ShardsRedeemed(address indexed player, bytes32[] handles, uint256 weight, uint256 tickets, uint256 paid);
     event OwnerChanged(address indexed from, address indexed to);
 
     error NotOwner();
@@ -53,9 +57,10 @@ contract TesseraDeck is ReentrancyGuardTransient {
     error DeckInPlay();
     error PurchasingDisabled();
     error TooManyShardSlots();
-    error WrongShardCount();
+    error BadTierTable();
+    error NotEnoughWeight(uint256 weight, uint256 need);
     error BadAttestation(bytes32 handle);
-    error NotAShard(bytes32 handle, uint256 value);
+    error WorthlessSlot(bytes32 handle, uint256 value);
     error ShardAlreadySpent(bytes32 handle);
     error TreasuryEmpty(uint256 have, uint256 need);
     error TicketNotCredited();
@@ -79,18 +84,50 @@ contract TesseraDeck is ReentrancyGuardTransient {
         return 2 * inco.getEListFee(n, ETypes.Uint256);
     }
 
-    function createDeck(uint16 n, uint16 shards) external payable onlyOwner {
+    ///
+    function createDeck(uint16 n, uint16[] calldata upTo, uint16[] calldata weight)
+        external
+        payable
+        onlyOwner
+    {
         require(n > 0, "n=0");
-        if (uint256(shards) * 2 > uint256(n)) revert TooManyShardSlots();
+        if (upTo.length == 0 || upTo.length != weight.length) revert BadTierTable();
         if (size != 0 && drawn < size) revert DeckInPlay();
+
+        uint256 totalWeight;
+        uint16 prev;
+        for (uint256 i = 0; i < upTo.length; i++) {
+            if (upTo[i] <= prev || upTo[i] > n) revert BadTierTable();
+            totalWeight += uint256(upTo[i] - prev) * uint256(weight[i]);
+            prev = upTo[i];
+        }
+
+        if (totalWeight * 2 > uint256(n)) revert TooManyShardSlots();
+
         deck = e.shuffledRange(1, n + 1, ETypes.Uint256);
         e.allowThis(deck);
         size = n;
-        shardSlots = shards;
         drawn = 0;
         season += 1;
-        shardSlotsOfSeason[season] = shards;
-        emit DeckCreated(season, n, shards, msg.value);
+
+        Tier[] storage t = tiersOfSeason[season];
+        for (uint256 i = 0; i < upTo.length; i++) {
+            t.push(Tier({upTo: upTo[i], weight: weight[i]}));
+        }
+
+        emit DeckCreated(season, n, uint16(totalWeight), msg.value);
+    }
+
+    function weightOf(uint32 forSeason, uint256 value) public view returns (uint16) {
+        Tier[] storage t = tiersOfSeason[forSeason];
+        for (uint256 i = 0; i < t.length; i++) {
+            if (value <= t[i].upTo) return t[i].weight;
+        }
+        return 0;
+    }
+
+    function tiers(uint32 forSeason) external view returns (Tier[] memory) {
+        return tiersOfSeason[forSeason];
     }
 
 
@@ -131,47 +168,55 @@ contract TesseraDeck is ReentrancyGuardTransient {
 
     ///
     ///
+    ///
     function redeem(uint256[] calldata slotIndexes, uint256[] calldata values, bytes[][] calldata signatures)
         external
         nonReentrant
-        returns (uint256 paid)
+        returns (uint256 tickets, uint256 paid)
     {
-        if (
-            slotIndexes.length != SHARDS_PER_TICKET || values.length != SHARDS_PER_TICKET
-                || signatures.length != SHARDS_PER_TICKET
-        ) revert WrongShardCount();
+        uint256 n = slotIndexes.length;
+        if (n == 0 || values.length != n || signatures.length != n) revert BadTierTable();
 
-        bytes32[] memory handles = new bytes32[](SHARDS_PER_TICKET);
+        bytes32[] memory handles = new bytes32[](n);
+        uint256 weight;
 
-        for (uint256 i = 0; i < SHARDS_PER_TICKET; i++) {
+        for (uint256 i = 0; i < n; i++) {
             Slot storage slot = slots[msg.sender][slotIndexes[i]];
             euint256 card = slot.card;
             bytes32 handle = euint256.unwrap(card);
 
             if (shardSpent[handle]) revert ShardAlreadySpent(handle);
             if (!e.verifyDecryption(card, values[i], signatures[i])) revert BadAttestation(handle);
-            uint16 shardMax = shardSlotsOfSeason[slot.season];
-            if (values[i] == 0 || values[i] > shardMax) revert NotAShard(handle, values[i]);
+
+            uint16 w = weightOf(slot.season, values[i]);
+            if (w == 0) revert WorthlessSlot(handle, values[i]);
 
             shardSpent[handle] = true;
             handles[i] = handle;
+            weight += w;
         }
 
-        paid = adapter.ticketPrice();
+        tickets = weight / WEIGHT_PER_TICKET;
+        if (tickets == 0) revert NotEnoughWeight(weight, WEIGHT_PER_TICKET);
+
+        uint256 price = adapter.ticketPrice();
+        paid = price * tickets;
 
         if (ticketToken.balanceOf(address(this)) < paid) _sweepFees();
         uint256 have = ticketToken.balanceOf(address(this));
         if (have < paid) revert TreasuryEmpty(have, paid);
 
-        uint256 boughtBefore = adapter.ticketsOf(msg.sender);
-        adapter.buyTicket(msg.sender, address(this));
-        if (adapter.ticketsOf(msg.sender) <= boughtBefore) revert TicketNotCredited();
+        for (uint256 i = 0; i < tickets; i++) {
+            uint256 boughtBefore = adapter.ticketsOf(msg.sender);
+            adapter.buyTicket(msg.sender, address(this));
+            if (adapter.ticketsOf(msg.sender) <= boughtBefore) revert TicketNotCredited();
+        }
 
-        emit ShardsRedeemed(msg.sender, handles, paid);
+        emit ShardsRedeemed(msg.sender, handles, weight, tickets, paid);
     }
 
-    function isShardValue(uint256 value) external view returns (bool) {
-        return value != 0 && value <= shardSlots;
+    function weightNow(uint256 value) external view returns (uint16) {
+        return weightOf(season, value);
     }
 
 
@@ -200,8 +245,8 @@ contract TesseraDeck is ReentrancyGuardTransient {
         return slots[player][i].season;
     }
 
-    function shardMaxFor(address player, uint256 i) external view returns (uint16) {
-        return shardSlotsOfSeason[slots[player][i].season];
+    function weightOfSlot(address player, uint256 i, uint256 value) external view returns (uint16) {
+        return weightOf(slots[player][i].season, value);
     }
 
     function myCount() external view returns (uint256) {
