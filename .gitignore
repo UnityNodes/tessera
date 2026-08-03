@@ -14,3 +14,8 @@ broadcast/
 # next
 .next/
 dist/
+
+#
+.playwright-mcp/
+*.png
+!web/public/**/*.png
