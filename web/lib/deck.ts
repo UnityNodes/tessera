@@ -31,38 +31,40 @@ export interface TierSpec {
 
 /**
  *
+ *
  */
 export function specFor(weight: number): TierSpec {
-  if (weight >= 25) {
+  const tickets = Math.floor(weight / WEIGHT_PER_TICKET);
+  if (tickets >= 5) {
     return {
       name: "Porphyry",
-      note: "Five real tickets, at once",
+      note: `+${tickets} tickets`,
       tint: "var(--color-porphyry-900)",
       ink: "var(--color-porphyry-300)",
-      tickets: weight / WEIGHT_PER_TICKET,
+      tickets,
     };
   }
-  if (weight >= WEIGHT_PER_TICKET) {
+  if (tickets >= 2) {
     return {
       name: "Aureus",
-      note: "A whole real ticket",
+      note: `+${tickets} tickets`,
       tint: "var(--color-ochre-900)",
       ink: "var(--color-ochre-300)",
-      tickets: weight / WEIGHT_PER_TICKET,
+      tickets,
     };
   }
-  if (weight > 0) {
+  if (tickets === 1) {
     return {
-      name: "Shard",
-      note: "Five of these make a ticket",
+      name: "Denarius",
+      note: "+1 ticket",
       tint: "var(--color-patina-900)",
       ink: "var(--color-patina-400)",
-      tickets: 0,
+      tickets: 1,
     };
   }
   return {
     name: "Grout",
-    note: "What holds the floor together",
+    note: "nothing this time",
     tint: "var(--color-stone-700)",
     ink: "var(--color-travertine-faint)",
     tickets: 0,
@@ -73,8 +75,8 @@ export function specOf(value: number, deck: DeckShape): TierSpec {
   return specFor(weightOf(value, deck));
 }
 
-export function weightToNextTicket(held: number): number {
-  return WEIGHT_PER_TICKET - (held % WEIGHT_PER_TICKET);
+export function ticketsFromWeight(weight: number): number {
+  return Math.floor(weight / WEIGHT_PER_TICKET);
 }
 
 /**

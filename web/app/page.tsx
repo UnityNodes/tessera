@@ -77,6 +77,12 @@ export default function Home() {
         <ConnectBar onMinted={refresh} />
       </header>
 
+      <p className="mb-8 max-w-2xl text-[1.0625rem] text-[var(--color-travertine-dim)]">
+        Every dollar buys one real Megapot lottery ticket, that part never
+        changes. The case on top is free, usually empty, and occasionally pays
+        another five.
+      </p>
+
       <div className="mb-8 flex flex-wrap gap-3">
         {slotsPerTier(shape).map((t) => (
           <div key={t.weight} className="surface flex items-center gap-3 rounded-[3px] px-4 py-3">
@@ -92,7 +98,7 @@ export default function Home() {
                 {t.count}× {t.spec.name}
               </span>
               <span className="block text-[0.8125rem] text-[var(--color-travertine-faint)]">
-                {t.spec.note}
+                {t.spec.tickets > 0 ? `+${t.spec.tickets} real ticket${t.spec.tickets > 1 ? "s" : ""}` : "nothing"}
               </span>
             </span>
           </div>
@@ -202,7 +208,7 @@ export default function Home() {
             )}
 
             <div className="mt-6">
-              <DataRow name="tickets held" value={deck.tickets.toFixed(2)} />
+              <DataRow name="real tickets held" value={Math.floor(deck.tickets)} ink="var(--color-patina-400)" />
               <DataRow name="test dollars" value={`$${formatUnits(deck.balance, 6)}`} />
               <DataRow
                 name="game treasury"
@@ -224,12 +230,13 @@ export default function Home() {
                   value={s.value}
                   deck={shape}
                   size={44}
+                  showValue={false}
                 />
               </div>
             ))}
           </div>
           <p className="mt-5 text-[0.9375rem] text-[var(--color-travertine-dim)]">
-            Dimmed tiles are already claimed.
+            Every one of these was a real ticket. The coloured ones paid extra.
           </p>
         </Panel>
       )}
@@ -284,12 +291,19 @@ function Status({
       const spec = specOf(open.value!, deck);
       return (
         <div>
-          <p className="t-inscription text-lg" style={{ color: spec.ink }}>
-            {spec.name}
+          <p className="text-[1.0625rem] text-[var(--color-travertine)]">
+            You bought <span className="t-chain text-[var(--color-patina-400)]">1 real
+            Megapot ticket</span>.
           </p>
-          <p className="mt-2 text-[0.9375rem] text-[var(--color-travertine-dim)]">
-            {spec.note} · slot {open.value} of {deck.size}
-          </p>
+          {spec.tickets > 0 ? (
+            <p className="t-inscription mt-3 text-xl" style={{ color: spec.ink }}>
+              and the case gave you +{spec.tickets} more
+            </p>
+          ) : (
+            <p className="mt-3 text-[0.9375rem] text-[var(--color-travertine-faint)]">
+              The case was empty this time.
+            </p>
+          )}
         </div>
       );
     }

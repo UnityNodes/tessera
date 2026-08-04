@@ -147,7 +147,7 @@ async function ensureConnected(page) {
   await page.getByRole("button", { name: /Open another/ }).waitFor({ timeout: 120000 });
   console.log(`⏱ : ${Date.now() - t0} ms`);
 
-  const prize = await page.locator("main").getByText(/slot \d+ of \d+/).first().textContent();
+  const prize = await page.locator("main").getByText(/You bought/).first().textContent();
   console.log(`  ${prize.trim()}`);
   await shot(page, "e2e-revealed");
 
@@ -174,7 +174,7 @@ async function ensureConnected(page) {
     await back.close();
   }
 
-  const redeem = page.getByRole("button", { name: /Claim real tickets/ });
+  const redeem = page.getByRole("button", { name: /Take \d+ ticket/ });
   if (await redeem.count()) {
     console.log("▶ ");
     await redeem.click();
@@ -182,7 +182,7 @@ async function ensureConnected(page) {
     console.log("✓ ");
     await shot(page, "e2e-redeemed");
   } else {
-    const held = await page.getByText(/more weight and the game/).textContent();
+    const held = await page.getByText(/No bonus tickets yet|real ticket/).first().textContent();
     console.log(`  ${held.trim()}`);
   }
 
