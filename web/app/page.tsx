@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Case } from "@/components/Case";
 import { Roll } from "@/components/Roll";
 import { Ticker } from "@/components/Ticker";
+import { Contents } from "@/components/Contents";
 import { PoolCounter } from "@/components/PoolCounter";
 import { MegapotPanel } from "@/components/MegapotPanel";
 import { StakePanel } from "@/components/StakePanel";
@@ -266,6 +267,16 @@ export default function Home() {
               </p>
             )}
           </div>
+        </section>
+
+        <section className="surface mt-5 rounded-[3px] p-6 sm:p-8">
+          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
+            <p className="t-label">what is in this case</p>
+            <p className="text-[0.9375rem] text-[var(--color-travertine-faint)]">
+              counted from the public reveals, not promised
+            </p>
+          </div>
+          <Contents deck={shape} pool={pool.data} />
         </section>
 
         {(bonusTickets > 0 || stake.open || stake.bankedWeight > 0) && (

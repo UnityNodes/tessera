@@ -42,7 +42,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
                 style={{ width: CARD }}
               >
                 <div
-                  className="grid place-items-center rounded-[3px]"
+                  className="relative overflow-hidden rounded-[3px]"
                   style={{
                     height: CARD,
                     background: prize
@@ -53,32 +53,38 @@ export function Ticker({ items }: { items: FeedItem[] }) {
                       : "inset 0 2px 0 var(--edge-strong), inset 0 0 0 1px var(--edge)",
                   }}
                 >
-                  <div className="px-2 text-center">
-                    {it.value === undefined ? (
-                      <span className="t-inscription text-[0.625rem] text-[var(--color-travertine-faint)]">
-                        sealed
-                      </span>
-                    ) : (
-                      <>
-                        {it.spec.tickets > 0 && (
-                          <div
-                            className="t-chain text-lg leading-none"
-                            style={{ color: it.spec.ink }}
-                          >
-                            +{it.spec.tickets}
-                          </div>
-                        )}
+                  {it.value === undefined ? (
+                    <span className="t-inscription grid h-full place-items-center text-[0.625rem] text-[var(--color-travertine-faint)]">
+                      sealed
+                    </span>
+                  ) : (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={it.spec.art}
+                        alt=""
+                        className="pointer-events-none absolute inset-0 h-full w-full object-contain p-1"
+                        draggable={false}
+                      />
+                      {it.spec.tickets > 0 && (
                         <div
-                          className="t-inscription mt-1 text-[0.5625rem] leading-tight"
-                          style={{
-                            color: prize ? it.spec.ink : "var(--color-travertine-faint)",
-                          }}
+                          className="t-chain absolute right-1.5 top-1 text-base leading-none"
+                          style={{ color: it.spec.ink, textShadow: "0 1px 4px rgb(0 0 0/0.9)" }}
                         >
-                          {it.spec.name}
+                          +{it.spec.tickets}
                         </div>
-                      </>
-                    )}
-                  </div>
+                      )}
+                      <div
+                        className="t-inscription absolute inset-x-0 bottom-1 text-center text-[0.5rem]"
+                        style={{
+                          color: prize ? it.spec.ink : "var(--color-travertine-faint)",
+                          textShadow: "0 1px 3px rgb(0 0 0/0.9)",
+                        }}
+                      >
+                        {it.spec.name}
+                      </div>
+                    </>
+                  )}
                 </div>
                 <div
                   className="t-chain mt-1 truncate text-center text-[0.625rem]"

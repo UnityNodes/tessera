@@ -28,6 +28,7 @@ export interface TierSpec {
   tint: string;
   ink: string;
   tickets: number;
+  art: string;
 }
 
 /**
@@ -43,6 +44,7 @@ export function specFor(weight: number): TierSpec {
       tint: "var(--color-porphyry-900)",
       ink: "var(--color-porphyry-300)",
       tickets,
+      art: "/cases/porphyry.png",
     };
   }
   if (tickets >= 2) {
@@ -52,6 +54,7 @@ export function specFor(weight: number): TierSpec {
       tint: "var(--color-ochre-900)",
       ink: "var(--color-ochre-300)",
       tickets,
+      art: "/cases/aureus.png",
     };
   }
   if (tickets === 1) {
@@ -61,6 +64,7 @@ export function specFor(weight: number): TierSpec {
       tint: "var(--color-patina-900)",
       ink: "var(--color-patina-400)",
       tickets: 1,
+      art: "/cases/denarius.png",
     };
   }
   return {
@@ -69,6 +73,7 @@ export function specFor(weight: number): TierSpec {
     tint: "var(--color-stone-700)",
     ink: "var(--color-travertine-faint)",
     tickets: 0,
+    art: "/cases/grout.png",
   };
 }
 
@@ -83,6 +88,7 @@ export const VAULT_SPEC: TierSpec = {
   tint: "var(--color-porphyry-900)",
   ink: "var(--color-porphyry-300)",
   tickets: 0,
+  art: "/cases/vault.png",
 };
 
 export const isVault = (spec: TierSpec) => spec.name === VAULT_SPEC.name;

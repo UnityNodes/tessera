@@ -112,10 +112,13 @@ export function Roll({
   );
 }
 
+/**
+ *
+ */
 function Item({ spec }: { spec: TierSpec }) {
   return (
     <div
-      className="grid shrink-0 place-items-center rounded-[3px]"
+      className="relative shrink-0 overflow-hidden rounded-[3px]"
       style={{
         width: ITEM,
         height: ITEM,
@@ -124,7 +127,17 @@ function Item({ spec }: { spec: TierSpec }) {
         borderBottom: `3px solid ${spec.ink}`,
       }}
     >
-      <span className="t-inscription text-[0.625rem]" style={{ color: spec.ink }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={spec.art}
+        alt=""
+        className="pointer-events-none absolute inset-0 h-full w-full object-contain p-1"
+        draggable={false}
+      />
+      <span
+        className="t-inscription absolute inset-x-0 bottom-1 text-center text-[0.5rem]"
+        style={{ color: spec.ink, textShadow: "0 1px 3px rgb(0 0 0/0.9)" }}
+      >
         {spec.name}
       </span>
     </div>
