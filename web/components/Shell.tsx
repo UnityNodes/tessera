@@ -7,11 +7,9 @@ import { formatUnits } from "viem";
 import { ConnectBar } from "./ConnectBar";
 import { Ticker } from "./Ticker";
 import { useDeck } from "@/hooks/useDeck";
-import { usePool } from "@/hooks/usePool";
 import { useFeed } from "@/hooks/useFeed";
 import { useOpens } from "@/hooks/useOpens";
 import { useMegapot } from "@/hooks/useMegapot";
-import { slotsPerTier } from "@/lib/deck";
 import { addressUrl, DECK_ADDRESS } from "@/lib/chain";
 
 /**
@@ -19,21 +17,12 @@ import { addressUrl, DECK_ADDRESS } from "@/lib/chain";
  *
  */
 export function Shell({ children }: { children: React.ReactNode }) {
-  const deck = useDeck();
-  const shape = useMemo(
-    () => ({ size: deck.size, tiers: deck.tiers, vaultUpTo: deck.vaultUpTo }),
-    [deck.size, deck.tiers, deck.vaultUpTo],
-  );
-  const pool = usePool(shape, deck.drawn);
-  const feed = useFeed(shape);
+  const game = useDeck();
+  const shapes = useMemo(() => game.decks.map((d) => d), [game.decks]);
+  const feed = useFeed(shapes);
   const opens = useOpens();
   const megapot = useMegapot();
 
-  const prizesLeft =
-    pool.data?.prizesLeft ??
-    slotsPerTier(shape)
-      .filter((t) => t.weight > 0)
-      .reduce((n, t) => n + t.count, 0);
   const playerCount = new Set((opens.data ?? []).map((o) => o.player.toLowerCase())).size;
 
   return (
@@ -42,10 +31,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex h-16 max-w-[1560px] items-center gap-4 px-4 sm:px-6">
           <Link href="/" className="flex shrink-0 items-center gap-2.5">
             <Mark />
-            <span className="t-inscription text-[0.9375rem] leading-none">
-              Tessera
-              <span className="t-label mt-0.5 block text-[0.5rem]">season {deck.season}</span>
-            </span>
+            <span className="t-inscription text-[0.9375rem] leading-none">Tessera</span>
           </Link>
 
           <nav className="flex items-center gap-1.5">
@@ -53,7 +39,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
               home
             </Tab>
             <Tab href="/case" icon={<IconCase />}>
-              open a case
+              cases
             </Tab>
             <Tab href="/battles" icon={<IconSwords />}>
               battles
@@ -67,7 +53,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 className="t-chain text-[0.8125rem]"
                 style={{ color: "var(--color-tier-vault)" }}
               >
-                ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
+                ${Number(formatUnits(game.vault, 6)).toFixed(2)}
               </span>
             </span>
             <ConnectBar />
@@ -77,12 +63,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
       <div className="border-b border-[var(--edge)] bg-[var(--color-surface)]">
         <div className="mx-auto grid max-w-[1560px] grid-cols-2 divide-x divide-[var(--edge)] px-4 sm:px-6 md:grid-cols-4">
-          <Stat icon={<IconCase />} label="cases opened" value={String(deck.drawn)} />
+          <Stat icon={<IconCase />} label="cases opened" value={String(game.drawn)} />
           <Stat icon={<IconUsers />} label="players" value={String(playerCount)} />
           <Stat
             icon={<IconLayers />}
-            label="prizes left"
-            value={`${prizesLeft} of ${deck.remaining}`}
+            label="cases left"
+            value={`${game.remaining} in ${game.decks.length}`}
           />
           <Stat
             icon={<IconTicket />}

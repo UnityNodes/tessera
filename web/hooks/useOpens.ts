@@ -7,7 +7,7 @@ import { parseAbiItem } from "viem";
 import { DECK_ADDRESS, DECK_FROM_BLOCK } from "@/lib/chain";
 
 const CASE_OPENED = parseAbiItem(
-  "event CaseOpened(address indexed player, uint16 index, bytes32 handle, uint256 paid)",
+  "event CaseOpened(address indexed player, uint32 indexed deckId, uint16 index, bytes32 handle, uint256 paid)",
 );
 
 /**
@@ -21,6 +21,7 @@ const WINDOWS_PER_PASS = 12;
 
 export interface OpenEvent {
   player: `0x${string}`;
+  deckId: number;
   index: number;
   handle: `0x${string}`;
   block: bigint;
@@ -59,6 +60,7 @@ export function useOpens() {
           if (!l.args.player || !l.args.handle) continue;
           cache.events.push({
             player: l.args.player,
+            deckId: Number(l.args.deckId ?? 0),
             index: Number(l.args.index ?? 0),
             handle: l.args.handle,
             block: l.blockNumber ?? 0n,
@@ -80,7 +82,7 @@ interface Cache {
   events: OpenEvent[];
 }
 
-const KEY = "tessera.opens.v1";
+const KEY = "tessera.opens.v2";
 
 /**
  */

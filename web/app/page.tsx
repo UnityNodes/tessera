@@ -1,29 +1,20 @@
 "use client";
 
-import { useMemo } from "react";
 import Link from "next/link";
 import { formatUnits } from "viem";
 import { Button } from "@/components/ui/Button";
-import { useDeck } from "@/hooks/useDeck";
-import { usePool } from "@/hooks/usePool";
-import { useBattleList } from "@/hooks/useBattles";
-import type { Rarity } from "@/lib/deck";
 import { Crate } from "@/components/Crate";
-import { Contents } from "@/components/Contents";
+import { useDeck, type DeckInfo } from "@/hooks/useDeck";
+import { useBattleList } from "@/hooks/useBattles";
+import { slotsPerTier, specFor } from "@/lib/deck";
 
 /**
  *
+ *
  */
 export default function Home() {
-  const deck = useDeck();
-  const shape = useMemo(
-    () => ({ size: deck.size, tiers: deck.tiers, vaultUpTo: deck.vaultUpTo }),
-    [deck.size, deck.tiers, deck.vaultUpTo],
-  );
-  const pool = usePool(shape, deck.drawn);
+  const game = useDeck();
   const battles = useBattleList();
-
-  const vault = Number(formatUnits(deck.vault, 6)).toFixed(2);
 
   return (
     <>
@@ -42,23 +33,25 @@ export default function Home() {
               Play for free. The dollars are test dollars, minted from the header.
             </h2>
             <p className="mt-2 text-[var(--color-ink-dim)]">
-              Every ticket is still bought against the real Megapot contract, the money is
-              the only part that is fake.
+              Every ticket is still bought against the real Megapot contract, the money is the
+              only part that is fake.
             </p>
           </div>
-          <Link href="/case">
-            <Button>Open a case · $1</Button>
+          <Link href="/battles">
+            <Button variant="quiet">
+              Battles{battles.open.length > 0 ? ` · ${battles.open.length} waiting` : ""}
+            </Button>
           </Link>
         </div>
       </section>
 
-      <section className="surface relative mt-5 overflow-hidden rounded-[var(--radius-panel)]">
+      <section className="surface relative mt-5 overflow-hidden">
         <div
           aria-hidden
           className="pointer-events-none absolute right-[8%] top-1/2 hidden h-[34rem] w-[34rem] -translate-y-1/2 rounded-full lg:block"
           style={{
             background:
-              "radial-gradient(closest-side, color-mix(in oklab, var(--color-accent) 26%, transparent), transparent 70%)",
+              "radial-gradient(closest-side, color-mix(in oklab, var(--color-accent) 22%, transparent), transparent 70%)",
             filter: "blur(30px)",
           }}
         />
@@ -75,71 +68,36 @@ export default function Home() {
               drawn without replacement, and countable by anyone.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link href="/case">
-                <Button>Open a case · $1</Button>
-              </Link>
+              <a href="#cases">
+                <Button>Pick a case · $1</Button>
+              </a>
               <Link href="/battles">
-                <Button variant="quiet">
-                  Battles{battles.open.length > 0 ? ` · ${battles.open.length} waiting` : ""}
-                </Button>
+                <Button variant="quiet">Battles</Button>
               </Link>
             </div>
           </div>
 
-          <Link
-            href="/case"
-            className="group grid place-items-center transition-transform duration-500 hover:-translate-y-2"
-            aria-label="Open a case"
-          >
-            <Crate rarity="sealed" size={300} drift />
-          </Link>
+          <div className="grid place-items-center">
+            <Crate rarity="sealed" size={280} drift />
+          </div>
         </div>
       </section>
 
-      <Heading title="the case" note={`season ${deck.season} · ${deck.size} of them, shuffled once`} />
-      <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <CaseCard
-          href="/case"
-          rarity="sealed"
-          name={`Season ${deck.season}`}
-          price="$1"
-          note={`${deck.remaining} unopened`}
-          accent="var(--color-accent-bright)"
-        />
-        <CaseCard
-          href="/case"
-          rarity="vault"
-          name="The Vault"
-          price={`$${vault}`}
+      <div id="cases">
+        <Heading
+          title="the cases"
           note={
-            !pool.data
-              ? "counting the pool…"
-              : pool.data.vaultTaken
-                ? "already drawn"
-                : "one case takes all of it"
+            game.decks.length > 0
+              ? `${game.decks.length} decks, each shuffled once before anyone opened one`
+              : "reading the chain…"
           }
-          accent="var(--color-tier-vault)"
         />
-        <CaseCard
-          href="/battles"
-          rarity="sealed"
-          name="Battles"
-          price="$1"
-          note={`${battles.open.length} waiting for an opponent`}
-          accent="var(--color-accent-bright)"
-        />
-        <CaseCard
-          href="/case"
-          rarity="denarius"
-          name="Bonus tickets"
-          price="free"
-          note="won cases pay real tickets"
-          accent="var(--color-accent-bright)"
-        />
+        <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {game.decks.map((d) => (
+            <DeckCard key={d.id} deck={d} />
+          ))}
+        </div>
       </div>
-
-      <Heading title="what is in this case" note="counted from the public reveals, not promised" />
-      <Contents deck={shape} pool={pool.data} />
     </>
   );
 }
@@ -148,17 +106,9 @@ function Heading({ title, note }: { title: string; note: string }) {
   return (
     <div className="mb-5 mt-12 text-center">
       <div className="flex items-center justify-center gap-3">
-        <span
-          className="h-px w-8"
-          style={{ background: "var(--color-accent)" }}
-          aria-hidden
-        />
+        <span className="h-px w-8" style={{ background: "var(--color-accent)" }} aria-hidden />
         <h2 className="t-inscription text-base">{title}</h2>
-        <span
-          className="h-px w-8"
-          style={{ background: "var(--color-accent)" }}
-          aria-hidden
-        />
+        <span className="h-px w-8" style={{ background: "var(--color-accent)" }} aria-hidden />
       </div>
       <p className="t-label mt-2">{note}</p>
     </div>
@@ -168,38 +118,60 @@ function Heading({ title, note }: { title: string; note: string }) {
 /**
  *
  */
-function CaseCard({
-  href,
-  rarity,
-  name,
-  price,
-  note,
-  accent,
-}: {
-  href: string;
-  rarity: Rarity;
-  name: string;
-  price: string;
-  note: string;
-  accent: string;
-}) {
+function DeckCard({ deck }: { deck: DeckInfo }) {
+  const tiers = slotsPerTier(deck);
+  const empty = specFor(0).name;
+  const best = tiers.find((t) => t.spec.name !== empty)?.spec;
+  const top = tiers.reduce((n, t) => Math.max(n, t.spec.tickets), 0);
+
+  const prizes = tiers.filter((t) => t.weight > 0).reduce((n, t) => n + t.count, 0);
+  const vault = Number(formatUnits(deck.vault, 6)).toFixed(2);
+
   return (
-    <Link href={href} className="group block h-full">
+    <Link href={`/case/${deck.id}`} className="group block h-full">
       <div className="surface flex h-full flex-col overflow-hidden transition-transform duration-300 group-hover:-translate-y-1">
-        <div className="grid flex-1 place-items-center p-5">
+        <div className="grid flex-1 place-items-center p-6">
           <Crate
-            rarity={rarity}
-            size={140}
+            rarity={deck.empty ? "grout" : (best?.rarity ?? "sealed")}
+            size={150}
             className="transition-transform duration-500 group-hover:scale-105"
           />
         </div>
-        <div className="border-t border-[var(--edge)] px-4 py-4 text-center">
-          <div className="t-inscription text-[0.6875rem]" style={{ color: accent }}>
-            {name}
+
+        <div className="border-t border-[var(--edge)] px-5 py-4">
+          <div className="flex items-baseline justify-between gap-3">
+            <span
+              className="t-inscription text-[0.6875rem]"
+              style={{ color: best?.ink ?? "var(--color-ink-faint)" }}
+            >
+              {deck.vaultUpTo > 0 ? "vault" : "no vault"}
+              {top > 0 && ` · up to +${top}`} · {prizes} prize{prizes === 1 ? "" : "s"}
+            </span>
+            <span className="chip py-0.5">$1</span>
           </div>
-          <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
-            <span className="chip py-0.5">{price}</span>
-            <span className="t-label">{note}</span>
+
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <span className="t-label">
+              {deck.empty ? "all opened" : `${deck.remaining} of ${deck.size} left`}
+            </span>
+            {deck.vaultUpTo > 0 && (
+              <span
+                className="t-chain text-[0.9375rem]"
+                style={{ color: "var(--color-tier-vault)" }}
+              >
+                ${vault}
+              </span>
+            )}
+          </div>
+
+          <div className="mt-3 h-1 overflow-hidden rounded-full bg-[var(--color-raised)]">
+            <div
+              className="h-full rounded-full transition-[width] duration-700"
+              style={{
+                width: `${deck.size > 0 ? (deck.drawn / deck.size) * 100 : 0}%`,
+                background: "var(--color-accent)",
+              }}
+            />
           </div>
         </div>
       </div>

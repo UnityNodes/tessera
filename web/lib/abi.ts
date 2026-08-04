@@ -127,6 +127,11 @@ export const TESSERA_DECK_ABI = [
             "internalType": "uint64"
           },
           {
+            "name": "deckId",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
             "name": "indexA",
             "type": "uint16",
             "internalType": "uint16"
@@ -295,8 +300,78 @@ export const TESSERA_DECK_ABI = [
         "internalType": "uint16"
       }
     ],
-    "outputs": [],
+    "outputs": [
+      {
+        "name": "deckId",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
     "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "deckAt",
+    "inputs": [
+      {
+        "name": "deckId",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct TesseraDeck.Deck",
+        "components": [
+          {
+            "name": "cards",
+            "type": "bytes32",
+            "internalType": "elist"
+          },
+          {
+            "name": "size",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "drawn",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "vaultUpTo",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "vault",
+            "type": "uint128",
+            "internalType": "uint128"
+          },
+          {
+            "name": "unsweptOpens",
+            "type": "uint64",
+            "internalType": "uint64"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "deckCount",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -313,19 +388,6 @@ export const TESSERA_DECK_ABI = [
         "name": "",
         "type": "uint256",
         "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "drawn",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint16",
-        "internalType": "uint16"
       }
     ],
     "stateMutability": "view"
@@ -421,7 +483,13 @@ export const TESSERA_DECK_ABI = [
   {
     "type": "function",
     "name": "openBattle",
-    "inputs": [],
+    "inputs": [
+      {
+        "name": "deckId",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
     "outputs": [
       {
         "name": "id",
@@ -458,7 +526,13 @@ export const TESSERA_DECK_ABI = [
   {
     "type": "function",
     "name": "openCase",
-    "inputs": [],
+    "inputs": [
+      {
+        "name": "deckId",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
     "outputs": [
       {
         "name": "index",
@@ -536,7 +610,13 @@ export const TESSERA_DECK_ABI = [
   {
     "type": "function",
     "name": "remaining",
-    "inputs": [],
+    "inputs": [
+      {
+        "name": "deckId",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
     "outputs": [
       {
         "name": "",
@@ -624,19 +704,6 @@ export const TESSERA_DECK_ABI = [
   },
   {
     "type": "function",
-    "name": "season",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint32",
-        "internalType": "uint32"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "setVaultShare",
     "inputs": [
       {
@@ -698,20 +765,7 @@ export const TESSERA_DECK_ABI = [
   },
   {
     "type": "function",
-    "name": "size",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint16",
-        "internalType": "uint16"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "slotSeason",
+    "name": "slotDeck",
     "inputs": [
       {
         "name": "player",
@@ -840,7 +894,7 @@ export const TESSERA_DECK_ABI = [
     "name": "tiers",
     "inputs": [
       {
-        "name": "forSeason",
+        "name": "deckId",
         "type": "uint32",
         "internalType": "uint32"
       }
@@ -894,8 +948,40 @@ export const TESSERA_DECK_ABI = [
   },
   {
     "type": "function",
+    "name": "unsweptOpens",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "vault",
     "inputs": [],
+    "outputs": [
+      {
+        "name": "total",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "vaultOf",
+    "inputs": [
+      {
+        "name": "deckId",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
     "outputs": [
       {
         "name": "",
@@ -920,40 +1006,13 @@ export const TESSERA_DECK_ABI = [
   },
   {
     "type": "function",
-    "name": "vaultUpTo",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint16",
-        "internalType": "uint16"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "vaultUpToOfSeason",
+    "name": "weightIn",
     "inputs": [
       {
-        "name": "",
+        "name": "deckId",
         "type": "uint32",
         "internalType": "uint32"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint16",
-        "internalType": "uint16"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "weightNow",
-    "inputs": [
+      },
       {
         "name": "value",
         "type": "uint256",
@@ -974,7 +1033,7 @@ export const TESSERA_DECK_ABI = [
     "name": "weightOf",
     "inputs": [
       {
-        "name": "forSeason",
+        "name": "deckId",
         "type": "uint32",
         "internalType": "uint32"
       },
@@ -1127,6 +1186,12 @@ export const TESSERA_DECK_ABI = [
         "internalType": "address"
       },
       {
+        "name": "deckId",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
         "name": "index",
         "type": "uint16",
         "indexed": false,
@@ -1152,7 +1217,7 @@ export const TESSERA_DECK_ABI = [
     "name": "DeckCreated",
     "inputs": [
       {
-        "name": "season",
+        "name": "deckId",
         "type": "uint32",
         "indexed": true,
         "internalType": "uint32"
@@ -1327,6 +1392,12 @@ export const TESSERA_DECK_ABI = [
     "name": "VaultGrew",
     "inputs": [
       {
+        "name": "deckId",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
         "name": "added",
         "type": "uint256",
         "indexed": false,
@@ -1350,6 +1421,12 @@ export const TESSERA_DECK_ABI = [
         "type": "address",
         "indexed": true,
         "internalType": "address"
+      },
+      {
+        "name": "deckId",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
       },
       {
         "name": "handle",
@@ -1436,17 +1513,17 @@ export const TESSERA_DECK_ABI = [
   },
   {
     "type": "error",
-    "name": "DeckInPlay",
-    "inputs": []
-  },
-  {
-    "type": "error",
     "name": "NoStakeOpen",
     "inputs": []
   },
   {
     "type": "error",
     "name": "NoSuchBattle",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoSuchDeck",
     "inputs": []
   },
   {

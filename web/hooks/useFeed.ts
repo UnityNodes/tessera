@@ -16,7 +16,7 @@ export interface FeedItem extends OpenEvent {
  *
  *
  */
-export function useFeed(deck: DeckShape, limit = 16) {
+export function useFeed(decks: DeckShape[], limit = 16) {
   const opens = useOpens();
   const recent = useMemo(
     () => (opens.data ?? []).slice(-limit).reverse(),
@@ -25,7 +25,7 @@ export function useFeed(deck: DeckShape, limit = 16) {
 
   const revealed = useQuery({
     queryKey: ["feed-values", recent.map((o) => o.handle).join(",")],
-    enabled: recent.length > 0 && deck.tiers.length > 0,
+    enabled: recent.length > 0 && decks.length > 0,
     staleTime: Infinity,
     queryFn: async () => {
       const out = await revealHandles(
@@ -39,10 +39,16 @@ export function useFeed(deck: DeckShape, limit = 16) {
   return useMemo<FeedItem[]>(
     () =>
       recent.map((o) => {
+        const shape = decks[o.deckId];
         const value = revealed.data?.get(o.handle.toLowerCase());
-        const weight = value === undefined ? 0 : weightOf(value, deck);
-        return { ...o, value, weight, spec: value === undefined ? specFor(0) : specOf(value, deck) };
+        const weight = value === undefined || !shape ? 0 : weightOf(value, shape);
+        return {
+          ...o,
+          value,
+          weight,
+          spec: value === undefined || !shape ? specFor(0) : specOf(value, shape),
+        };
       }),
-    [recent, revealed.data, deck],
+    [recent, revealed.data, decks],
   );
 }

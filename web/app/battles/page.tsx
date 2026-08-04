@@ -13,8 +13,9 @@ import { Crate } from "@/components/Crate";
  */
 export default function BattlesPage() {
   const { address } = useAccount();
-  const deck = useDeck();
+  const game = useDeck();
   const battles = useBattleList();
+  const [pick, setPick] = useState(0);
 
   const me = address?.toLowerCase();
   const mine = useMemo(
@@ -25,7 +26,9 @@ export default function BattlesPage() {
     [battles.all, me],
   );
 
-  const canPlay = Boolean(address) && deck.canAfford && !deck.deckEmpty;
+  const playable = game.decks.filter((d) => !d.empty);
+  const chosen = playable.find((d) => d.id === pick) ?? playable[0];
+  const canPlay = Boolean(address) && game.canAfford && Boolean(chosen);
 
   return (
     <>
@@ -38,16 +41,36 @@ export default function BattlesPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center gap-6">
           <Counter label="waiting" value={battles.open.length} />
           <Counter label="live" value={battles.live.length} />
           <Counter label="all time" value={battles.total} />
-          <Button
-            disabled={!canPlay || battles.busy || Boolean(mine)}
-            onClick={() => void battles.create(deck.needsApproval)}
-          >
-            {battles.busy ? "…" : "Create a battle · $1"}
-          </Button>
+
+          <div className="flex items-center gap-2">
+            <div className="raised inline-flex gap-1 rounded-[var(--radius-chip)] p-1">
+              {playable.map((d) => (
+                <button
+                  key={d.id}
+                  onClick={() => setPick(d.id)}
+                  className="t-label rounded-[var(--radius-chip)] px-3 py-1.5 hover:text-[var(--color-ink)]"
+                  style={
+                    chosen?.id === d.id
+                      ? { background: "var(--color-accent)", color: "oklch(97% 0.004 90)" }
+                      : undefined
+                  }
+                >
+                  case #{d.id}
+                </button>
+              ))}
+            </div>
+            <Button
+              disabled={!canPlay || battles.busy || Boolean(mine)}
+              loading={battles.busy}
+              onClick={() => chosen && void battles.create(chosen.id, game.needsApproval)}
+            >
+              Create a battle · $1
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -92,7 +115,7 @@ export default function BattlesPage() {
                 me={me}
                 canPlay={canPlay && !mine}
                 busy={battles.busy}
-                onJoin={() => void battles.join(b.id, deck.needsApproval)}
+                onJoin={() => void battles.join(b.id, game.needsApproval)}
               />
             ))}
           </ul>
@@ -142,7 +165,7 @@ function Row({
           {battle.joined && <> · {short(battle.b)}</>}
         </p>
         <p className="t-label">
-          #{String(battle.id)} · <Ago at={battle.openedAt} />
+          #{String(battle.id)} · case #{battle.deckId} · <Ago at={battle.openedAt} />
         </p>
       </div>
 

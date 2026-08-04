@@ -30,14 +30,20 @@ export default function BattlePage() {
   }, [params.id]);
 
   const { address } = useAccount();
-  const deck = useDeck();
-  const shape = useMemo(
-    () => ({ size: deck.size, tiers: deck.tiers, vaultUpTo: deck.vaultUpTo }),
-    [deck.size, deck.tiers, deck.vaultUpTo],
-  );
-  const pool = usePool(shape, deck.drawn);
+  const game = useDeck();
   const fight = useBattle(id);
   const { battle, cards } = fight;
+
+  const deck = game.decks.find((d) => d.id === battle?.deckId);
+  const shape = useMemo(
+    () => ({
+      size: deck?.size ?? 0,
+      tiers: deck?.tiers ?? [],
+      vaultUpTo: deck?.vaultUpTo ?? 0,
+    }),
+    [deck?.size, deck?.tiers, deck?.vaultUpTo],
+  );
+  const pool = usePool(shape, deck?.drawn ?? 0, battle?.deckId ?? 0);
 
   const me = address?.toLowerCase();
   const iAmCreator = Boolean(battle && battle.a.toLowerCase() === me);
@@ -62,7 +68,9 @@ export default function BattlePage() {
           <Link href="/battles" className="t-label hover:text-[var(--color-ink)]">
             ← all battles
           </Link>
-          <h1 className="t-inscription mt-2 text-xl">battle #{String(battle.id)}</h1>
+          <h1 className="t-inscription mt-2 text-xl">
+            battle #{String(battle.id)} <span className="t-label">· case #{battle.deckId}</span>
+          </h1>
         </div>
         <p className="t-label max-w-md text-right">
           {battle.resolved
@@ -92,9 +100,9 @@ export default function BattlePage() {
           />
         ) : (
           <OpenSeat
-            canJoin={Boolean(address) && !iAmIn && deck.canAfford && !deck.deckEmpty}
+            canJoin={Boolean(address) && !iAmIn && game.canAfford && Boolean(deck) && !deck!.empty}
             busy={fight.busy}
-            onJoin={() => void fight.join(deck.needsApproval)}
+            onJoin={() => void fight.join(game.needsApproval)}
           />
         )}
       </section>

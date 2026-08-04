@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useAccount } from "wagmi";
 import { formatUnits } from "viem";
 import { motion, AnimatePresence } from "motion/react";
@@ -25,22 +27,30 @@ import { specOf, ticketsFromWeight, isVault, type DeckShape } from "@/lib/deck";
  *
  */
 export default function CasePage() {
+  const params = useParams<{ id: string }>();
+  const deckId = Number(params.id);
+
   const { isConnected } = useAccount();
-  const deck = useDeck();
+  const game = useDeck();
+  const deck = game.decks.find((d) => d.id === deckId);
 
   const shape = useMemo(
-    () => ({ size: deck.size, tiers: deck.tiers, vaultUpTo: deck.vaultUpTo }),
-    [deck.size, deck.tiers, deck.vaultUpTo],
+    () => ({
+      size: deck?.size ?? 0,
+      tiers: deck?.tiers ?? [],
+      vaultUpTo: deck?.vaultUpTo ?? 0,
+    }),
+    [deck?.size, deck?.tiers, deck?.vaultUpTo],
   );
 
-  const inventory = useInventory(shape);
+  const inventory = useInventory(game.decks);
   const refreshInventory = useRefreshInventory();
-  const pool = usePool(shape, deck.drawn);
+  const pool = usePool(shape, deck?.drawn ?? 0, deckId);
   const megapot = useMegapot();
 
   const refresh = useCallback(async () => {
-    await Promise.all([deck.refetch(), refreshInventory(), pool.refetch(), megapot.refetch()]);
-  }, [deck, refreshInventory, pool, megapot]);
+    await Promise.all([game.refetch(), refreshInventory(), pool.refetch(), megapot.refetch()]);
+  }, [game, refreshInventory, pool, megapot]);
 
   const open = useOpenCase(refresh);
   const redeem = useRedeem(refresh);
@@ -52,7 +62,12 @@ export default function CasePage() {
   const bonusTickets = ticketsFromWeight(weight);
 
   const vaultSlot = inventory.data?.find(
-    (s) => s.value != null && !s.spent && s.signatures?.length && isVault(specOf(s.value, shape)),
+    (s) =>
+      s.deckId === deckId &&
+      s.value != null &&
+      !s.spent &&
+      s.signatures?.length &&
+      isVault(specOf(s.value, shape)),
   );
 
   const decidingSlot = stake.open
@@ -63,14 +78,27 @@ export default function CasePage() {
   const busy = ["approving", "signing", "confirming", "revealing", "landing"].includes(
     open.state.phase,
   );
-  const canOpen = isConnected && !deck.deckEmpty && deck.canAfford && !busy;
+  const canOpen = isConnected && Boolean(deck) && !deck!.empty && game.canAfford && !busy;
+
+  if (!deck) {
+    return (
+      <p className="py-20 text-center text-[1.0625rem] text-[var(--color-ink-dim)]">
+        {game.isLoading ? "Reading the chain…" : "No such case."}
+      </p>
+    );
+  }
 
   return (
     <>
       <div className="mb-5 flex flex-wrap items-baseline justify-between gap-3">
-        <h1 className="t-inscription text-xl">the case</h1>
+        <div>
+          <Link href="/" className="t-label hover:text-[var(--color-ink)]">
+            ← all cases
+          </Link>
+          <h1 className="t-inscription mt-2 text-xl">case #{deck.id}</h1>
+        </div>
         <p className="t-label">
-          season {deck.season} · {deck.remaining} of {deck.size} unopened
+          {deck.remaining} of {deck.size} unopened
         </p>
       </div>
 
@@ -89,7 +117,7 @@ export default function CasePage() {
               value={open.state.value}
               deck={shape}
               size={360}
-              onClick={canOpen ? () => open.open({ needsApproval: deck.needsApproval }) : undefined}
+              onClick={canOpen ? () => open.open({ deckId, needsApproval: game.needsApproval }) : undefined}
             />
           )}
         </div>
@@ -142,11 +170,11 @@ export default function CasePage() {
               <p className="text-[1.0625rem] text-[var(--color-ink-dim)]">
                 Connect a wallet to open a case.
               </p>
-            ) : deck.deckEmpty ? (
+            ) : deck.empty ? (
               <p className="text-[1.0625rem] text-[var(--color-ink-dim)]">
                 Every case in this season has been opened.
               </p>
-            ) : !deck.canAfford ? (
+            ) : !game.canAfford ? (
               <p className="text-[1.0625rem] text-[var(--color-ink-dim)]">
                 You need $1 in test dollars, mint some from the header, they are free.
               </p>
@@ -157,14 +185,14 @@ export default function CasePage() {
                 onClick={() =>
                   open.state.phase === "done" || open.state.phase === "failed"
                     ? open.reset()
-                    : open.open({ needsApproval: deck.needsApproval })
+                    : open.open({ deckId, needsApproval: game.needsApproval })
                 }
               >
                 {busy
                   ? "…"
                   : open.state.phase === "done" || open.state.phase === "failed"
                     ? "Open another · $1"
-                    : deck.needsApproval
+                    : game.needsApproval
                       ? "Approve once, then open · $1"
                       : "Open a case · $1"}
               </Button>
@@ -225,8 +253,8 @@ export default function CasePage() {
             }
             onRedeem={() => redeem.redeem(toRedeem)}
             redeeming={redeem.state.phase === "signing" || redeem.state.phase === "confirming"}
-            treasury={deck.treasury}
-            ticketPrice={deck.ticketPrice}
+            treasury={game.treasury}
+            ticketPrice={game.ticketPrice}
           />
 
           {redeem.state.phase === "done" && (

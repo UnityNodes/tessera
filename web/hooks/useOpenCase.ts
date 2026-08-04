@@ -108,7 +108,7 @@ export function useOpenCase(onSettled?: () => void) {
   }, [address]);
 
   const open = useCallback(
-    async ({ needsApproval }: { needsApproval: boolean }) => {
+    async ({ deckId, needsApproval }: { deckId: number; needsApproval: boolean }) => {
       if (!address) return;
       abort.current?.abort();
       const ctl = new AbortController();
@@ -125,6 +125,7 @@ export function useOpenCase(onSettled?: () => void) {
           address: DECK_ADDRESS,
           abi: TESSERA_DECK_ABI,
           functionName: "openCase",
+          args: [deckId],
           account: address,
         });
         const [index, handle] = sim.result as readonly [number, `0x${string}`];

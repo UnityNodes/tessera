@@ -23,6 +23,7 @@ export interface Battle {
   b: `0x${string}`;
   slotA: number;
   slotB: number;
+  deckId: number;
   openedAt: number;
   resolved: boolean;
   joined: boolean;
@@ -103,6 +104,7 @@ function toBattle(id: bigint, r: unknown): Battle | null {
         b: `0x${string}`;
         slotA: bigint;
         slotB: bigint;
+        deckId: number;
         openedAt: bigint;
         resolved: boolean;
       }
@@ -115,6 +117,7 @@ function toBattle(id: bigint, r: unknown): Battle | null {
     b: x.b,
     slotA: Number(x.slotA),
     slotB: Number(x.slotB),
+    deckId: Number(x.deckId),
     openedAt: Number(x.openedAt),
     resolved: x.resolved,
     joined,
@@ -170,10 +173,10 @@ export function useBattleList(onSettled?: () => void) {
     loading: count.isLoading || details.isLoading,
     refetch,
 
-    create: (needsApproval: boolean) =>
+    create: (deckId: number, needsApproval: boolean) =>
       writes.run(async () => {
         await writes.pay(needsApproval);
-        return writes.send("openBattle");
+        return writes.send("openBattle", [deckId]);
       }),
 
     join: (id: bigint, needsApproval: boolean) =>
