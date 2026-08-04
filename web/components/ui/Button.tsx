@@ -47,6 +47,7 @@ export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
   return (
     <button
       ref={ref}
+      type="button"
       disabled={disabled || loading}
       style={loading ? { cursor: "progress" } : undefined}
       className={`${base} ${skins[variant]} ${block ? "w-full" : ""} ${className}`}

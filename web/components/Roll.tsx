@@ -135,7 +135,10 @@ function Item({ spec }: { spec: TierSpec }) {
         width: ITEM,
         height: ITEM,
         background: spec.tint,
-        boxShadow: `inset 0 0 0 1px color-mix(in oklab, ${spec.ink} 30%, transparent), 0 4px 12px rgb(0 0 0/0.5)`,
+        boxShadow:
+          spec.tickets > 0 || spec.name === "The Vault"
+            ? `inset 0 0 0 1px color-mix(in oklab, ${spec.ink} 42%, transparent), 0 0 34px -6px color-mix(in oklab, ${spec.ink} 60%, transparent), 0 4px 12px rgb(0 0 0/0.5)`
+            : `inset 0 0 0 1px color-mix(in oklab, ${spec.ink} 26%, transparent), 0 4px 12px rgb(0 0 0/0.5)`,
       }}
     >
       <div className="pointer-events-none absolute inset-x-0 top-3 grid place-items-center">

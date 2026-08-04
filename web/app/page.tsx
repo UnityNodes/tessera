@@ -15,6 +15,7 @@ import { slotsPerTier, specFor } from "@/lib/deck";
 export default function Home() {
   const game = useDeck();
   const battles = useBattleList();
+  const first = game.decks.find((d) => !d.empty) ?? game.decks[0];
 
   return (
     <>
@@ -68,12 +69,12 @@ export default function Home() {
               drawn without replacement, and countable by anyone.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <a href="#cases">
-                <Button>Pick a case · $1</Button>
-              </a>
-              <Link href="/battles">
-                <Button variant="quiet">Battles</Button>
+              <Link href={`/case/${first?.id ?? 0}`}>
+                <Button>Open a case · $1</Button>
               </Link>
+              <a href="#cases">
+                <Button variant="quiet">See all {game.decks.length || ""} cases</Button>
+              </a>
             </div>
           </div>
 
@@ -129,12 +130,22 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
 
   return (
     <Link href={`/case/${deck.id}`} className="group block h-full">
-      <div className="surface flex h-full flex-col overflow-hidden transition-transform duration-300 group-hover:-translate-y-1">
-        <div className="grid flex-1 place-items-center p-8">
+      <div className="surface relative flex h-full flex-col overflow-hidden transition-transform duration-300 group-hover:-translate-y-1.5">
+        <div className="relative grid flex-1 place-items-center p-10">
+          <span
+            aria-hidden
+            className="glow"
+            style={
+              {
+                "--glow-color": best?.ink ?? "transparent",
+                "--glow-strength": deck.empty ? 0.12 : deck.vaultUpTo > 0 ? 0.55 : 0.3,
+              } as React.CSSProperties
+            }
+          />
           <Crate
             rarity={deck.empty ? "grout" : (best?.rarity ?? "sealed")}
-            size={190}
-            className="transition-transform duration-500 group-hover:scale-105"
+            size={210}
+            className="relative transition-transform duration-500 group-hover:scale-[1.07]"
           />
         </div>
 
@@ -150,16 +161,19 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
             <span className="chip py-0.5">$1</span>
           </div>
 
-          <div className="mt-3 flex items-center justify-between gap-3">
-            <span className="t-label">
+          <div className="mt-4 flex items-end justify-between gap-3">
+            <span className="t-label pb-1">
               {deck.empty ? "all opened" : `${deck.remaining} of ${deck.size} left`}
             </span>
             {deck.vaultUpTo > 0 && (
-              <span
-                className="t-chain text-[0.9375rem]"
-                style={{ color: "var(--color-tier-vault)" }}
-              >
-                ${vault}
+              <span className="text-right">
+                <span className="t-label block">vault</span>
+                <span
+                  className="t-chain block text-2xl leading-none"
+                  style={{ color: "var(--color-tier-vault)" }}
+                >
+                  ${vault}
+                </span>
               </span>
             )}
           </div>

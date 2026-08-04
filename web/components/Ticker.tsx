@@ -36,9 +36,9 @@ export function Ticker({ items }: { items: FeedItem[] }) {
               <motion.li
                 key={it.handle}
                 layout
-                initial={{ opacity: 0, x: -CARD }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.4, ease: [0.16, 0.84, 0.28, 1] }}
+                initial={{ opacity: 0, x: -CARD, scale: 0.9 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                transition={{ duration: 0.45, ease: [0.16, 0.84, 0.28, 1] }}
                 className="shrink-0"
                 style={{ width: CARD }}
               >
@@ -50,7 +50,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
                       ? `linear-gradient(158deg, color-mix(in oklab, ${it.spec.ink} 24%, ${it.spec.tint}), ${it.spec.tint})`
                       : "linear-gradient(158deg, var(--color-raised), var(--color-raised))",
                     boxShadow: prize
-                      ? `inset 0 2px 0 ${it.spec.ink}, inset 0 0 0 1px color-mix(in oklab, ${it.spec.ink} 26%, transparent)`
+                      ? `inset 0 2px 0 ${it.spec.ink}, inset 0 0 0 1px color-mix(in oklab, ${it.spec.ink} 30%, transparent), 0 0 22px -4px color-mix(in oklab, ${it.spec.ink} 55%, transparent)`
                       : "inset 0 2px 0 var(--edge-strong), inset 0 0 0 1px var(--edge)",
                   }}
                 >
