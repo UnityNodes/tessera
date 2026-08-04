@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { animate, useMotionValue, motion, useReducedMotion } from "motion/react";
 import { slotsPerTier, specFor, VAULT_SPEC, type TierSpec, type DeckShape } from "@/lib/deck";
+import { Crate } from "./Crate";
 import type { PoolState } from "@/hooks/usePool";
 
 const ITEM = 104;
@@ -77,7 +78,7 @@ export function Roll({
       <div
         aria-hidden
         className="absolute left-1/2 top-0 z-20 h-full w-px -translate-x-1/2"
-        style={{ background: "var(--color-sinopia-400)" }}
+        style={{ background: "var(--color-accent-bright)" }}
       />
       <div
         aria-hidden
@@ -87,7 +88,7 @@ export function Roll({
           height: 0,
           borderLeft: "6px solid transparent",
           borderRight: "6px solid transparent",
-          borderTop: "8px solid var(--color-sinopia-400)",
+          borderTop: "8px solid var(--color-accent-bright)",
         }}
       />
 
@@ -96,7 +97,7 @@ export function Roll({
         className="pointer-events-none absolute inset-0 z-10"
         style={{
           background:
-            "linear-gradient(90deg, var(--color-stone-900) 0%, transparent 18%, transparent 82%, var(--color-stone-900) 100%)",
+            "linear-gradient(90deg, var(--color-surface) 0%, transparent 18%, transparent 82%, var(--color-surface) 100%)",
         }}
       />
 
@@ -118,7 +119,7 @@ export function Roll({
 function Item({ spec }: { spec: TierSpec }) {
   return (
     <div
-      className="relative shrink-0 overflow-hidden rounded-[3px]"
+      className="relative shrink-0 overflow-hidden rounded-[var(--radius-panel)]"
       style={{
         width: ITEM,
         height: ITEM,
@@ -127,13 +128,9 @@ function Item({ spec }: { spec: TierSpec }) {
         borderBottom: `3px solid ${spec.ink}`,
       }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={spec.art}
-        alt=""
-        className="pointer-events-none absolute inset-0 h-full w-full object-contain p-1"
-        draggable={false}
-      />
+      <div className="pointer-events-none absolute inset-0 grid place-items-center">
+        <Crate rarity={spec.rarity} size={ITEM - 22} />
+      </div>
       <span
         className="t-inscription absolute inset-x-0 bottom-1 text-center text-[0.5rem]"
         style={{ color: spec.ink, textShadow: "0 1px 3px rgb(0 0 0/0.9)" }}

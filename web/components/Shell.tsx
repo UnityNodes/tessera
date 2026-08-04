@@ -38,7 +38,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-grout)_90%,transparent)] backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-bg)_90%,transparent)] backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-[1560px] items-center gap-4 px-4 sm:px-6">
           <Link href="/" className="flex shrink-0 items-center gap-2.5">
             <Mark />
@@ -61,11 +61,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="ml-auto flex items-center gap-3">
-            <span className="hidden items-center gap-2 rounded-[3px] border border-[var(--edge)] px-3 py-1.5 lg:flex">
+            <span className="hidden items-center gap-2 rounded-[var(--radius-panel)] border border-[var(--edge)] px-3 py-1.5 lg:flex">
               <IconVault />
               <span
                 className="t-chain text-[0.8125rem]"
-                style={{ color: "var(--color-porphyry-300)" }}
+                style={{ color: "var(--color-tier-vault)" }}
               >
                 ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
               </span>
@@ -75,7 +75,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <div className="border-b border-[var(--edge)] bg-[var(--color-stone-900)]">
+      <div className="border-b border-[var(--edge)] bg-[var(--color-surface)]">
         <div className="mx-auto grid max-w-[1560px] grid-cols-2 divide-x divide-[var(--edge)] px-4 sm:px-6 md:grid-cols-4">
           <Stat icon={<IconCase />} label="cases opened" value={String(deck.drawn)} />
           <Stat icon={<IconUsers />} label="players" value={String(playerCount)} />
@@ -88,12 +88,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
             icon={<IconTicket />}
             label="your tickets"
             value={megapot.tickets.toFixed(0)}
-            ink="var(--color-patina-400)"
+            ink="var(--color-accent-bright)"
           />
         </div>
       </div>
 
-      <div className="border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-stone-900)_60%,transparent)]">
+      <div className="border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-surface)_60%,transparent)]">
         <div className="mx-auto flex max-w-[1560px] items-stretch px-4 sm:px-6">
           <div className="flex w-14 shrink-0 flex-col items-center justify-center gap-1 border-r border-[var(--edge)] pr-3">
             <IconCrown />
@@ -116,7 +116,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             href={addressUrl(DECK_ADDRESS)}
             target="_blank"
             rel="noreferrer"
-            className="t-chain text-[0.75rem] text-[var(--color-travertine-faint)] hover:text-[var(--color-travertine)]"
+            className="t-chain text-[0.75rem] text-[var(--color-ink-faint)] hover:text-[var(--color-ink)]"
           >
             {DECK_ADDRESS}
           </a>
@@ -140,13 +140,13 @@ function Tab({
   return (
     <Link
       href={href}
-      className="t-label flex items-center gap-2 whitespace-nowrap rounded-[3px] px-3 py-2 transition-colors hover:text-[var(--color-travertine)]"
+      className="t-label flex items-center gap-2 whitespace-nowrap rounded-[var(--radius-panel)] px-3 py-2 transition-colors hover:text-[var(--color-ink)]"
       style={
         active
           ? {
-              background: "var(--color-sinopia-900)",
-              color: "var(--color-sinopia-400)",
-              boxShadow: "inset 0 0 0 1px color-mix(in oklab, var(--color-sinopia-400) 30%, transparent)",
+              background: "color-mix(in oklab, var(--color-accent) 18%, var(--color-surface))",
+              color: "var(--color-accent-bright)",
+              boxShadow: "inset 0 0 0 1px color-mix(in oklab, var(--color-accent-bright) 30%, transparent)",
             }
           : undefined
       }
@@ -170,12 +170,12 @@ function Stat({
 }) {
   return (
     <div className="flex items-center gap-3 px-4 py-3">
-      <span className="text-[var(--color-travertine-faint)]">{icon}</span>
+      <span className="text-[var(--color-ink-faint)]">{icon}</span>
       <span>
         <span className="t-label block">{label}</span>
         <span
           className="t-chain mt-0.5 block text-lg leading-none"
-          style={{ color: ink ?? "var(--color-travertine)" }}
+          style={{ color: ink ?? "var(--color-ink)" }}
         >
           {value}
         </span>
@@ -238,19 +238,19 @@ const IconVault = () => (
 );
 
 const IconCrown = () => (
-  <svg {...S} width={16} height={16} style={{ color: "var(--color-ochre-400)" }}>
+  <svg {...S} width={16} height={16} style={{ color: "var(--color-tier-aureus)" }}>
     <path d="M2 12h12M2.5 11 1.5 4.5l3.5 2.5L8 3l3 4 3.5-2.5L13.5 11z" />
   </svg>
 );
 
 const Mark = () => (
   <span
-    className="grid h-8 w-8 shrink-0 place-items-center rounded-[3px]"
+    className="grid h-8 w-8 shrink-0 place-items-center rounded-[var(--radius-panel)]"
     style={{
-      background: "linear-gradient(150deg, var(--color-sinopia-500), var(--color-sinopia-900))",
+      background: "linear-gradient(150deg, var(--color-accent), color-mix(in oklab, var(--color-accent) 18%, var(--color-surface)))",
       boxShadow: "inset 0 1px 0 rgb(255 255 255/0.22)",
     }}
   >
-    <span className="t-display text-[0.9375rem] leading-none text-[var(--color-travertine)]">T</span>
+    <span className="t-display text-[0.9375rem] leading-none text-[var(--color-ink)]">T</span>
   </span>
 );

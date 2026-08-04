@@ -31,7 +31,7 @@ export function Feed({ items }: { items: FeedItem[] }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.35, ease: [0.16, 0.84, 0.28, 1] }}
-              className="flex items-center gap-3 rounded-[2px] px-2 py-1.5"
+              className="flex items-center gap-3 rounded-[var(--radius-control)] px-2 py-1.5"
               style={{
                 background: prize
                   ? `color-mix(in oklab, ${it.spec.tint} 70%, transparent)`
@@ -46,13 +46,13 @@ export function Feed({ items }: { items: FeedItem[] }) {
                 style={{ background: it.spec.ink, opacity: prize ? 1 : 0.35 }}
               />
               <span className="t-chain min-w-0 flex-1 truncate text-[0.8125rem]">
-                <span style={{ color: mine ? "var(--color-sinopia-400)" : "var(--color-travertine-faint)" }}>
+                <span style={{ color: mine ? "var(--color-accent-bright)" : "var(--color-ink-faint)" }}>
                   {mine ? "you" : short(it.player)}
                 </span>
               </span>
               <span
                 className="t-inscription shrink-0 text-[0.625rem]"
-                style={{ color: prize ? it.spec.ink : "var(--color-travertine-faint)" }}
+                style={{ color: prize ? it.spec.ink : "var(--color-ink-faint)" }}
               >
                 {it.value === undefined ? "…" : it.spec.name}
               </span>

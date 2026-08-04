@@ -6,6 +6,7 @@ import { useAccount } from "wagmi";
 import { Button } from "@/components/ui/Button";
 import { useDeck } from "@/hooks/useDeck";
 import { useBattleList, type Battle } from "@/hooks/useBattles";
+import { Crate } from "@/components/Crate";
 
 /**
  *
@@ -31,7 +32,7 @@ export default function BattlesPage() {
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div className="max-w-2xl">
           <h1 className="t-inscription text-xl">battles</h1>
-          <p className="mt-2 text-[1.0625rem] text-[var(--color-travertine-dim)]">
+          <p className="mt-2 text-[1.0625rem] text-[var(--color-ink-dim)]">
             Two cases open at once and the better card takes both prizes. Neither card can be
             read until both players have paid, not even by the one who opened the battle.
           </p>
@@ -51,10 +52,10 @@ export default function BattlesPage() {
       </div>
 
       {battles.state.error && (
-        <p className="mb-4 text-[0.9375rem] text-[var(--color-sinopia-400)]">
+        <p className="mb-4 text-[0.9375rem] text-[var(--color-danger)]">
           {battles.state.error.title}
           {battles.state.error.next && (
-            <span className="block text-[var(--color-travertine-faint)]">
+            <span className="block text-[var(--color-ink-faint)]">
               {battles.state.error.next}
             </span>
           )}
@@ -63,7 +64,7 @@ export default function BattlesPage() {
 
       {mine && (
         <Link href={`/battles/${mine.id}`} className="block">
-          <div className="surface mb-4 flex flex-wrap items-center justify-between gap-4 rounded-[3px] border-l-2 border-l-[var(--color-sinopia-400)] p-5">
+          <div className="surface mb-4 flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-panel)] border-l-2 border-l-[var(--color-accent-bright)] p-5">
             <div>
               <p className="t-label">your battle</p>
               <p className="mt-1 text-[1.0625rem]">
@@ -77,9 +78,9 @@ export default function BattlesPage() {
         </Link>
       )}
 
-      <section className="surface overflow-hidden rounded-[3px]">
+      <section className="surface overflow-hidden rounded-[var(--radius-panel)]">
         {battles.all.length === 0 ? (
-          <p className="p-10 text-center text-[1.0625rem] text-[var(--color-travertine-dim)]">
+          <p className="p-10 text-center text-[1.0625rem] text-[var(--color-ink-dim)]">
             {battles.loading ? "Reading the chain…" : "No battles yet, open the first one."}
           </p>
         ) : (
@@ -127,7 +128,7 @@ function Row({
           <Seat address={battle.b} />
         ) : (
           <div
-            className="grid h-14 w-14 shrink-0 place-items-center rounded-[3px] border border-dashed border-[var(--edge-strong)]"
+            className="grid h-14 w-14 shrink-0 place-items-center rounded-[var(--radius-panel)] border border-dashed border-[var(--edge-strong)]"
             title="open seat"
           >
             <span className="t-label text-[0.5625rem]">open</span>
@@ -136,7 +137,7 @@ function Row({
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="t-chain truncate text-[0.8125rem] text-[var(--color-travertine-dim)]">
+        <p className="t-chain truncate text-[0.8125rem] text-[var(--color-ink-dim)]">
           {short(battle.a)}
           {battle.joined && <> · {short(battle.b)}</>}
         </p>
@@ -161,14 +162,20 @@ function Row({
 
 function Status({ battle }: { battle: Battle }) {
   const [label, ink] = battle.resolved
-    ? ["done", "var(--color-travertine-faint)"]
+    ? ["done", "var(--color-ink-faint)"]
     : battle.joined
-      ? ["live", "var(--color-sinopia-400)"]
-      : ["waiting", "var(--color-ochre-400)"];
+      ? ["live", "var(--color-accent-bright)"]
+      : ["waiting", "var(--color-ink-dim)"];
 
   return (
     <div className="w-20 shrink-0">
-      <span className="t-inscription text-[0.625rem]" style={{ color: ink }}>
+      <span
+        className="t-inscription text-[0.625rem]"
+        style={{
+          color: ink,
+          animation: battle.joined && !battle.resolved ? "marker-live 1.8s ease-in-out infinite" : undefined,
+        }}
+      >
         {label}
       </span>
     </div>
@@ -178,15 +185,14 @@ function Status({ battle }: { battle: Battle }) {
 function Seat({ address }: { address: `0x${string}` }) {
   return (
     <div
-      className="h-14 w-14 shrink-0 overflow-hidden rounded-[3px]"
+      className="h-14 w-14 shrink-0 overflow-hidden rounded-[var(--radius-panel)]"
       style={{
-        background: "linear-gradient(158deg, var(--color-stone-700), var(--color-stone-900))",
-        boxShadow: "inset 0 2px 0 var(--edge-strong), inset 0 0 0 1px var(--edge)",
+        background: "var(--color-raised)",
+        boxShadow: "inset 0 0 0 1px var(--edge)",
       }}
       title={address}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/cases/grout.png" alt="" className="h-full w-full object-contain p-1" />
+      <Crate rarity="sealed" size={44} className="m-auto block" />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { useAccount } from "wagmi";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/Button";
 import { Roll } from "@/components/Roll";
+import { Crate } from "@/components/Crate";
 import { useDeck } from "@/hooks/useDeck";
 import { usePool } from "@/hooks/usePool";
 import { useBattle } from "@/hooks/useBattles";
@@ -48,7 +49,7 @@ export default function BattlePage() {
 
   if (!battle) {
     return (
-      <p className="py-20 text-center text-[1.0625rem] text-[var(--color-travertine-dim)]">
+      <p className="py-20 text-center text-[1.0625rem] text-[var(--color-ink-dim)]">
         {id === undefined ? "No such battle." : "Reading the chain…"}
       </p>
     );
@@ -58,7 +59,7 @@ export default function BattlePage() {
     <>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <Link href="/battles" className="t-label hover:text-[var(--color-travertine)]">
+          <Link href="/battles" className="t-label hover:text-[var(--color-ink)]">
             ← all battles
           </Link>
           <h1 className="t-inscription mt-2 text-xl">battle #{String(battle.id)}</h1>
@@ -99,17 +100,17 @@ export default function BattlePage() {
       </section>
 
       {fight.state.error && (
-        <p className="mt-4 text-center text-[0.9375rem] text-[var(--color-sinopia-400)]">
+        <p className="mt-4 text-center text-[0.9375rem] text-[var(--color-danger)]">
           {fight.state.error.title}
           {fight.state.error.next && (
-            <span className="block text-[var(--color-travertine-faint)]">
+            <span className="block text-[var(--color-ink-faint)]">
               {fight.state.error.next}
             </span>
           )}
         </p>
       )}
 
-      <section className="surface mt-5 rounded-[3px] p-6 sm:p-8">
+      <section className="surface mt-5 rounded-[var(--radius-panel)] p-6 sm:p-8">
         {specA && specB ? (
           <Verdict
             specA={specA}
@@ -119,11 +120,11 @@ export default function BattlePage() {
             settled={battle.resolved}
           />
         ) : battle.joined ? (
-          <p className="text-center text-[1.0625rem] text-[var(--color-travertine-dim)]">
+          <p className="text-center text-[1.0625rem] text-[var(--color-ink-dim)]">
             The covalidators are turning both cards over, a few seconds we do not control.
           </p>
         ) : (
-          <p className="text-center text-[1.0625rem] text-[var(--color-travertine-dim)]">
+          <p className="text-center text-[1.0625rem] text-[var(--color-ink-dim)]">
             Nobody can read either card yet. That is the point: there is no easy fight to pick.
           </p>
         )}
@@ -133,7 +134,7 @@ export default function BattlePage() {
             <Button block disabled={fight.busy} onClick={() => void fight.resolve()}>
               {fight.busy ? "Settling…" : "Settle the battle"}
             </Button>
-            <p className="mt-2 text-center text-[0.9375rem] text-[var(--color-travertine-faint)]">
+            <p className="mt-2 text-center text-[0.9375rem] text-[var(--color-ink-faint)]">
               Anyone can settle it, the loser cannot freeze it by staying away.
             </p>
           </div>
@@ -163,12 +164,12 @@ function Side({
   pool?: ReturnType<typeof usePool>["data"];
 }) {
   return (
-    <div className="surface overflow-hidden rounded-[3px]">
+    <div className="surface overflow-hidden rounded-[var(--radius-panel)]">
       <div className="flex items-center justify-between border-b border-[var(--edge)] px-5 py-3">
-        <span className="t-chain text-[0.8125rem] text-[var(--color-travertine-dim)]">{title}</span>
+        <span className="t-chain text-[0.8125rem] text-[var(--color-ink-dim)]">{title}</span>
         <span
           className="t-inscription text-[0.6875rem]"
-          style={{ color: spec ? spec.ink : "var(--color-travertine-faint)" }}
+          style={{ color: spec ? spec.ink : "var(--color-ink-faint)" }}
         >
           {spec ? (spec.tickets > 0 ? `+${spec.tickets} · ${spec.name}` : spec.name) : "sealed"}
         </span>
@@ -177,8 +178,7 @@ function Side({
       <div className="flex min-h-[10rem] items-center justify-center p-4">
         {sealed ? (
           <div className="flex flex-col items-center gap-3 py-6">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/cases/grout.png" alt="" className="w-32 opacity-40" draggable={false} />
+            <Crate rarity="sealed" size={120} drift />
             <span className="t-label">sealed until someone pays</span>
           </div>
         ) : (
@@ -199,10 +199,10 @@ function OpenSeat({
   onJoin: () => void;
 }) {
   return (
-    <div className="surface grid place-items-center rounded-[3px] border-dashed p-8">
+    <div className="surface grid place-items-center rounded-[var(--radius-panel)] border-dashed p-8">
       <div className="text-center">
         <p className="t-label">open seat</p>
-        <p className="mt-2 max-w-xs text-[1.0625rem] text-[var(--color-travertine-dim)]">
+        <p className="mt-2 max-w-xs text-[1.0625rem] text-[var(--color-ink-dim)]">
           Your dollar buys you a real ticket either way. Only the bonus is on the table.
         </p>
         <div className="mt-5">
@@ -241,23 +241,23 @@ function Verdict({
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-center">
       {draw ? (
-        <p className="text-[1.0625rem] text-[var(--color-travertine-dim)]">
+        <p className="text-[1.0625rem] text-[var(--color-ink-dim)]">
           {pot === 0
             ? "Both empty. Nobody owes anybody, and both players still hold the ticket."
             : "The same card. A draw, and each keeps their own."}
         </p>
       ) : watching ? (
-        <p className="t-inscription text-2xl" style={{ color: "var(--color-patina-400)" }}>
+        <p className="t-inscription text-2xl" style={{ color: "var(--color-accent-bright)" }}>
           {pot > 0
             ? `${creatorWon ? "the creator" : "the challenger"} takes all ${pot}`
             : "won on the card, but the pot was empty"}
         </p>
       ) : iWon ? (
-        <p className="t-inscription text-2xl" style={{ color: "var(--color-patina-400)" }}>
+        <p className="t-inscription text-2xl" style={{ color: "var(--color-accent-bright)" }}>
           {pot > 0 ? `you take all ${pot} ticket${pot > 1 ? "s" : ""}` : "you win, but the pot was empty"}
         </p>
       ) : (
-        <p className="text-[1.0625rem] text-[var(--color-travertine-dim)]">
+        <p className="text-[1.0625rem] text-[var(--color-ink-dim)]">
           {pot > 0 ? `Lost the ${pot}.` : "Lost, though there was nothing in the pot."} The
           ticket you paid for is still yours.
         </p>
@@ -291,7 +291,7 @@ function Abandon({
   const left = openedAt * 1000 + TIMEOUT_MS - now;
   if (left > 0) {
     return (
-      <p className="mt-4 text-center text-[0.9375rem] text-[var(--color-travertine-faint)]">
+      <p className="mt-4 text-center text-[0.9375rem] text-[var(--color-ink-faint)]">
         If nobody comes, you can take the card back in {Math.ceil(left / 60_000)} min. Nothing to
         refund, the ticket was bought the moment you opened the battle.
       </p>

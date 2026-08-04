@@ -31,7 +31,7 @@ export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
   if (chainId !== CHAIN.id) {
     return (
       <div className="flex flex-wrap items-center gap-4">
-        <span className="text-[0.9375rem] text-[var(--color-travertine-dim)]">
+        <span className="text-[0.9375rem] text-[var(--color-ink-dim)]">
           This game lives on Base Sepolia.
         </span>
         <Button onClick={() => switchChain({ chainId: CHAIN.id })}>Switch network</Button>
@@ -62,7 +62,7 @@ export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
         href={addressUrl(address!)}
         target="_blank"
         rel="noreferrer"
-        className="t-chain text-[0.8125rem] text-[var(--color-travertine-dim)] hover:text-[var(--color-travertine)]"
+        className="t-chain text-[0.8125rem] text-[var(--color-ink-dim)] hover:text-[var(--color-ink)]"
       >
         {short(address!)}
       </a>

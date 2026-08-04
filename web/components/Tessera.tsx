@@ -30,7 +30,7 @@ export function Tessera({ state, value, deck, size = 72, delay = 0, onClick }: P
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.45, ease: [0.16, 0.84, 0.28, 1] }}
-      className="relative block shrink-0 rounded-[2px] disabled:cursor-default"
+      className="relative block shrink-0 rounded-[var(--radius-control)] disabled:cursor-default"
       style={{ width: size, height: size, perspective: 600 }}
       aria-label={
         spec ? `${spec.name}: ${spec.note}` : "Sealed slot, contents not yet revealed"
@@ -73,12 +73,12 @@ export function Tessera({ state, value, deck, size = 72, delay = 0, onClick }: P
 
 function Sweep() {
   return (
-    <div className="absolute inset-0 overflow-hidden rounded-[2px]">
+    <div className="absolute inset-0 overflow-hidden rounded-[var(--radius-control)]">
       <motion.div
         className="absolute inset-y-[-60%] w-[45%]"
         style={{
           background:
-            "linear-gradient(105deg,transparent,color-mix(in oklab,var(--color-lapis-400) 45%,transparent),transparent)",
+            "linear-gradient(105deg,transparent,color-mix(in oklab,var(--color-tier-sealed) 45%,transparent),transparent)",
           rotate: "18deg",
         }}
         animate={{ x: ["-140%", "260%"] }}

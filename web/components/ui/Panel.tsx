@@ -7,7 +7,7 @@ interface PanelProps extends React.HTMLAttributes<HTMLDivElement> {
  */
 export function Panel({ label, children, className = "", ...rest }: PanelProps) {
   return (
-    <div className={`surface rounded-[3px] ${className}`} {...rest}>
+    <div className={`surface rounded-[var(--radius-panel)] ${className}`} {...rest}>
       {label && (
         <div className="px-6 pt-5 pb-3 border-b border-[var(--edge)]">
           <span className="t-label">{label}</span>
@@ -41,7 +41,7 @@ export function DataRow({
       />
       <span
         className="t-chain text-[0.9375rem] shrink-0"
-        style={{ color: ink ?? "var(--color-travertine)" }}
+        style={{ color: ink ?? "var(--color-ink)" }}
       >
         {value}
       </span>

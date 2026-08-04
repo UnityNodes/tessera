@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useAccount } from "wagmi";
 import { isVault } from "@/lib/deck";
+import { Crate } from "./Crate";
 import type { FeedItem } from "@/hooks/useFeed";
 
 const CARD = 92;
@@ -23,7 +24,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
         className="pointer-events-none absolute inset-0 z-10"
         style={{
           background:
-            "linear-gradient(90deg, var(--color-stone-950) 0%, transparent 6%, transparent 88%, var(--color-stone-950) 100%)",
+            "linear-gradient(90deg, var(--color-bg) 0%, transparent 6%, transparent 88%, var(--color-bg) 100%)",
         }}
       />
       <ul className="flex gap-2 overflow-x-auto pb-2 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -42,30 +43,26 @@ export function Ticker({ items }: { items: FeedItem[] }) {
                 style={{ width: CARD }}
               >
                 <div
-                  className="relative overflow-hidden rounded-[3px]"
+                  className="relative overflow-hidden rounded-[var(--radius-panel)]"
                   style={{
                     height: CARD,
                     background: prize
                       ? `linear-gradient(158deg, color-mix(in oklab, ${it.spec.ink} 24%, ${it.spec.tint}), ${it.spec.tint})`
-                      : "linear-gradient(158deg, var(--color-stone-700), var(--color-stone-800))",
+                      : "linear-gradient(158deg, var(--color-raised), var(--color-raised))",
                     boxShadow: prize
                       ? `inset 0 2px 0 ${it.spec.ink}, inset 0 0 0 1px color-mix(in oklab, ${it.spec.ink} 26%, transparent)`
                       : "inset 0 2px 0 var(--edge-strong), inset 0 0 0 1px var(--edge)",
                   }}
                 >
                   {it.value === undefined ? (
-                    <span className="t-inscription grid h-full place-items-center text-[0.625rem] text-[var(--color-travertine-faint)]">
+                    <span className="t-inscription grid h-full place-items-center text-[0.625rem] text-[var(--color-ink-faint)]">
                       sealed
                     </span>
                   ) : (
                     <>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={it.spec.art}
-                        alt=""
-                        className="pointer-events-none absolute inset-0 h-full w-full object-contain p-1"
-                        draggable={false}
-                      />
+                      <div className="pointer-events-none absolute inset-0 grid place-items-center">
+                        <Crate rarity={it.spec.rarity} size={CARD - 20} />
+                      </div>
                       {it.spec.tickets > 0 && (
                         <div
                           className="t-chain absolute right-1.5 top-1 text-base leading-none"
@@ -77,7 +74,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
                       <div
                         className="t-inscription absolute inset-x-0 bottom-1 text-center text-[0.5rem]"
                         style={{
-                          color: prize ? it.spec.ink : "var(--color-travertine-faint)",
+                          color: prize ? it.spec.ink : "var(--color-ink-faint)",
                           textShadow: "0 1px 3px rgb(0 0 0/0.9)",
                         }}
                       >
@@ -89,7 +86,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
                 <div
                   className="t-chain mt-1 truncate text-center text-[0.625rem]"
                   style={{
-                    color: mine ? "var(--color-sinopia-400)" : "var(--color-travertine-faint)",
+                    color: mine ? "var(--color-accent-bright)" : "var(--color-ink-faint)",
                   }}
                 >
                   {mine ? "you" : short(it.player)}

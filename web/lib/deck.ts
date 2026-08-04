@@ -22,13 +22,15 @@ export function weightOf(value: number, deck: DeckShape): number {
 
 export const WEIGHT_PER_TICKET = 5;
 
+export type Rarity = "vault" | "porphyry" | "aureus" | "denarius" | "grout" | "sealed";
+
 export interface TierSpec {
   name: string;
   note: string;
   tint: string;
   ink: string;
   tickets: number;
-  art: string;
+  rarity: Rarity;
 }
 
 /**
@@ -41,39 +43,39 @@ export function specFor(weight: number): TierSpec {
     return {
       name: "Porphyry",
       note: `+${tickets} tickets`,
-      tint: "var(--color-porphyry-900)",
-      ink: "var(--color-porphyry-300)",
+      tint: "color-mix(in oklab, var(--color-tier-porphyry) 16%, var(--color-surface))",
+      ink: "var(--color-tier-porphyry)",
       tickets,
-      art: "/cases/porphyry.png",
+      rarity: "porphyry",
     };
   }
   if (tickets >= 2) {
     return {
       name: "Aureus",
       note: `+${tickets} tickets`,
-      tint: "var(--color-ochre-900)",
-      ink: "var(--color-ochre-300)",
+      tint: "color-mix(in oklab, var(--color-tier-aureus) 16%, var(--color-surface))",
+      ink: "var(--color-tier-aureus)",
       tickets,
-      art: "/cases/aureus.png",
+      rarity: "aureus",
     };
   }
   if (tickets === 1) {
     return {
       name: "Denarius",
       note: "+1 ticket",
-      tint: "var(--color-patina-900)",
-      ink: "var(--color-patina-400)",
+      tint: "color-mix(in oklab, var(--color-tier-denarius) 16%, var(--color-surface))",
+      ink: "var(--color-tier-denarius)",
       tickets: 1,
-      art: "/cases/denarius.png",
+      rarity: "denarius",
     };
   }
   return {
     name: "Grout",
     note: "nothing this time",
-    tint: "var(--color-stone-700)",
-    ink: "var(--color-travertine-faint)",
+    tint: "color-mix(in oklab, var(--color-tier-grout) 12%, var(--color-surface))",
+    ink: "var(--color-tier-grout)",
     tickets: 0,
-    art: "/cases/grout.png",
+    rarity: "grout",
   };
 }
 
@@ -85,10 +87,10 @@ export function specOf(value: number, deck: DeckShape): TierSpec {
 export const VAULT_SPEC: TierSpec = {
   name: "The Vault",
   note: "everything the vault holds",
-  tint: "var(--color-porphyry-900)",
-  ink: "var(--color-porphyry-300)",
+  tint: "color-mix(in oklab, var(--color-tier-vault) 18%, var(--color-surface))",
+  ink: "var(--color-tier-vault)",
   tickets: 0,
-  art: "/cases/vault.png",
+  rarity: "vault",
 };
 
 export const isVault = (spec: TierSpec) => spec.name === VAULT_SPEC.name;

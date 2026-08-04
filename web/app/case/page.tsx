@@ -75,7 +75,7 @@ export default function CasePage() {
       </div>
 
       <section className="grid items-stretch gap-5 lg:grid-cols-2">
-        <div className="surface flex min-h-[28rem] items-center justify-center overflow-hidden rounded-[3px] p-6">
+        <div className="surface flex min-h-[28rem] items-center justify-center overflow-hidden rounded-[var(--radius-panel)] p-6">
           {rolling ? (
             <Roll
               running
@@ -94,23 +94,23 @@ export default function CasePage() {
           )}
         </div>
 
-        <div className="surface flex flex-col justify-center rounded-[3px] p-6 sm:p-8">
+        <div className="surface flex flex-col justify-center rounded-[var(--radius-panel)] p-6 sm:p-8">
           {deck.vaultUpTo > 0 && (
             <div className="flex items-baseline gap-4 border-b border-[var(--edge)] pb-4">
               <div>
                 <span className="t-label block">the vault</span>
                 <span
                   className="t-chain block text-[clamp(1.75rem,4vw,2.5rem)] leading-none"
-                  style={{ color: "var(--color-porphyry-300)" }}
+                  style={{ color: "var(--color-tier-vault)" }}
                 >
                   ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
                 </span>
               </div>
-              <span className="text-[0.9375rem] text-[var(--color-travertine-dim)]">
+              <span className="text-[0.9375rem] text-[var(--color-ink-dim)]">
                 {!pool.data?.vaultTaken ? (
                   <>one case in {deck.remaining} opens it, and takes all of it</>
                 ) : vaultSlot ? (
-                  <span style={{ color: "var(--color-porphyry-300)" }}>
+                  <span style={{ color: "var(--color-tier-vault)" }}>
                     you drew it, take it below
                   </span>
                 ) : (
@@ -139,15 +139,15 @@ export default function CasePage() {
 
           <div className="mt-2">
             {!isConnected ? (
-              <p className="text-[1.0625rem] text-[var(--color-travertine-dim)]">
+              <p className="text-[1.0625rem] text-[var(--color-ink-dim)]">
                 Connect a wallet to open a case.
               </p>
             ) : deck.deckEmpty ? (
-              <p className="text-[1.0625rem] text-[var(--color-travertine-dim)]">
+              <p className="text-[1.0625rem] text-[var(--color-ink-dim)]">
                 Every case in this season has been opened.
               </p>
             ) : !deck.canAfford ? (
-              <p className="text-[1.0625rem] text-[var(--color-travertine-dim)]">
+              <p className="text-[1.0625rem] text-[var(--color-ink-dim)]">
                 You need $1 in test dollars, mint some from the header, they are free.
               </p>
             ) : (
@@ -175,7 +175,7 @@ export default function CasePage() {
                 href={open.state.txUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="t-label mt-3 block hover:text-[var(--color-travertine)]"
+                className="t-label mt-3 block hover:text-[var(--color-ink)]"
               >
                 view transaction
               </a>
@@ -196,7 +196,7 @@ export default function CasePage() {
                   : `Take the vault · $${Number(formatUnits(deck.vault, 6)).toFixed(2)}`}
               </Button>
               {vault.state.error && (
-                <p className="mt-3 text-[0.9375rem] text-[var(--color-sinopia-400)]">
+                <p className="mt-3 text-[0.9375rem] text-[var(--color-danger)]">
                   {vault.state.error.title}
                 </p>
               )}
@@ -204,7 +204,7 @@ export default function CasePage() {
           )}
 
           {vault.state.phase === "done" && (
-            <p className="mt-4 text-[1.0625rem]" style={{ color: "var(--color-porphyry-300)" }}>
+            <p className="mt-4 text-[1.0625rem]" style={{ color: "var(--color-tier-vault)" }}>
               The vault paid you ${Number(formatUnits(vault.state.paid ?? 0n, 6)).toFixed(2)}.
             </p>
           )}
@@ -212,7 +212,7 @@ export default function CasePage() {
       </section>
 
       {(bonusTickets > 0 || stake.open || stake.bankedWeight > 0) && (
-        <section className="surface mt-5 rounded-[3px] p-6 sm:p-8">
+        <section className="surface mt-5 rounded-[var(--radius-panel)] p-6 sm:p-8">
           <p className="t-label">your bonus</p>
           <StakePanel
             stake={stake}
@@ -230,30 +230,30 @@ export default function CasePage() {
           />
 
           {redeem.state.phase === "done" && (
-            <p className="mt-4 text-[0.9375rem] text-[var(--color-patina-400)]">
+            <p className="mt-4 text-[0.9375rem] text-[var(--color-accent-bright)]">
               Claimed. The game bought you {redeem.state.tickets ?? 1} more real ticket
               {(redeem.state.tickets ?? 1) > 1 ? "s" : ""}.
             </p>
           )}
           {redeem.state.error && (
-            <p className="mt-4 text-[0.9375rem] text-[var(--color-sinopia-400)]">
+            <p className="mt-4 text-[0.9375rem] text-[var(--color-danger)]">
               {redeem.state.error.title}
             </p>
           )}
         </section>
       )}
 
-      <section className="surface mt-5 rounded-[3px] p-6 sm:p-8">
+      <section className="surface mt-5 rounded-[var(--radius-panel)] p-6 sm:p-8">
         <p className="t-label mb-5">what is in this case</p>
         <Contents deck={shape} pool={pool.data} />
       </section>
 
       <section className="mt-5 grid gap-5 lg:grid-cols-2">
-        <div className="surface rounded-[3px] p-6 sm:p-8">
+        <div className="surface rounded-[var(--radius-panel)] p-6 sm:p-8">
           <p className="t-label mb-4">what is still in the pool</p>
           <PoolCounter deck={shape} drawn={deck.drawn} pool={pool.data} />
         </div>
-        <div className="surface rounded-[3px] p-6 sm:p-8">
+        <div className="surface rounded-[var(--radius-panel)] p-6 sm:p-8">
           <p className="t-label mb-4">your Megapot, from here</p>
           <MegapotPanel mp={megapot} />
         </div>
@@ -272,7 +272,7 @@ function Result({
   open: ReturnType<typeof useOpenCase>["state"];
   deck: DeckShape;
 }) {
-  const dim = "text-[1.0625rem] text-[var(--color-travertine-dim)]";
+  const dim = "text-[1.0625rem] text-[var(--color-ink-dim)]";
 
   switch (open.phase) {
     case "approving":
@@ -297,10 +297,10 @@ function Result({
       if (isVault(spec)) {
         return (
           <div>
-            <p className="t-inscription text-2xl" style={{ color: "var(--color-porphyry-300)" }}>
+            <p className="t-inscription text-2xl" style={{ color: "var(--color-tier-vault)" }}>
               you found the vault
             </p>
-            <p className="mt-3 text-[1.0625rem] text-[var(--color-travertine-dim)]">
+            <p className="mt-3 text-[1.0625rem] text-[var(--color-ink-dim)]">
               Everything it holds is yours. Claim it below.
             </p>
           </div>
@@ -308,15 +308,15 @@ function Result({
       }
       return (
         <div>
-          <p className="text-[1.25rem] text-[var(--color-travertine)]">
-            You own <span className="text-[var(--color-patina-400)]">1 more real ticket</span>.
+          <p className="text-[1.25rem] text-[var(--color-ink)]">
+            You own <span className="text-[var(--color-accent-bright)]">1 more real ticket</span>.
           </p>
           {spec.tickets > 0 ? (
             <p className="t-inscription mt-3 text-2xl" style={{ color: spec.ink }}>
               and the case paid {spec.tickets} more
             </p>
           ) : (
-            <p className="mt-3 text-[1.0625rem] text-[var(--color-travertine-faint)]">
+            <p className="mt-3 text-[1.0625rem] text-[var(--color-ink-faint)]">
               The case was empty. Most of them are.
             </p>
           )}
@@ -326,9 +326,9 @@ function Result({
     case "failed":
       return (
         <div>
-          <p className="text-[1.0625rem] text-[var(--color-sinopia-400)]">{open.error?.title}</p>
+          <p className="text-[1.0625rem] text-[var(--color-danger)]">{open.error?.title}</p>
           {open.error?.next && (
-            <p className="mt-1 text-[0.9375rem] text-[var(--color-travertine-faint)]">
+            <p className="mt-1 text-[0.9375rem] text-[var(--color-ink-faint)]">
               {open.error.next}
             </p>
           )}
