@@ -36,7 +36,7 @@ export function Case({ phase, value, deck, size = 300, onClick }: Props) {
       role="img"
       aria-label={
         spec
-          ? `Opened: ${spec.name}, slot ${value}`
+          ? `Opened: ${spec.name}, ${spec.note}`
           : phase === "waiting"
             ? "Sealed case, being decrypted"
             : "A sealed case"
@@ -73,17 +73,28 @@ export function Case({ phase, value, deck, size = 300, onClick }: Props) {
               className="absolute inset-0 grid place-items-center text-center"
             >
               <div>
+                {spec.tickets > 0 ? (
+                  <div
+                    className="t-chain font-semibold leading-none"
+                    style={{ fontSize: size * 0.18, color: spec.ink }}
+                  >
+                    +{spec.tickets}
+                  </div>
+                ) : (
+                  <div
+                    className="t-inscription leading-none"
+                    style={{ fontSize: size * 0.075, color: spec.ink }}
+                  >
+                    empty
+                  </div>
+                )}
                 <div
-                  className="t-chain font-semibold leading-none"
-                  style={{ fontSize: size * 0.16, color: spec.ink }}
-                >
-                  {value}
-                </div>
-                <div
-                  className="t-inscription mt-2 text-[0.7rem]"
+                  className="t-inscription mt-3 text-[0.7rem]"
                   style={{ color: spec.ink, opacity: 0.9 }}
                 >
-                  {spec.name}
+                  {spec.tickets > 0
+                    ? `${spec.name} · real ticket${spec.tickets > 1 ? "s" : ""}`
+                    : spec.name}
                 </div>
               </div>
             </motion.div>

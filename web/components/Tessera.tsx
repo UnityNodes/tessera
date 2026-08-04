@@ -11,7 +11,6 @@ interface Props {
   deck: DeckShape;
   size?: number;
   delay?: number;
-  showValue?: boolean;
   onClick?: () => void;
 }
 
@@ -20,7 +19,7 @@ interface Props {
  *
  *
  */
-export function Tessera({ state, value, deck, size = 72, delay = 0, showValue = false, onClick }: Props) {
+export function Tessera({ state, value, deck, size = 72, delay = 0, onClick }: Props) {
   const spec = state === "revealed" && value != null ? specOf(value, deck) : null;
 
   return (
@@ -61,11 +60,7 @@ export function Tessera({ state, value, deck, size = 72, delay = 0, showValue = 
             } as React.CSSProperties
           }
         >
-          {showValue ? (
-            <span className="t-chain text-[0.9375rem] font-semibold" style={{ color: spec?.ink }}>
-              {value}
-            </span>
-          ) : spec && spec.tickets > 0 ? (
+          {spec && spec.tickets > 0 ? (
             <span className="t-chain text-[0.8125rem] font-semibold" style={{ color: spec.ink }}>
               +{spec.tickets}
             </span>

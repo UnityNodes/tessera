@@ -236,7 +236,6 @@ export default function Home() {
                   value={s.value}
                   deck={shape}
                   size={44}
-                  showValue={false}
                 />
               </div>
             ))}
