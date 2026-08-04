@@ -183,14 +183,14 @@ function Side({
         </span>
       </div>
 
-      <div className="flex min-h-[10rem] items-center justify-center p-4">
+      <div className="flex min-h-[13rem] items-center justify-center px-4 py-6">
         {sealed ? (
           <div className="flex flex-col items-center gap-3 py-6">
             <Crate rarity="sealed" size={120} drift />
             <span className="t-label">sealed until someone pays</span>
           </div>
         ) : (
-          <Roll running={running && !spec} landed={spec} deck={deck} pool={pool} width={420} />
+          <Roll running={running && !spec} landed={spec} deck={deck} pool={pool} />
         )}
       </div>
     </div>

@@ -102,27 +102,27 @@ export default function CasePage() {
         </p>
       </div>
 
-      <section className="grid items-stretch gap-5 lg:grid-cols-2">
-        <div className="surface flex min-h-[28rem] items-center justify-center overflow-hidden rounded-[var(--radius-panel)] p-6">
-          {rolling ? (
-            <Roll
-              running
-              landed={open.state.value != null ? specOf(open.state.value, shape) : undefined}
-              deck={shape}
-              pool={pool.data}
-            />
-          ) : (
-            <Case
-              phase={open.state.phase === "done" ? "opened" : "idle"}
-              value={open.state.value}
-              deck={shape}
-              size={360}
-              onClick={canOpen ? () => open.open({ deckId, needsApproval: game.needsApproval }) : undefined}
-            />
-          )}
+      <section className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        
+        <div className="surface flex flex-col items-center gap-9 overflow-hidden p-6 sm:p-10">
+          <Case
+            phase={open.state.phase === "done" ? "opened" : "idle"}
+            value={open.state.value}
+            deck={shape}
+            size={340}
+            onClick={
+              canOpen ? () => open.open({ deckId, needsApproval: game.needsApproval }) : undefined
+            }
+          />
+          <Roll
+            running={rolling}
+            landed={open.state.value != null ? specOf(open.state.value, shape) : undefined}
+            deck={shape}
+            pool={pool.data}
+          />
         </div>
 
-        <div className="surface flex flex-col justify-center rounded-[var(--radius-panel)] p-6 sm:p-8">
+        <div className="surface flex flex-col justify-center p-6 sm:p-10">
           {deck.vaultUpTo > 0 && (
             <div className="flex items-baseline gap-4 border-b border-[var(--edge)] pb-4">
               <div>
@@ -240,7 +240,7 @@ export default function CasePage() {
       </section>
 
       {(bonusTickets > 0 || stake.open || stake.bankedWeight > 0) && (
-        <section className="surface mt-5 rounded-[var(--radius-panel)] p-6 sm:p-8">
+        <section className="surface mt-5 p-6 sm:p-10">
           <p className="t-label">your bonus</p>
           <StakePanel
             stake={stake}
@@ -271,17 +271,17 @@ export default function CasePage() {
         </section>
       )}
 
-      <section className="surface mt-5 rounded-[var(--radius-panel)] p-6 sm:p-8">
-        <p className="t-label mb-5">what is in this case</p>
+      <section className="surface mt-10 p-6 sm:p-10">
+        <p className="t-label mb-6">what is in this case</p>
         <Contents deck={shape} pool={pool.data} />
       </section>
 
-      <section className="mt-5 grid gap-5 lg:grid-cols-2">
-        <div className="surface rounded-[var(--radius-panel)] p-6 sm:p-8">
+      <section className="mt-10 grid gap-5 lg:grid-cols-2">
+        <div className="surface p-6 sm:p-8">
           <p className="t-label mb-4">what is still in the pool</p>
           <PoolCounter deck={shape} drawn={deck.drawn} pool={pool.data} />
         </div>
-        <div className="surface rounded-[var(--radius-panel)] p-6 sm:p-8">
+        <div className="surface p-6 sm:p-8">
           <p className="t-label mb-4">your Megapot, from here</p>
           <MegapotPanel mp={megapot} />
         </div>

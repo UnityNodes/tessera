@@ -6,7 +6,7 @@ import { isVault } from "@/lib/deck";
 import { Crate } from "./Crate";
 import type { FeedItem } from "@/hooks/useFeed";
 
-const CARD = 92;
+const CARD = 112;
 
 /**
  *
@@ -61,7 +61,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
                   ) : (
                     <>
                       <div className="pointer-events-none absolute inset-0 grid place-items-center">
-                        <Crate rarity={it.spec.rarity} size={CARD - 20} />
+                        <Crate rarity={it.spec.rarity} size={CARD - 34} />
                       </div>
                       {it.spec.tickets > 0 && (
                         <div

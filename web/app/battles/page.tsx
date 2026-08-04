@@ -32,7 +32,7 @@ export default function BattlesPage() {
 
   return (
     <>
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+      <div className="mb-7 flex flex-wrap items-end justify-between gap-6">
         <div className="max-w-2xl">
           <h1 className="t-inscription text-xl">battles</h1>
           <p className="mt-2 text-[1.0625rem] text-[var(--color-ink-dim)]">
@@ -87,7 +87,7 @@ export default function BattlesPage() {
 
       {mine && (
         <Link href={`/battles/${mine.id}`} className="block">
-          <div className="surface mb-4 flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-panel)] border-l-2 border-l-[var(--color-accent-bright)] p-5">
+          <div className="surface surface--marked mb-4 flex flex-wrap items-center justify-between gap-4 p-6">
             <div>
               <p className="t-label">your battle</p>
               <p className="mt-1 text-[1.0625rem]">
@@ -101,7 +101,7 @@ export default function BattlesPage() {
         </Link>
       )}
 
-      <section className="surface overflow-hidden rounded-[var(--radius-panel)]">
+      <section className="surface overflow-hidden">
         {battles.all.length === 0 ? (
           <p className="p-10 text-center text-[1.0625rem] text-[var(--color-ink-dim)]">
             {battles.loading ? "Reading the chain…" : "No battles yet, open the first one."}
@@ -141,7 +141,7 @@ function Row({
   const isMine = battle.a.toLowerCase() === me || battle.b.toLowerCase() === me;
 
   return (
-    <li className="flex flex-wrap items-center gap-4 px-5 py-4">
+    <li className="flex flex-wrap items-center gap-5 px-6 py-5 transition-colors hover:bg-[color-mix(in_oklab,var(--color-ink)_3%,transparent)]">
       <Status battle={battle} />
 
       <div className="flex items-center gap-2">
@@ -151,7 +151,7 @@ function Row({
           <Seat address={battle.b} />
         ) : (
           <div
-            className="grid h-14 w-14 shrink-0 place-items-center rounded-[var(--radius-panel)] border border-dashed border-[var(--edge-strong)]"
+            className="grid h-16 w-16 shrink-0 place-items-center rounded-[var(--radius-control)] border border-dashed border-[var(--edge-strong)]"
             title="open seat"
           >
             <span className="t-label text-[0.5625rem]">open</span>
@@ -208,14 +208,14 @@ function Status({ battle }: { battle: Battle }) {
 function Seat({ address }: { address: `0x${string}` }) {
   return (
     <div
-      className="h-14 w-14 shrink-0 overflow-hidden rounded-[var(--radius-panel)]"
+      className="h-16 w-16 shrink-0 overflow-hidden rounded-[var(--radius-control)]"
       style={{
         background: "var(--color-raised)",
         boxShadow: "inset 0 0 0 1px var(--edge)",
       }}
       title={address}
     >
-      <Crate rarity="sealed" size={44} className="m-auto block" />
+      <Crate rarity="sealed" size={52} className="m-auto block" />
     </div>
   );
 }

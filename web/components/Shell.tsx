@@ -28,7 +28,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-bg)_90%,transparent)] backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-[1560px] items-center gap-4 px-4 sm:px-6">
+        <div className="mx-auto flex h-[4.5rem] max-w-[1800px] items-center gap-5 px-5 sm:px-8 2xl:px-12">
           <Link href="/" className="flex shrink-0 items-center gap-2.5">
             <Mark />
             <span className="t-inscription text-[0.9375rem] leading-none">Tessera</span>
@@ -62,7 +62,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </header>
 
       <div className="border-b border-[var(--edge)] bg-[var(--color-surface)]">
-        <div className="mx-auto grid max-w-[1560px] grid-cols-2 divide-x divide-[var(--edge)] px-4 sm:px-6 md:grid-cols-4">
+        <div className="mx-auto grid max-w-[1800px] grid-cols-2 divide-x divide-[var(--edge)] px-5 sm:px-8 2xl:px-12 md:grid-cols-4">
           <Stat icon={<IconCase />} label="cases opened" value={String(game.drawn)} />
           <Stat icon={<IconUsers />} label="players" value={String(playerCount)} />
           <Stat
@@ -80,7 +80,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </div>
 
       <div className="border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-surface)_60%,transparent)]">
-        <div className="mx-auto flex max-w-[1560px] items-stretch px-4 sm:px-6">
+        <div className="mx-auto flex max-w-[1800px] items-stretch px-5 sm:px-8 2xl:px-12">
           <div className="flex w-14 shrink-0 flex-col items-center justify-center gap-1 border-r border-[var(--edge)] pr-3">
             <IconCrown />
             <span className="t-label text-[0.5625rem]">live</span>
@@ -91,12 +91,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      <main className="mx-auto w-full max-w-[1560px] flex-1 px-4 pb-24 pt-6 sm:px-6">
+      <main className="mx-auto w-full max-w-[1800px] flex-1 px-5 pb-28 pt-8 sm:px-8 2xl:px-12">
         {children}
       </main>
 
       <footer className="border-t border-[var(--edge)]">
-        <div className="mx-auto flex max-w-[1560px] flex-wrap items-center justify-between gap-3 px-4 py-6 sm:px-6">
+        <div className="mx-auto flex max-w-[1800px] flex-wrap items-center justify-between gap-3 px-5 py-7 sm:px-8 2xl:px-12">
           <span className="t-label">Tessera · Base Sepolia · Inco Lightning · Megapot</span>
           <a
             href={addressUrl(DECK_ADDRESS)}
@@ -155,12 +155,12 @@ function Stat({
   ink?: string;
 }) {
   return (
-    <div className="flex items-center gap-3 px-4 py-3">
+    <div className="flex items-center gap-3.5 px-5 py-4">
       <span className="text-[var(--color-ink-faint)]">{icon}</span>
       <span>
         <span className="t-label block">{label}</span>
         <span
-          className="t-chain mt-0.5 block text-lg leading-none"
+          className="t-chain mt-1 block text-xl leading-none"
           style={{ color: ink ?? "var(--color-ink)" }}
         >
           {value}

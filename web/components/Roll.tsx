@@ -6,8 +6,11 @@ import { slotsPerTier, specFor, VAULT_SPEC, type TierSpec, type DeckShape } from
 import { Crate } from "./Crate";
 import type { PoolState } from "@/hooks/usePool";
 
-const ITEM = 104;
-const GAP = 8;
+/**
+ *
+ */
+const ITEM = 168;
+const GAP = 14;
 const STEP = ITEM + GAP;
 
 /**
@@ -20,7 +23,6 @@ export function Roll({
   landed,
   deck,
   pool,
-  width = 520,
 }: {
   running: boolean;
   /**
@@ -29,7 +31,6 @@ export function Roll({
   landed?: TierSpec;
   deck: DeckShape;
   pool?: PoolState;
-  width?: number;
 }) {
   const still = useReducedMotion();
   const x = useMotionValue(0);
@@ -38,6 +39,11 @@ export function Roll({
   const key = `${deck.tiers.length}|${deck.vaultUpTo}|${pool?.tiers.map((t) => `${t.weight}:${t.left}`).join(",") ?? ""}`;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const strip = useMemo(() => buildStrip(deck, pool), [key]);
+
+  //
+  useEffect(() => {
+    if (strip.length) x.set(-STEP * strip.length);
+  }, [strip, x]);
 
   useEffect(() => {
     if (still) return;
@@ -74,38 +80,43 @@ export function Roll({
   }, [landed, x, still, strip]);
 
   return (
-    <div className="relative overflow-hidden" style={{ width, height: ITEM + 24 }}>
+    <div className="relative w-full overflow-hidden" style={{ height: ITEM + 36 }}>
       <div
         aria-hidden
         className="absolute left-1/2 top-0 z-20 h-full w-px -translate-x-1/2"
         style={{ background: "var(--color-accent-bright)" }}
       />
-      <div
+      <svg
         aria-hidden
+        viewBox="0 0 16 10"
         className="absolute left-1/2 top-0 z-20 -translate-x-1/2"
-        style={{
-          width: 0,
-          height: 0,
-          borderLeft: "6px solid transparent",
-          borderRight: "6px solid transparent",
-          borderTop: "8px solid var(--color-accent-bright)",
-        }}
-      />
+        style={{ width: 16, height: 10 }}
+      >
+        <path d="M0 0 H16 L8 10 Z" fill="var(--color-accent-bright)" />
+      </svg>
+      <svg
+        aria-hidden
+        viewBox="0 0 16 10"
+        className="absolute bottom-0 left-1/2 z-20 -translate-x-1/2"
+        style={{ width: 16, height: 10 }}
+      >
+        <path d="M0 10 H16 L8 0 Z" fill="var(--color-accent-bright)" />
+      </svg>
 
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 z-10"
         style={{
           background:
-            "linear-gradient(90deg, var(--color-surface) 0%, transparent 18%, transparent 82%, var(--color-surface) 100%)",
+            "linear-gradient(90deg, var(--color-surface) 0%, transparent 14%, transparent 86%, var(--color-surface) 100%)",
         }}
       />
 
       <motion.div
-        className="absolute top-3 flex"
+        className="absolute top-[18px] flex"
         style={{ x, gap: GAP, left: `calc(50% - ${ITEM / 2}px)` }}
       >
-        {[...strip, ...strip].map((spec, i) => (
+        {[...strip, ...strip, ...strip].map((spec, i) => (
           <Item key={i} spec={spec} />
         ))}
       </motion.div>
@@ -123,20 +134,23 @@ function Item({ spec }: { spec: TierSpec }) {
       style={{
         width: ITEM,
         height: ITEM,
-        background: `linear-gradient(158deg, color-mix(in oklab, ${spec.ink} 22%, ${spec.tint}), ${spec.tint})`,
-        boxShadow: `inset 0 1px 0 rgb(255 255 255/0.16), inset 0 0 0 1px color-mix(in oklab, ${spec.ink} 30%, transparent), 0 3px 6px rgb(0 0 0/0.55)`,
-        borderBottom: `3px solid ${spec.ink}`,
+        background: spec.tint,
+        boxShadow: `inset 0 0 0 1px color-mix(in oklab, ${spec.ink} 30%, transparent), 0 4px 12px rgb(0 0 0/0.5)`,
       }}
     >
-      <div className="pointer-events-none absolute inset-0 grid place-items-center">
-        <Crate rarity={spec.rarity} size={ITEM - 22} />
+      <div className="pointer-events-none absolute inset-x-0 top-3 grid place-items-center">
+        <Crate rarity={spec.rarity} size={ITEM - 62} />
       </div>
-      <span
-        className="t-inscription absolute inset-x-0 bottom-1 text-center text-[0.5rem]"
-        style={{ color: spec.ink, textShadow: "0 1px 3px rgb(0 0 0/0.9)" }}
-      >
-        {spec.name}
-      </span>
+      <div className="absolute inset-x-0 bottom-0 px-2 pb-2.5 text-center">
+        <div className="t-inscription text-[0.625rem]" style={{ color: spec.ink }}>
+          {spec.name}
+        </div>
+        {spec.tickets > 0 && (
+          <div className="t-chain text-[0.8125rem]" style={{ color: spec.ink }}>
+            +{spec.tickets}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
