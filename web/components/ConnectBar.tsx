@@ -8,7 +8,7 @@ import { CHAIN, TICKET_TOKEN, TOKEN_ABI, addressUrl } from "@/lib/chain";
 
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
-export function ConnectBar({ onMinted }: { onMinted?: () => void }) {
+export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
   const { address, chainId, isConnected } = useAccount();
   const { connect, connectors, isPending } = useConnect();
   const { disconnect } = useDisconnect();

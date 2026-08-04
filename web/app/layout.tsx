@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Bodoni_Moda, Newsreader, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { Shell } from "@/components/Shell";
 
 const bodoni = Bodoni_Moda({
   variable: "--font-bodoni",
@@ -38,7 +39,9 @@ export default function RootLayout({
       className={`${bodoni.variable} ${newsreader.variable} ${plexMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Providers>{children}</Providers>
+        <Providers>
+          <Shell>{children}</Shell>
+        </Providers>
       </body>
     </html>
   );

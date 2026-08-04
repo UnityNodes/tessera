@@ -1,0 +1,215 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useAccount } from "wagmi";
+import { Button } from "@/components/ui/Button";
+import { useDeck } from "@/hooks/useDeck";
+import { useBattleList, type Battle } from "@/hooks/useBattles";
+
+/**
+ *
+ */
+export default function BattlesPage() {
+  const { address } = useAccount();
+  const deck = useDeck();
+  const battles = useBattleList();
+
+  const me = address?.toLowerCase();
+  const mine = useMemo(
+    () =>
+      battles.all.find(
+        (b) => !b.resolved && (b.a.toLowerCase() === me || b.b.toLowerCase() === me),
+      ),
+    [battles.all, me],
+  );
+
+  const canPlay = Boolean(address) && deck.canAfford && !deck.deckEmpty;
+
+  return (
+    <>
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+        <div className="max-w-2xl">
+          <h1 className="t-inscription text-xl">battles</h1>
+          <p className="mt-2 text-[1.0625rem] text-[var(--color-travertine-dim)]">
+            Two cases open at once and the better card takes both prizes. Neither card can be
+            read until both players have paid, not even by the one who opened the battle.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-6">
+          <Counter label="waiting" value={battles.open.length} />
+          <Counter label="live" value={battles.live.length} />
+          <Counter label="all time" value={battles.total} />
+          <Button
+            disabled={!canPlay || battles.busy || Boolean(mine)}
+            onClick={() => void battles.create(deck.needsApproval)}
+          >
+            {battles.busy ? "…" : "Create a battle · $1"}
+          </Button>
+        </div>
+      </div>
+
+      {battles.state.error && (
+        <p className="mb-4 text-[0.9375rem] text-[var(--color-sinopia-400)]">
+          {battles.state.error.title}
+          {battles.state.error.next && (
+            <span className="block text-[var(--color-travertine-faint)]">
+              {battles.state.error.next}
+            </span>
+          )}
+        </p>
+      )}
+
+      {mine && (
+        <Link href={`/battles/${mine.id}`} className="block">
+          <div className="surface mb-4 flex flex-wrap items-center justify-between gap-4 rounded-[3px] border-l-2 border-l-[var(--color-sinopia-400)] p-5">
+            <div>
+              <p className="t-label">your battle</p>
+              <p className="mt-1 text-[1.0625rem]">
+                {mine.waiting
+                  ? "Waiting for an opponent. Your card is sealed until someone pays."
+                  : "Your opponent is in, go turn the cards over."}
+              </p>
+            </div>
+            <Button variant="quiet">Open it</Button>
+          </div>
+        </Link>
+      )}
+
+      <section className="surface overflow-hidden rounded-[3px]">
+        {battles.all.length === 0 ? (
+          <p className="p-10 text-center text-[1.0625rem] text-[var(--color-travertine-dim)]">
+            {battles.loading ? "Reading the chain…" : "No battles yet, open the first one."}
+          </p>
+        ) : (
+          <ul className="divide-y divide-[var(--edge)]">
+            {battles.all.map((b) => (
+              <Row
+                key={String(b.id)}
+                battle={b}
+                me={me}
+                canPlay={canPlay && !mine}
+                busy={battles.busy}
+                onJoin={() => void battles.join(b.id, deck.needsApproval)}
+              />
+            ))}
+          </ul>
+        )}
+      </section>
+    </>
+  );
+}
+
+function Row({
+  battle,
+  me,
+  canPlay,
+  busy,
+  onJoin,
+}: {
+  battle: Battle;
+  me?: string;
+  canPlay: boolean;
+  busy: boolean;
+  onJoin: () => void;
+}) {
+  const isMine = battle.a.toLowerCase() === me || battle.b.toLowerCase() === me;
+
+  return (
+    <li className="flex flex-wrap items-center gap-4 px-5 py-4">
+      <Status battle={battle} />
+
+      <div className="flex items-center gap-2">
+        <Seat address={battle.a} />
+        <span className="t-label px-1">vs</span>
+        {battle.joined ? (
+          <Seat address={battle.b} />
+        ) : (
+          <div
+            className="grid h-14 w-14 shrink-0 place-items-center rounded-[3px] border border-dashed border-[var(--edge-strong)]"
+            title="open seat"
+          >
+            <span className="t-label text-[0.5625rem]">open</span>
+          </div>
+        )}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <p className="t-chain truncate text-[0.8125rem] text-[var(--color-travertine-dim)]">
+          {short(battle.a)}
+          {battle.joined && <> · {short(battle.b)}</>}
+        </p>
+        <p className="t-label">
+          #{String(battle.id)} · <Ago at={battle.openedAt} />
+        </p>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-2">
+        {battle.waiting && !isMine && (
+          <Button variant="quiet" disabled={!canPlay || busy} onClick={onJoin}>
+            Join · $1
+          </Button>
+        )}
+        <Link href={`/battles/${battle.id}`}>
+          <Button variant="ghost">{battle.resolved ? "Result" : "Watch"}</Button>
+        </Link>
+      </div>
+    </li>
+  );
+}
+
+function Status({ battle }: { battle: Battle }) {
+  const [label, ink] = battle.resolved
+    ? ["done", "var(--color-travertine-faint)"]
+    : battle.joined
+      ? ["live", "var(--color-sinopia-400)"]
+      : ["waiting", "var(--color-ochre-400)"];
+
+  return (
+    <div className="w-20 shrink-0">
+      <span className="t-inscription text-[0.625rem]" style={{ color: ink }}>
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function Seat({ address }: { address: `0x${string}` }) {
+  return (
+    <div
+      className="h-14 w-14 shrink-0 overflow-hidden rounded-[3px]"
+      style={{
+        background: "linear-gradient(158deg, var(--color-stone-700), var(--color-stone-900))",
+        boxShadow: "inset 0 2px 0 var(--edge-strong), inset 0 0 0 1px var(--edge)",
+      }}
+      title={address}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/cases/grout.png" alt="" className="h-full w-full object-contain p-1" />
+    </div>
+  );
+}
+
+function Counter({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="text-right">
+      <span className="t-label block">{label}</span>
+      <span className="t-chain text-lg">{value}</span>
+    </div>
+  );
+}
+
+function Ago({ at }: { at: number }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 20_000);
+    return () => clearInterval(t);
+  }, []);
+  const mins = Math.max(0, Math.floor((now - at * 1000) / 60_000));
+  if (mins === 0) return <>just now</>;
+  if (mins < 60) return <>{mins} min ago</>;
+  return <>{Math.floor(mins / 60)} h ago</>;
+}
+
+const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;

@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useAccount, useConfig, useReadContract, useReadContracts } from "wagmi";
 import { simulateContract, writeContract, waitForTransactionReceipt } from "wagmi/actions";
 import { useQuery } from "@tanstack/react-query";
+import type { ContractFunctionParameters } from "viem";
 import { TESSERA_DECK_ABI } from "@/lib/abi";
 import { DECK_ADDRESS, txUrl } from "@/lib/chain";
 import { revealHandles } from "@/lib/inco";
@@ -12,7 +13,9 @@ import { explain, type Explained } from "@/lib/errors";
 
 const deck = { address: DECK_ADDRESS, abi: TESSERA_DECK_ABI } as const;
 
-const SHOWN = 6;
+export const ZERO = "0x0000000000000000000000000000000000000000";
+
+const RECENT = 24;
 
 export interface Battle {
   id: bigint;
@@ -23,6 +26,7 @@ export interface Battle {
   openedAt: number;
   resolved: boolean;
   joined: boolean;
+  waiting: boolean;
 }
 
 export type BattlePhase = "idle" | "approving" | "signing" | "confirming" | "done" | "failed";
@@ -33,114 +37,12 @@ export interface BattleState {
   error?: Explained;
 }
 
-const EMPTY: readonly bigint[] = [];
-
 /**
- *
- *
  */
-export function useBattles(onSettled?: () => void) {
+function useBattleWrites(onSettled?: () => void) {
   const config = useConfig();
   const { address } = useAccount();
   const [state, setState] = useState<BattleState>({ phase: "idle" });
-
-  const openIds = useReadContract({
-    ...deck,
-    functionName: "openBattleIds",
-    args: [BigInt(SHOWN + 1)],
-    query: { refetchInterval: 8_000 },
-  });
-
-  const mineIds = useReadContract({
-    ...deck,
-    functionName: "battlesOf",
-    args: [address ?? "0x"],
-    query: { enabled: Boolean(address), refetchInterval: 8_000 },
-  });
-
-  const ids = useMemo(() => {
-    const open = (openIds.data ?? EMPTY) as readonly bigint[];
-    const mine = ((mineIds.data ?? EMPTY) as readonly bigint[]).slice(-4);
-    return [...new Set([...open, ...mine].map(String))].map(BigInt);
-  }, [openIds.data, mineIds.data]);
-
-  const details = useReadContracts({
-    contracts: ids.map((id) => ({ ...deck, functionName: "battleAt", args: [id] }) as const),
-    query: { enabled: ids.length > 0, refetchInterval: 8_000 },
-  });
-
-  const battles = useMemo<Battle[]>(() => {
-    return ids
-      .map((id, i) => {
-        const r = details.data?.[i]?.result as
-          | {
-              a: `0x${string}`;
-              b: `0x${string}`;
-              slotA: bigint;
-              slotB: bigint;
-              openedAt: bigint;
-              resolved: boolean;
-            }
-          | undefined;
-        if (!r) return null;
-        return {
-          id,
-          a: r.a,
-          b: r.b,
-          slotA: Number(r.slotA),
-          slotB: Number(r.slotB),
-          openedAt: Number(r.openedAt),
-          resolved: r.resolved,
-          joined: r.b !== "0x0000000000000000000000000000000000000000",
-        };
-      })
-      .filter((b): b is Battle => b !== null);
-  }, [ids, details.data]);
-
-  const waiting = useMemo(
-    () => battles.filter((b) => !b.resolved && !b.joined),
-    [battles],
-  );
-
-  /**
-   *
-   */
-  const [dismissed, setDismissed] = useState<string[]>([]);
-  const mine = useMemo(() => {
-    if (!address) return undefined;
-    const me = address.toLowerCase();
-    const ours = battles
-      .filter((b) => b.a.toLowerCase() === me || b.b.toLowerCase() === me)
-      .filter((b) => !dismissed.includes(String(b.id)))
-      .sort((x, y) => (x.id < y.id ? -1 : 1));
-    return ours.find((b) => !b.resolved) ?? ours[ours.length - 1];
-  }, [battles, address, dismissed]);
-
-  const handles = useReadContracts({
-    contracts:
-      mine && mine.joined
-        ? ([
-            { ...deck, functionName: "handleOf", args: [mine.a, BigInt(mine.slotA)] },
-            { ...deck, functionName: "handleOf", args: [mine.b, BigInt(mine.slotB)] },
-          ] as const)
-        : [],
-    query: { enabled: Boolean(mine?.joined) },
-  });
-
-  const handleA = handles.data?.[0]?.result as `0x${string}` | undefined;
-  const handleB = handles.data?.[1]?.result as `0x${string}` | undefined;
-
-  /**
-   */
-  const cards = useQuery({
-    queryKey: ["battle-cards", handleA, handleB],
-    enabled: Boolean(handleA && handleB),
-    staleTime: Infinity,
-    queryFn: async () => {
-      const [a, b] = await revealHandles([handleA!, handleB!]);
-      return { a, b };
-    },
-  });
 
   const run = useCallback(
     async (fn: () => Promise<`0x${string}`>) => {
@@ -151,27 +53,14 @@ export function useBattles(onSettled?: () => void) {
         const receipt = await waitForTransactionReceipt(config, { hash });
         if (receipt.status !== "success") throw new Error("The transaction reverted on chain");
         setState({ phase: "done", txUrl: txUrl(hash) });
-        await Promise.all([openIds.refetch(), mineIds.refetch(), details.refetch()]);
         onSettled?.();
+        return hash;
       } catch (err) {
         setState({ phase: "failed", error: explain(err) });
         onSettled?.();
       }
     },
-    [config, onSettled, openIds, mineIds, details],
-  );
-
-  const write = useCallback(
-    async (functionName: "openBattle" | "joinBattle" | "abandonBattle", args: readonly unknown[]) => {
-      const sim = await simulateContract(config, {
-        ...deck,
-        functionName,
-        args,
-        account: address!,
-      } as never);
-      return writeContract(config, sim.request);
-    },
-    [config, address],
+    [config, onSettled],
   );
 
   const pay = useCallback(
@@ -183,47 +72,185 @@ export function useBattles(onSettled?: () => void) {
     [config, address],
   );
 
+  const send = useCallback(
+    async (functionName: string, args: readonly unknown[] = []) => {
+      const sim = await simulateContract(config, {
+        ...deck,
+        functionName,
+        args,
+        account: address!,
+      } as never);
+      return writeContract(config, sim.request);
+    },
+    [config, address],
+  );
+
   return {
     state,
     reset: useCallback(() => setState({ phase: "idle" }), []),
+    busy:
+      state.phase === "approving" || state.phase === "signing" || state.phase === "confirming",
+    run,
+    pay,
+    send,
+  };
+}
 
-    waiting: useMemo(
-      () => waiting.filter((b) => b.a.toLowerCase() !== address?.toLowerCase()).slice(0, SHOWN),
-      [waiting, address],
+function toBattle(id: bigint, r: unknown): Battle | null {
+  const x = r as
+    | {
+        a: `0x${string}`;
+        b: `0x${string}`;
+        slotA: bigint;
+        slotB: bigint;
+        openedAt: bigint;
+        resolved: boolean;
+      }
+    | undefined;
+  if (!x || x.a === ZERO) return null;
+  const joined = x.b !== ZERO;
+  return {
+    id,
+    a: x.a,
+    b: x.b,
+    slotA: Number(x.slotA),
+    slotB: Number(x.slotB),
+    openedAt: Number(x.openedAt),
+    resolved: x.resolved,
+    joined,
+    waiting: !x.resolved && !joined,
+  };
+}
+
+/**
+ *
+ */
+export function useBattleList(onSettled?: () => void) {
+  const writes = useBattleWrites(onSettled);
+
+  const count = useReadContract({
+    ...deck,
+    functionName: "battleCount",
+    query: { refetchInterval: 8_000 },
+  });
+
+  const total = Number((count.data as bigint | undefined) ?? 0n);
+
+  const ids = useMemo(() => {
+    const out: bigint[] = [];
+    for (let i = total; i > 0 && out.length < RECENT; i--) out.push(BigInt(i));
+    return out;
+  }, [total]);
+
+  const details = useReadContracts({
+    contracts: ids.map(
+      (id) => ({ ...deck, functionName: "battleAt", args: [id] }) as ContractFunctionParameters,
     ),
-    mine,
-    dismiss: useCallback((id: bigint) => {
-      setDismissed((d) => [...d, String(id)]);
-      setState({ phase: "idle" });
-    }, []),
-    cards: cards.data,
-    revealing: cards.isLoading,
+    query: { enabled: ids.length > 0, refetchInterval: 8_000 },
+  });
 
-    open: (needsApproval: boolean) =>
-      run(async () => {
-        await pay(needsApproval);
-        return write("openBattle", []);
+  const all = useMemo(
+    () =>
+      ids
+        .map((id, i) => toBattle(id, details.data?.[i]?.result))
+        .filter((b): b is Battle => b !== null),
+    [ids, details.data],
+  );
+
+  const refetch = useCallback(async () => {
+    await Promise.all([count.refetch(), details.refetch()]);
+  }, [count, details]);
+
+  return {
+    ...writes,
+    total,
+    all,
+    open: useMemo(() => all.filter((b) => b.waiting), [all]),
+    live: useMemo(() => all.filter((b) => b.joined && !b.resolved), [all]),
+    loading: count.isLoading || details.isLoading,
+    refetch,
+
+    create: (needsApproval: boolean) =>
+      writes.run(async () => {
+        await writes.pay(needsApproval);
+        return writes.send("openBattle");
       }),
 
     join: (id: bigint, needsApproval: boolean) =>
-      run(async () => {
-        await pay(needsApproval);
-        return write("joinBattle", [id]);
+      writes.run(async () => {
+        await writes.pay(needsApproval);
+        return writes.send("joinBattle", [id]);
+      }),
+  };
+}
+
+/**
+ *
+ */
+export function useBattle(id: bigint | undefined, onSettled?: () => void) {
+  const writes = useBattleWrites(onSettled);
+
+  const read = useReadContract({
+    ...deck,
+    functionName: "battleAt",
+    args: [id ?? 0n],
+    query: { enabled: id !== undefined, refetchInterval: 6_000 },
+  });
+
+  const battle = useMemo(
+    () => (id === undefined ? undefined : (toBattle(id, read.data) ?? undefined)),
+    [id, read.data],
+  );
+
+  const handles = useReadContracts({
+    contracts: battle?.joined
+      ? ([
+          { ...deck, functionName: "handleOf", args: [battle.a, BigInt(battle.slotA)] },
+          { ...deck, functionName: "handleOf", args: [battle.b, BigInt(battle.slotB)] },
+        ] as ContractFunctionParameters[])
+      : [],
+    query: { enabled: Boolean(battle?.joined) },
+  });
+
+  const handleA = handles.data?.[0]?.result as `0x${string}` | undefined;
+  const handleB = handles.data?.[1]?.result as `0x${string}` | undefined;
+
+  const cards = useQuery({
+    queryKey: ["battle-cards", handleA, handleB],
+    enabled: Boolean(handleA && handleB),
+    staleTime: Infinity,
+    queryFn: async () => {
+      const [a, b] = await revealHandles([handleA!, handleB!]);
+      return { a, b };
+    },
+  });
+
+  return {
+    ...writes,
+    battle,
+    cards: cards.data,
+    revealing: Boolean(battle?.joined) && !cards.data,
+    refetch: read.refetch,
+
+    join: (needsApproval: boolean) =>
+      writes.run(async () => {
+        await writes.pay(needsApproval);
+        return writes.send("joinBattle", [id!]);
       }),
 
-    abandon: (id: bigint) => run(() => write("abandonBattle", [id])),
+    abandon: () => writes.run(() => writes.send("abandonBattle", [id!])),
 
-    resolve: (id: bigint) =>
-      run(async () => {
+    resolve: () =>
+      writes.run(async () => {
         const c = cards.data;
         if (!c) throw new Error("The cards are not decrypted yet");
-        const sim = await simulateContract(config, {
-          ...deck,
-          functionName: "resolveBattle",
-          args: [id, BigInt(c.a.value), c.a.signatures, BigInt(c.b.value), c.b.signatures],
-          account: address!,
-        });
-        return writeContract(config, sim.request);
+        return writes.send("resolveBattle", [
+          id!,
+          BigInt(c.a.value),
+          c.a.signatures,
+          BigInt(c.b.value),
+          c.b.signatures,
+        ]);
       }),
   };
 }
