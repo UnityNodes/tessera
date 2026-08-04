@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { formatUnits } from "viem";
-import { useAccount } from "wagmi";
 import { Button } from "@/components/ui/Button";
 import { useDeck } from "@/hooks/useDeck";
 import { usePool } from "@/hooks/usePool";
@@ -15,7 +14,6 @@ import type { PoolState } from "@/hooks/usePool";
  *
  */
 export default function Home() {
-  const { isConnected } = useAccount();
   const deck = useDeck();
   const shape = useMemo(
     () => ({ size: deck.size, tiers: deck.tiers, vaultUpTo: deck.vaultUpTo }),
@@ -40,7 +38,7 @@ export default function Home() {
           src="/cases/porphyry.png"
           alt=""
           aria-hidden
-          className="pointer-events-none absolute -right-4 top-1/2 hidden w-64 -translate-y-1/2 opacity-35 lg:block"
+          className="pointer-events-none absolute right-6 top-1/2 hidden w-44 -translate-y-1/2 lg:block"
           draggable={false}
         />
         <div className="relative z-10 flex flex-wrap items-center justify-between gap-6 px-6 py-7 sm:px-10">
@@ -66,37 +64,31 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="relative mt-5 overflow-hidden rounded-[3px] border border-[var(--edge)]">
+      <section className="surface relative mt-5 overflow-hidden rounded-[3px]">
         <div
-          className="relative flex min-h-[22rem] flex-col items-center justify-center px-6 py-14 text-center"
+          aria-hidden
+          className="pointer-events-none absolute right-[8%] top-1/2 hidden h-[34rem] w-[34rem] -translate-y-1/2 rounded-full lg:block"
           style={{
-            backgroundImage: "url(/cases/hero-bg.jpg)",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
+            background:
+              "radial-gradient(closest-side, color-mix(in oklab, var(--color-sinopia-500) 26%, transparent), transparent 70%)",
+            filter: "blur(30px)",
           }}
-        >
-          <div
-            aria-hidden
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(70% 70% at 50% 45%, color-mix(in oklab, var(--color-grout) 82%, transparent), var(--color-grout) 92%)",
-            }}
-          />
-          <div className="relative">
-            <h1 className="t-display text-[clamp(2rem,5vw,3.75rem)]">
+        />
+        <div className="relative grid items-center gap-8 px-6 py-12 sm:px-10 lg:grid-cols-[1.05fr_1fr] lg:py-16">
+          <div>
+            <h1 className="t-display text-[clamp(2rem,4.4vw,3.4rem)]">
               $1 buys a real lottery ticket.
               <br />
               <span className="text-[var(--color-sinopia-400)]">The case is free.</span>
             </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-[1.0625rem] text-[var(--color-travertine-dim)]">
+            <p className="mt-5 max-w-xl text-[1.0625rem] text-[var(--color-travertine-dim)]">
               The same ticket sold on megapot.io, bought for you in the same transaction that
               opens the case. What is inside sits in an encrypted, finite pool, shuffled once,
               drawn without replacement, and countable by anyone.
             </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link href="/case">
-                <Button>{isConnected ? "Open a case · $1" : "Open a case · $1"}</Button>
+                <Button>Open a case · $1</Button>
               </Link>
               <Link href="/battles">
                 <Button variant="quiet">
@@ -105,6 +97,16 @@ export default function Home() {
               </Link>
             </div>
           </div>
+
+          <Link href="/case" className="group grid place-items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/cases/hero.png"
+              alt="A sealed case"
+              className="w-full max-w-[26rem] drop-shadow-[0_24px_60px_rgba(0,0,0,0.85)] transition-transform duration-500 group-hover:-translate-y-2"
+              draggable={false}
+            />
+          </Link>
         </div>
       </section>
 
