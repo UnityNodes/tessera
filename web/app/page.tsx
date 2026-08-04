@@ -8,7 +8,7 @@ import { ConnectBar } from "@/components/ConnectBar";
 import { Button } from "@/components/ui/Button";
 import { Case } from "@/components/Case";
 import { Roll } from "@/components/Roll";
-import { Feed } from "@/components/Feed";
+import { Ticker } from "@/components/Ticker";
 import { PoolCounter } from "@/components/PoolCounter";
 import { MegapotPanel } from "@/components/MegapotPanel";
 import { StakePanel } from "@/components/StakePanel";
@@ -20,10 +20,11 @@ import { useRedeem } from "@/hooks/useRedeem";
 import { useStake } from "@/hooks/useStake";
 import { usePool } from "@/hooks/usePool";
 import { useFeed } from "@/hooks/useFeed";
+import { useOpens } from "@/hooks/useOpens";
 import { useMegapot } from "@/hooks/useMegapot";
 import { useVault } from "@/hooks/useVault";
 import { useBattles } from "@/hooks/useBattles";
-import { specOf, slotsPerTier, weightOf, ticketsFromWeight, isVault, type DeckShape } from "@/lib/deck";
+import { specOf, slotsPerTier, ticketsFromWeight, isVault, type DeckShape } from "@/lib/deck";
 import { addressUrl, DECK_ADDRESS } from "@/lib/chain";
 
 /**
@@ -44,6 +45,7 @@ export default function Home() {
   const pool = usePool(shape, deck.drawn);
   const feed = useFeed(shape);
   const megapot = useMegapot();
+  const opens = useOpens();
 
   const refresh = useCallback(async () => {
     await Promise.all([deck.refetch(), refreshInventory(), pool.refetch(), megapot.refetch()]);
@@ -59,6 +61,11 @@ export default function Home() {
   const toRedeem = pickForRedeem(inventory.data);
   const bonusTickets = ticketsFromWeight(weight);
 
+  //
+  const vaultSlot = inventory.data?.find(
+    (s) => s.value != null && !s.spent && s.signatures?.length && isVault(specOf(s.value, shape)),
+  );
+
   const decidingSlot = stake.open
     ? inventory.data?.find((s) => s.index === stake.decidingSlot)
     : undefined;
@@ -69,6 +76,7 @@ export default function Home() {
   );
   const canOpen = isConnected && !deck.deckEmpty && deck.canAfford && !busy;
   const prizesLeft = pool.data?.prizesLeft ?? slotsPerTier(shape).filter((t) => t.weight > 0).reduce((n, t) => n + t.count, 0);
+  const playerCount = new Set((opens.data ?? []).map((o) => o.player.toLowerCase())).size;
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 pb-20 pt-8">
@@ -76,6 +84,21 @@ export default function Home() {
         <span className="t-label">Tessera · season {deck.season}</span>
         <ConnectBar onMinted={refresh} />
       </header>
+
+      <div className="mb-4 grid grid-cols-2 gap-px overflow-hidden rounded-[3px] border border-[var(--edge)] bg-[var(--edge)] sm:grid-cols-4">
+        <Stat label="cases opened" value={String(deck.drawn)} />
+        <Stat label="players" value={String(playerCount)} />
+        <Stat label="prizes left" value={`${prizesLeft} of ${deck.remaining}`} />
+        <Stat
+          label="your tickets"
+          value={megapot.tickets.toFixed(0)}
+          ink="var(--color-patina-400)"
+        />
+      </div>
+
+      <div className="mb-10">
+        <Ticker items={feed} />
+      </div>
 
       <div className="flex flex-col items-center text-center">
         <h1 className="t-display text-[clamp(2rem,6vw,3.25rem)]">
@@ -94,7 +117,18 @@ export default function Home() {
               ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
             </span>
             <span className="mt-2 text-[0.9375rem] text-[var(--color-travertine-dim)]">
-              one case in {deck.remaining} opens it, and takes all of it
+              {!pool.data?.vaultTaken ? (
+                <>one case in {deck.remaining} opens it, and takes all of it</>
+              ) : vaultSlot ? (
+                <span style={{ color: "var(--color-porphyry-300)" }}>
+                  you drew it, take it below
+                </span>
+              ) : (
+                <>
+                  the vault case has been drawn already · it pays out the moment its
+                  holder claims it
+                </>
+              )}
             </span>
           </div>
         )}
@@ -103,7 +137,7 @@ export default function Home() {
           {rolling ? (
             <Roll
               running
-              landedWeight={open.state.value != null ? weightOf(open.state.value, shape) : undefined}
+              landed={open.state.value != null ? specOf(open.state.value, shape) : undefined}
               deck={shape}
               pool={pool.data}
             />
@@ -177,32 +211,24 @@ export default function Home() {
           )}
         </div>
 
-        {open.state.phase === "done" &&
-          open.state.value != null &&
-          isVault(specOf(open.state.value, shape)) &&
-          vault.state.phase !== "done" && (
-            <div className="mt-6 w-full max-w-md">
-              <Button
-                block
-                disabled={vault.state.phase === "signing" || vault.state.phase === "confirming"}
-                onClick={() => {
-                  const slot = inventory.data?.find(
-                    (s) => s.handle.toLowerCase() === open.state.handle?.toLowerCase(),
-                  );
-                  if (slot?.signatures) vault.claim(slot.index, slot.value!, slot.signatures);
-                }}
-              >
-                {vault.state.phase === "signing" || vault.state.phase === "confirming"
-                  ? "Opening the vault…"
-                  : `Take the vault · $${Number(formatUnits(deck.vault, 6)).toFixed(2)}`}
-              </Button>
-              {vault.state.error && (
-                <p className="mt-3 text-[0.9375rem] text-[var(--color-sinopia-400)]">
-                  {vault.state.error.title}
-                </p>
-              )}
-            </div>
-          )}
+        {vaultSlot && vault.state.phase !== "done" && (
+          <div className="mt-6 w-full max-w-md">
+            <Button
+              block
+              disabled={vault.state.phase === "signing" || vault.state.phase === "confirming"}
+              onClick={() => vault.claim(vaultSlot.index, vaultSlot.value!, vaultSlot.signatures!)}
+            >
+              {vault.state.phase === "signing" || vault.state.phase === "confirming"
+                ? "Opening the vault…"
+                : `Take the vault · $${Number(formatUnits(deck.vault, 6)).toFixed(2)}`}
+            </Button>
+            {vault.state.error && (
+              <p className="mt-3 text-[0.9375rem] text-[var(--color-sinopia-400)]">
+                {vault.state.error.title}
+              </p>
+            )}
+          </div>
+        )}
 
         {vault.state.phase === "done" && (
           <p className="mt-6 text-[1.0625rem]" style={{ color: "var(--color-porphyry-300)" }}>
@@ -247,24 +273,11 @@ export default function Home() {
       <Battles
         battles={battles}
         deck={shape}
+        pool={pool.data}
         needsApproval={deck.needsApproval}
         canAfford={deck.canAfford}
         deckEmpty={deck.deckEmpty}
       />
-
-      <div className="mt-16 grid grid-cols-3 gap-px overflow-hidden rounded-[3px] border border-[var(--edge)] bg-[var(--edge)]">
-        <Stat
-          label="the vault"
-          value={`$${Number(formatUnits(deck.vault, 6)).toFixed(2)}`}
-          ink="var(--color-porphyry-300)"
-        />
-        <Stat label="prizes left" value={`${prizesLeft} of ${deck.remaining}`} />
-        <Stat
-          label="your tickets"
-          value={megapot.tickets.toFixed(0)}
-          ink="var(--color-patina-400)"
-        />
-      </div>
 
       <button
         onClick={() => setShowProof((v) => !v)}
@@ -291,11 +304,6 @@ export default function Home() {
               <section className="surface rounded-[3px] p-6">
                 <p className="t-label mb-4">your Megapot, from here</p>
                 <MegapotPanel mp={megapot} />
-              </section>
-
-              <section className="surface rounded-[3px] p-6 md:col-span-2">
-                <p className="t-label mb-4">live from the same deck</p>
-                <Feed items={feed} />
               </section>
             </div>
           </motion.div>

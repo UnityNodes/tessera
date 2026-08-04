@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { revealHandles } from "@/lib/inco";
-import { specFor, weightOf, type DeckShape } from "@/lib/deck";
+import { specOf, specFor, weightOf, type DeckShape } from "@/lib/deck";
 import { useOpens, type OpenEvent } from "./useOpens";
 
 export interface FeedItem extends OpenEvent {
@@ -16,7 +16,7 @@ export interface FeedItem extends OpenEvent {
  *
  *
  */
-export function useFeed(deck: DeckShape, limit = 12) {
+export function useFeed(deck: DeckShape, limit = 16) {
   const opens = useOpens();
   const recent = useMemo(
     () => (opens.data ?? []).slice(-limit).reverse(),
@@ -41,7 +41,7 @@ export function useFeed(deck: DeckShape, limit = 12) {
       recent.map((o) => {
         const value = revealed.data?.get(o.handle.toLowerCase());
         const weight = value === undefined ? 0 : weightOf(value, deck);
-        return { ...o, value, weight, spec: specFor(weight) };
+        return { ...o, value, weight, spec: value === undefined ? specFor(0) : specOf(value, deck) };
       }),
     [recent, revealed.data, deck],
   );

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { animate, useMotionValue, motion, useReducedMotion } from "motion/react";
-import { specFor, slotsPerTier, type TierSpec, type DeckShape } from "@/lib/deck";
+import { slotsPerTier, specFor, VAULT_SPEC, type TierSpec, type DeckShape } from "@/lib/deck";
 import type { PoolState } from "@/hooks/usePool";
 
 const ITEM = 104;
@@ -16,50 +16,49 @@ const STEP = ITEM + GAP;
  */
 export function Roll({
   running,
-  landedWeight,
+  landed,
   deck,
   pool,
   width = 520,
 }: {
   running: boolean;
-  landedWeight?: number;
+  /**
+   *
+   */
+  landed?: TierSpec;
   deck: DeckShape;
   pool?: PoolState;
   width?: number;
 }) {
   const still = useReducedMotion();
   const x = useMotionValue(0);
-  const strip = useRef<TierSpec[]>([]);
   const spinning = useRef(false);
 
-  const key = `${deck.tiers.length}|${pool?.tiers.map((t) => `${t.weight}:${t.left}`).join(",") ?? ""}`;
-  const builtFor = useRef("");
-  if (builtFor.current !== key) {
-    builtFor.current = key;
-    strip.current = buildStrip(deck, pool);
-  }
+  const key = `${deck.tiers.length}|${deck.vaultUpTo}|${pool?.tiers.map((t) => `${t.weight}:${t.left}`).join(",") ?? ""}`;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const strip = useMemo(() => buildStrip(deck, pool), [key]);
 
   useEffect(() => {
     if (still) return;
     if (running && !spinning.current) {
       spinning.current = true;
-      animate(x, x.get() - STEP * strip.current.length, {
-        duration: strip.current.length * 0.075,
+      animate(x, x.get() - STEP * strip.length, {
+        duration: strip.length * 0.075,
         ease: "linear",
         repeat: Infinity,
         repeatType: "loop",
       });
     }
     if (!running) spinning.current = false;
-  }, [running, x, still]);
+  }, [running, x, still, strip]);
 
   useEffect(() => {
-    if (landedWeight === undefined || still) return;
+    if (!landed || still) return;
     spinning.current = false;
 
-    const items = strip.current;
+    const items = strip;
     const current = Math.abs(x.get()) / STEP;
-    const target = specFor(landedWeight).name;
+    const target = landed.name;
     let idx = Math.ceil(current) + 12;
     for (let i = 0; i < items.length * 2; i++) {
       if (items[(idx + i) % items.length].name === target) {
@@ -71,7 +70,7 @@ export function Roll({
       duration: 1.9,
       ease: [0.12, 0.72, 0.12, 1],
     });
-  }, [landedWeight, x, still]);
+  }, [landed, x, still, strip]);
 
   return (
     <div className="relative overflow-hidden" style={{ width, height: ITEM + 24 }}>
@@ -105,7 +104,7 @@ export function Roll({
         className="absolute top-3 flex"
         style={{ x, gap: GAP, left: `calc(50% - ${ITEM / 2}px)` }}
       >
-        {[...strip.current, ...strip.current].map((spec, i) => (
+        {[...strip, ...strip].map((spec, i) => (
           <Item key={i} spec={spec} />
         ))}
       </motion.div>
@@ -141,7 +140,7 @@ function buildStrip(deck: DeckShape, pool?: PoolState): TierSpec[] {
   const LENGTH = 72;
   const grout = specFor(0);
 
-  const fromDeck = slotsPerTier(deck).filter((t) => t.weight > 0);
+  const fromDeck = slotsPerTier(deck).filter((t) => t.weight > 0 || t.spec.name === VAULT_SPEC.name);
   if (fromDeck.length === 0) return Array.from({ length: LENGTH }, () => grout);
 
   const exhausted = new Set(
@@ -153,7 +152,9 @@ function buildStrip(deck: DeckShape, pool?: PoolState): TierSpec[] {
   if (alive.length === 0) return Array.from({ length: LENGTH }, () => grout);
 
   const cycle: TierSpec[] = [];
-  const sorted = [...alive].sort((a, b) => b.weight - a.weight);
+  const rank = (t: { spec: TierSpec; weight: number }) =>
+    t.spec.name === VAULT_SPEC.name ? Infinity : t.weight;
+  const sorted = [...alive].sort((a, b) => rank(b) - rank(a));
   const perCycle = sorted.map((t, i) => ({ spec: t.spec, times: i === 0 ? 1 : i === 1 ? 2 : 3 }));
 
   const CYCLE = 12;

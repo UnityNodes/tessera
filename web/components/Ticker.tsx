@@ -1,0 +1,100 @@
+"use client";
+
+import { AnimatePresence, motion } from "motion/react";
+import { useAccount } from "wagmi";
+import { isVault } from "@/lib/deck";
+import type { FeedItem } from "@/hooks/useFeed";
+
+const CARD = 92;
+
+/**
+ *
+ *
+ */
+export function Ticker({ items }: { items: FeedItem[] }) {
+  const { address } = useAccount();
+
+  if (items.length === 0) return null;
+
+  return (
+    <div className="relative overflow-hidden" style={{ height: CARD + 26 }}>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-10"
+        style={{
+          background:
+            "linear-gradient(90deg, var(--color-stone-950) 0%, transparent 6%, transparent 88%, var(--color-stone-950) 100%)",
+        }}
+      />
+      <ul className="flex gap-2 overflow-x-auto pb-2 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <AnimatePresence initial={false}>
+          {items.map((it) => {
+            const mine = address && it.player.toLowerCase() === address.toLowerCase();
+            const prize = it.weight > 0 || (it.value != null && isVault(it.spec));
+            return (
+              <motion.li
+                key={it.handle}
+                layout
+                initial={{ opacity: 0, x: -CARD }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, ease: [0.16, 0.84, 0.28, 1] }}
+                className="shrink-0"
+                style={{ width: CARD }}
+              >
+                <div
+                  className="grid place-items-center rounded-[3px]"
+                  style={{
+                    height: CARD,
+                    background: prize
+                      ? `linear-gradient(158deg, color-mix(in oklab, ${it.spec.ink} 24%, ${it.spec.tint}), ${it.spec.tint})`
+                      : "var(--color-stone-800)",
+                    boxShadow: prize
+                      ? `inset 0 2px 0 ${it.spec.ink}, inset 0 0 0 1px color-mix(in oklab, ${it.spec.ink} 26%, transparent)`
+                      : "inset 0 2px 0 var(--edge)",
+                  }}
+                >
+                  <div className="px-2 text-center">
+                    {it.value === undefined ? (
+                      <span className="t-inscription text-[0.625rem] text-[var(--color-travertine-faint)]">
+                        sealed
+                      </span>
+                    ) : (
+                      <>
+                        {it.spec.tickets > 0 && (
+                          <div
+                            className="t-chain text-lg leading-none"
+                            style={{ color: it.spec.ink }}
+                          >
+                            +{it.spec.tickets}
+                          </div>
+                        )}
+                        <div
+                          className="t-inscription mt-1 text-[0.5625rem] leading-tight"
+                          style={{
+                            color: prize ? it.spec.ink : "var(--color-travertine-faint)",
+                          }}
+                        >
+                          {it.spec.name}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div
+                  className="t-chain mt-1 truncate text-center text-[0.625rem]"
+                  style={{
+                    color: mine ? "var(--color-sinopia-400)" : "var(--color-travertine-faint)",
+                  }}
+                >
+                  {mine ? "you" : short(it.player)}
+                </div>
+              </motion.li>
+            );
+          })}
+        </AnimatePresence>
+      </ul>
+    </div>
+  );
+}
+
+const short = (a: string) => `${a.slice(2, 6)}…${a.slice(-4)}`;

@@ -4,11 +4,14 @@ import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { motion } from "motion/react";
 import { Button } from "./ui/Button";
-import { Case } from "./Case";
+import { Roll } from "./Roll";
 import { specOf, isVault, type DeckShape, type TierSpec } from "@/lib/deck";
+import type { PoolState } from "@/hooks/usePool";
 import type { useBattles } from "@/hooks/useBattles";
 
 const TIMEOUT_MS = 15 * 60 * 1000;
+
+const ZERO = "0x0000000000000000000000000000000000000000";
 
 /**
  *
@@ -17,34 +20,35 @@ const TIMEOUT_MS = 15 * 60 * 1000;
 export function Battles({
   battles,
   deck,
+  pool,
   needsApproval,
   canAfford,
   deckEmpty,
 }: {
   battles: ReturnType<typeof useBattles>;
   deck: DeckShape;
+  pool?: PoolState;
   needsApproval: boolean;
   canAfford: boolean;
   deckEmpty: boolean;
 }) {
   const { address } = useAccount();
-  const { mine, cards, state } = battles;
-  const busy = state.phase === "approving" || state.phase === "signing" || state.phase === "confirming";
-
-  const me = address?.toLowerCase();
-  const iAmCreator = mine && mine.a.toLowerCase() === me;
+  const { mine, state } = battles;
+  const busy =
+    state.phase === "approving" || state.phase === "signing" || state.phase === "confirming";
 
   return (
     <section className="mt-16">
       <div className="mb-6 text-center">
         <p className="t-label">battles</p>
         <p className="mt-2 text-[1.0625rem] text-[var(--color-travertine-dim)]">
-          Two cases open at once. The better card takes both prizes, <br className="hidden sm:block" /> and both of you still keep the real ticket you paid for.
+          Two cases open at once. The better card takes both prizes, <br className="hidden sm:block" /> and both of you still keep the real ticket you paid
+          for.
         </p>
       </div>
 
       {mine ? (
-        <Arena battles={battles} deck={deck} iAmCreator={Boolean(iAmCreator)} />
+        <Arena battles={battles} deck={deck} pool={pool} />
       ) : (
         <div className="mx-auto max-w-md">
           <Button
@@ -55,8 +59,8 @@ export function Battles({
             {busy ? "…" : "Open a battle · $1"}
           </Button>
           <p className="mt-3 text-center text-[0.9375rem] text-[var(--color-travertine-faint)]">
-            Your card stays sealed until someone pays to face it. Nobody can
-            peek and pick an easy fight, not even you.
+            Your card stays sealed until someone pays to face it. Nobody can peek and pick an
+            easy fight, not even you.
           </p>
 
           {battles.waiting.length > 0 && (
@@ -97,8 +101,6 @@ export function Battles({
           )}
         </p>
       )}
-
-      {cards && mine?.joined && <Verdict cards={cards} deck={deck} iAmCreator={Boolean(iAmCreator)} />}
     </section>
   );
 }
@@ -106,99 +108,130 @@ export function Battles({
 function Arena({
   battles,
   deck,
-  iAmCreator,
+  pool,
 }: {
   battles: ReturnType<typeof useBattles>;
   deck: DeckShape;
-  iAmCreator: boolean;
+  pool?: PoolState;
 }) {
+  const { address } = useAccount();
   const { mine, cards, state } = battles;
 
-  const [wait, setWait] = useState(false);
+  const me = address?.toLowerCase();
+  const iAmCreator = Boolean(mine && mine.a.toLowerCase() === me);
   const joined = Boolean(mine?.joined);
-  useEffect(() => {
-    if (!joined) return;
-    const t = setTimeout(() => setWait(true), 400);
-    return () => clearTimeout(t);
-  }, [joined]);
+  const busy = state.phase === "signing" || state.phase === "confirming";
 
   if (!mine) return null;
 
-  const busy = state.phase === "signing" || state.phase === "confirming";
-  const ready = Boolean(cards);
-
-  const mineValue = cards ? (iAmCreator ? cards.a.value : cards.b.value) : undefined;
-  const theirValue = cards ? (iAmCreator ? cards.b.value : cards.a.value) : undefined;
+  const specA = cards ? specOf(cards.a.value, deck) : undefined;
+  const specB = cards ? specOf(cards.b.value, deck) : undefined;
+  const mySpec = iAmCreator ? specA : specB;
+  const theirSpec = iAmCreator ? specB : specA;
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <div className="grid grid-cols-2 gap-4">
-        <Corner label="you" value={mineValue} deck={deck} waiting={mine.joined && !ready && wait} />
-        <Corner
-          label={mine.joined ? "your opponent" : "nobody yet"}
-          value={theirValue}
+    <div className="mx-auto max-w-3xl">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Side
+          label="you"
+          name="your case"
+          landed={mySpec}
+          running={joined}
+          sealed={!joined}
           deck={deck}
-          waiting={mine.joined && !ready && wait}
-          empty={!mine.joined}
+          pool={pool}
+        />
+        <Side
+          label={mine.joined ? short(iAmCreator ? mine.b : mine.a) : "nobody yet"}
+          name={mine.joined ? "their case" : "open seat"}
+          landed={theirSpec}
+          running={joined}
+          empty={!joined}
+          deck={deck}
+          pool={pool}
         />
       </div>
 
       <div className="mt-6">
-        {!mine.joined ? (
+        {mine.resolved ? (
+          <Button block onClick={() => battles.dismiss(mine.id)}>
+            Open another battle
+          </Button>
+        ) : !joined ? (
           <>
             <p className="text-center text-[1.0625rem] text-[var(--color-travertine-dim)]">
-              Waiting for an opponent. Your card is sealed, even you cannot
-              read it until someone pays to face it.
+              Waiting for an opponent. Your card is sealed, even you cannot read it until
+              someone pays to face it.
             </p>
             <Abandon battles={battles} openedAt={mine.openedAt} id={mine.id} />
           </>
-        ) : !ready ? (
+        ) : !cards ? (
           <p className="text-center text-[1.0625rem] text-[var(--color-travertine-dim)]">
-            Both cards are on the table. The covalidators are turning them
-            over, a few seconds we do not control.
+            Both cards are on the table. The covalidators are turning them over, a few
+            seconds we do not control.
           </p>
         ) : (
           <Button block disabled={busy} onClick={() => void battles.resolve(mine.id)}>
-            {busy ? "Settling…" : "Turn the cards over"}
+            {busy ? "Settling…" : "Settle the battle"}
           </Button>
         )}
       </div>
+
+      {cards && specA && specB && (
+        <Verdict
+          mySpec={mySpec!}
+          theirSpec={theirSpec!}
+          settled={mine.resolved}
+        />
+      )}
     </div>
   );
 }
 
-function Corner({
+function Side({
   label,
-  value,
-  deck,
-  waiting,
+  name,
+  landed,
+  running,
+  sealed,
   empty,
+  deck,
+  pool,
 }: {
   label: string;
-  value?: number;
-  deck: DeckShape;
-  waiting: boolean;
+  name: string;
+  landed?: TierSpec;
+  running: boolean;
+  sealed?: boolean;
   empty?: boolean;
+  deck: DeckShape;
+  pool?: PoolState;
 }) {
   return (
-    <div className="flex flex-col items-center">
-      <span className="t-label mb-2">{label}</span>
-      {empty ? (
-        <div
-          className="grid w-full place-items-center rounded-[3px] border border-dashed border-[var(--edge)]"
-          style={{ height: 190 }}
+    <div className="surface overflow-hidden rounded-[3px]">
+      <div className="flex items-center justify-between px-4 pt-3">
+        <span className="t-chain text-[0.8125rem] text-[var(--color-travertine-dim)]">{label}</span>
+        <span
+          className="t-inscription text-[0.6875rem]"
+          style={{ color: landed ? landed.ink : "var(--color-travertine-faint)" }}
         >
-          <span className="t-inscription text-[0.8125rem] text-[var(--color-travertine-faint)]">
-            open seat
+          {landed ? (landed.tickets > 0 ? `+${landed.tickets}` : landed.name) : name}
+        </span>
+      </div>
+
+      {sealed || empty ? (
+        <div
+          className="m-4 grid place-items-center rounded-[3px] border border-dashed border-[var(--edge)]"
+          style={{ height: 104 }}
+        >
+          <span className="t-inscription text-[0.75rem] text-[var(--color-travertine-faint)]">
+            {sealed ? "sealed until someone pays" : "open seat"}
           </span>
         </div>
       ) : (
-        <Case
-          phase={value != null ? "opened" : waiting ? "waiting" : "idle"}
-          value={value}
-          deck={deck}
-          size={220}
-        />
+        <div className="flex justify-center">
+          <Roll running={running && !landed} landed={landed} deck={deck} pool={pool} width={340} />
+        </div>
       )}
     </div>
   );
@@ -208,44 +241,40 @@ function Corner({
  *
  */
 function Verdict({
-  cards,
-  deck,
-  iAmCreator,
+  mySpec,
+  theirSpec,
+  settled,
 }: {
-  cards: { a: { value: number }; b: { value: number } };
-  deck: DeckShape;
-  iAmCreator: boolean;
+  mySpec: TierSpec;
+  theirSpec: TierSpec;
+  settled: boolean;
 }) {
-  const specA = specOf(cards.a.value, deck);
-  const specB = specOf(cards.b.value, deck);
-  const powerA = power(specA);
-  const powerB = power(specB);
-
-  const draw = powerA === powerB;
-  const iWon = iAmCreator ? powerA > powerB : powerB > powerA;
-  const pot = specA.tickets + specB.tickets;
+  const mine = power(mySpec);
+  const theirs = power(theirSpec);
+  const pot = mySpec.tickets + theirSpec.tickets;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mt-6 text-center"
-    >
-      {draw ? (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-6 text-center">
+      {mine === theirs ? (
         <p className="text-[1.0625rem] text-[var(--color-travertine-dim)]">
           {pot === 0
             ? "Both empty. Nobody owes anybody, and you both still hold the ticket."
             : "The same card. A draw, and you each keep your own."}
         </p>
-      ) : iWon ? (
+      ) : mine > theirs ? (
         <p className="t-inscription text-2xl" style={{ color: "var(--color-patina-400)" }}>
-          {pot > 0 ? `you take all ${pot} tickets` : "you win, but the pot was empty"}
+          {pot > 0
+            ? `you take all ${pot} ticket${pot > 1 ? "s" : ""}`
+            : "you win, but the pot was empty"}
         </p>
       ) : (
         <p className="text-[1.0625rem] text-[var(--color-travertine-dim)]">
-          {pot > 0 ? `Lost the ${pot}.` : "Lost, though there was nothing in the pot."}{" "}
-          The ticket you paid for is still yours.
+          {pot > 0 ? `Lost the ${pot}.` : "Lost, though there was nothing in the pot."} The
+          ticket you paid for is still yours.
         </p>
+      )}
+      {!settled && (
+        <p className="mt-2 t-label">the cards are turned · settle to bank it</p>
       )}
     </motion.div>
   );
@@ -297,4 +326,4 @@ function Ago({ at }: { at: number }) {
   return <>{mins === 0 ? "just now" : `${mins} min ago`}</>;
 }
 
-const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
+const short = (a: string) => (a === ZERO ? "nobody" : `${a.slice(0, 6)}…${a.slice(-4)}`);

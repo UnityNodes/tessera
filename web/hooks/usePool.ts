@@ -20,6 +20,8 @@ export interface PoolState {
   prizesLeft: number;
   oddsNext: number;
   unknown: number;
+  vaultTaken: boolean;
+  vaultFinder?: `0x${string}`;
 }
 
 /**
@@ -28,10 +30,11 @@ export interface PoolState {
  */
 export function usePool(deck: DeckShape, drawn: number) {
   const opens = useOpens();
-  const handles = (opens.data ?? []).map((o) => o.handle);
+  const events = opens.data ?? [];
+  const handles = events.map((o) => o.handle);
 
   return useQuery({
-    queryKey: ["pool", deck.size, drawn, deck.tiers.length, handles.length],
+    queryKey: ["pool", deck.size, drawn, deck.tiers.length, deck.vaultUpTo, handles.length],
     enabled: deck.size > 0 && deck.tiers.length > 0,
     staleTime: 20_000,
     queryFn: async (): Promise<PoolState> => {
@@ -42,6 +45,15 @@ export function usePool(deck: DeckShape, drawn: number) {
         const w = weightOf(r.value, deck);
         drawnByWeight.set(w, (drawnByWeight.get(w) ?? 0) + 1);
       }
+
+      const byHandle = new Map(revealed.map((r) => [r.handle.toLowerCase(), r.value]));
+      const vaultOpen =
+        deck.vaultUpTo > 0
+          ? events.find((o) => {
+              const v = byHandle.get(o.handle.toLowerCase());
+              return v !== undefined && v >= 1 && v <= deck.vaultUpTo;
+            })
+          : undefined;
 
       const tiers = slotsPerTier(deck)
         .filter((t) => t.weight > 0)
@@ -63,6 +75,8 @@ export function usePool(deck: DeckShape, drawn: number) {
         prizesLeft,
         oddsNext: remaining > 0 ? prizesLeft / remaining : 0,
         unknown: handles.length - revealed.length,
+        vaultTaken: Boolean(vaultOpen),
+        vaultFinder: vaultOpen?.player,
       };
     },
   });

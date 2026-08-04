@@ -102,13 +102,19 @@ export function useBattles(onSettled?: () => void) {
     [battles],
   );
 
+  /**
+   *
+   */
+  const [dismissed, setDismissed] = useState<string[]>([]);
   const mine = useMemo(() => {
     if (!address) return undefined;
     const me = address.toLowerCase();
-    return battles.find(
-      (b) => !b.resolved && (b.a.toLowerCase() === me || b.b.toLowerCase() === me),
-    );
-  }, [battles, address]);
+    const ours = battles
+      .filter((b) => b.a.toLowerCase() === me || b.b.toLowerCase() === me)
+      .filter((b) => !dismissed.includes(String(b.id)))
+      .sort((x, y) => (x.id < y.id ? -1 : 1));
+    return ours.find((b) => !b.resolved) ?? ours[ours.length - 1];
+  }, [battles, address, dismissed]);
 
   const handles = useReadContracts({
     contracts:
@@ -186,6 +192,10 @@ export function useBattles(onSettled?: () => void) {
       [waiting, address],
     ),
     mine,
+    dismiss: useCallback((id: bigint) => {
+      setDismissed((d) => [...d, String(id)]);
+      setState({ phase: "idle" });
+    }, []),
     cards: cards.data,
     revealing: cards.isLoading,
 
