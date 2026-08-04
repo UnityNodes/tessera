@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { formatUnits } from "viem";
 import { ConnectBar } from "./ConnectBar";
 import { Ticker } from "./Ticker";
 import { useDeck } from "@/hooks/useDeck";
@@ -37,31 +38,54 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-grout)_88%,transparent)] backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-6 px-4 sm:px-6">
-          <Link href="/" className="t-inscription shrink-0 text-[0.9375rem]">
-            Tessera
+      <header className="sticky top-0 z-40 border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-grout)_90%,transparent)] backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-[1560px] items-center gap-4 px-4 sm:px-6">
+          <Link href="/" className="flex shrink-0 items-center gap-2.5">
+            <Mark />
+            <span className="t-inscription text-[0.9375rem] leading-none">
+              Tessera
+              <span className="t-label mt-0.5 block text-[0.5rem]">season {deck.season}</span>
+            </span>
           </Link>
-          <span className="t-label hidden shrink-0 lg:block">season {deck.season}</span>
 
-          <nav className="flex flex-1 items-center gap-5">
-            <NavLink href="/">home</NavLink>
-            <NavLink href="/case">open a case</NavLink>
-            <NavLink href="/battles">battles</NavLink>
+          <nav className="flex items-center gap-1.5">
+            <Tab href="/" icon={<IconHome />}>
+              home
+            </Tab>
+            <Tab href="/case" icon={<IconCase />}>
+              open a case
+            </Tab>
+            <Tab href="/battles" icon={<IconSwords />}>
+              battles
+            </Tab>
           </nav>
 
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-3">
+            <span className="hidden items-center gap-2 rounded-[3px] border border-[var(--edge)] px-3 py-1.5 lg:flex">
+              <IconVault />
+              <span
+                className="t-chain text-[0.8125rem]"
+                style={{ color: "var(--color-porphyry-300)" }}
+              >
+                ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
+              </span>
+            </span>
             <ConnectBar />
           </div>
         </div>
       </header>
 
       <div className="border-b border-[var(--edge)] bg-[var(--color-stone-900)]">
-        <div className="mx-auto grid max-w-[1440px] grid-cols-2 divide-x divide-[var(--edge)] px-4 sm:px-6 md:grid-cols-4">
-          <Stat label="cases opened" value={String(deck.drawn)} />
-          <Stat label="players" value={String(playerCount)} />
-          <Stat label="prizes left" value={`${prizesLeft} of ${deck.remaining}`} />
+        <div className="mx-auto grid max-w-[1560px] grid-cols-2 divide-x divide-[var(--edge)] px-4 sm:px-6 md:grid-cols-4">
+          <Stat icon={<IconCase />} label="cases opened" value={String(deck.drawn)} />
+          <Stat icon={<IconUsers />} label="players" value={String(playerCount)} />
           <Stat
+            icon={<IconLayers />}
+            label="prizes left"
+            value={`${prizesLeft} of ${deck.remaining}`}
+          />
+          <Stat
+            icon={<IconTicket />}
             label="your tickets"
             value={megapot.tickets.toFixed(0)}
             ink="var(--color-patina-400)"
@@ -70,18 +94,24 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </div>
 
       <div className="border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-stone-900)_60%,transparent)]">
-        <div className="mx-auto max-w-[1440px] px-4 sm:px-6">
-          <Ticker items={feed} />
+        <div className="mx-auto flex max-w-[1560px] items-stretch px-4 sm:px-6">
+          <div className="flex w-14 shrink-0 flex-col items-center justify-center gap-1 border-r border-[var(--edge)] pr-3">
+            <IconCrown />
+            <span className="t-label text-[0.5625rem]">live</span>
+          </div>
+          <div className="min-w-0 flex-1 pl-3">
+            <Ticker items={feed} />
+          </div>
         </div>
       </div>
 
-      <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 pb-24 pt-6 sm:px-6">
+      <main className="mx-auto w-full max-w-[1560px] flex-1 px-4 pb-24 pt-6 sm:px-6">
         {children}
       </main>
 
       <footer className="border-t border-[var(--edge)]">
-        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-3 px-4 py-6 sm:px-6">
-          <span className="t-label">Tessera · Base Sepolia · Inco Lightning</span>
+        <div className="mx-auto flex max-w-[1560px] flex-wrap items-center justify-between gap-3 px-4 py-6 sm:px-6">
+          <span className="t-label">Tessera · Base Sepolia · Inco Lightning · Megapot</span>
           <a
             href={addressUrl(DECK_ADDRESS)}
             target="_blank"
@@ -96,30 +126,131 @@ export function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+function Tab({
+  href,
+  icon,
+  children,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
   const path = usePathname();
   const active = href === "/" ? path === "/" : path.startsWith(href);
   return (
     <Link
       href={href}
-      className="t-label whitespace-nowrap hover:text-[var(--color-travertine)]"
-      style={active ? { color: "var(--color-sinopia-400)" } : undefined}
+      className="t-label flex items-center gap-2 whitespace-nowrap rounded-[3px] px-3 py-2 transition-colors hover:text-[var(--color-travertine)]"
+      style={
+        active
+          ? {
+              background: "var(--color-sinopia-900)",
+              color: "var(--color-sinopia-400)",
+              boxShadow: "inset 0 0 0 1px color-mix(in oklab, var(--color-sinopia-400) 30%, transparent)",
+            }
+          : undefined
+      }
     >
+      <span className="hidden sm:block">{icon}</span>
       {children}
     </Link>
   );
 }
 
-function Stat({ label, value, ink }: { label: string; value: string; ink?: string }) {
+function Stat({
+  icon,
+  label,
+  value,
+  ink,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  ink?: string;
+}) {
   return (
-    <div className="px-4 py-3">
-      <span className="t-label block">{label}</span>
-      <span
-        className="t-chain mt-1 block text-lg"
-        style={{ color: ink ?? "var(--color-travertine)" }}
-      >
-        {value}
+    <div className="flex items-center gap-3 px-4 py-3">
+      <span className="text-[var(--color-travertine-faint)]">{icon}</span>
+      <span>
+        <span className="t-label block">{label}</span>
+        <span
+          className="t-chain mt-0.5 block text-lg leading-none"
+          style={{ color: ink ?? "var(--color-travertine)" }}
+        >
+          {value}
+        </span>
       </span>
     </div>
   );
 }
+
+
+const S = { width: 15, height: 15, viewBox: "0 0 16 16", fill: "none", stroke: "currentColor", strokeWidth: 1.4, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+
+const IconHome = () => (
+  <svg {...S}>
+    <path d="M2 6.5 8 2l6 4.5V14H2z" />
+    <path d="M6.5 14V9.5h3V14" />
+  </svg>
+);
+
+const IconCase = () => (
+  <svg {...S}>
+    <rect x="1.5" y="4.5" width="13" height="8.5" rx="1.2" />
+    <path d="M5.5 4.5V3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1.5M1.5 8.5h13" />
+  </svg>
+);
+
+const IconSwords = () => (
+  <svg {...S}>
+    <path d="M2 2h3l8 8-3 3-8-8z" />
+    <path d="M14 2h-3l-3.2 3.2M2.5 13.5 5 11" />
+  </svg>
+);
+
+const IconUsers = () => (
+  <svg {...S}>
+    <circle cx="6" cy="5.5" r="2.5" />
+    <path d="M1.5 14c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4M11 3.2a2.5 2.5 0 0 1 0 4.6M12.5 10.4c1.3.6 2 1.8 2 3.6" />
+  </svg>
+);
+
+const IconLayers = () => (
+  <svg {...S}>
+    <path d="M8 1.5 14.5 5 8 8.5 1.5 5z" />
+    <path d="M1.5 8 8 11.5 14.5 8M1.5 11 8 14.5 14.5 11" />
+  </svg>
+);
+
+const IconTicket = () => (
+  <svg {...S}>
+    <path d="M1.5 5.5V4a.5.5 0 0 1 .5-.5h12a.5.5 0 0 1 .5.5v1.5a2 2 0 0 0 0 5V12a.5.5 0 0 1-.5.5H2a.5.5 0 0 1-.5-.5v-1.5a2 2 0 0 0 0-5z" />
+    <path d="M9.5 3.5v9" strokeDasharray="1.6 1.6" />
+  </svg>
+);
+
+const IconVault = () => (
+  <svg {...S} width={14} height={14}>
+    <rect x="1.5" y="2" width="13" height="12" rx="1.2" />
+    <circle cx="8" cy="8" r="2.8" />
+    <path d="M8 5.2v5.6M5.2 8h5.6" />
+  </svg>
+);
+
+const IconCrown = () => (
+  <svg {...S} width={16} height={16} style={{ color: "var(--color-ochre-400)" }}>
+    <path d="M2 12h12M2.5 11 1.5 4.5l3.5 2.5L8 3l3 4 3.5-2.5L13.5 11z" />
+  </svg>
+);
+
+const Mark = () => (
+  <span
+    className="grid h-8 w-8 shrink-0 place-items-center rounded-[3px]"
+    style={{
+      background: "linear-gradient(150deg, var(--color-sinopia-500), var(--color-sinopia-900))",
+      boxShadow: "inset 0 1px 0 rgb(255 255 255/0.22)",
+    }}
+  >
+    <span className="t-display text-[0.9375rem] leading-none text-[var(--color-travertine)]">T</span>
+  </span>
+);
