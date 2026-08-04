@@ -3,9 +3,18 @@
 Inco Summer Game Jam. .
 
 `openCase()` Megapot
-. Base . `redeem()`
-. 44 -Base Sepolia Base mainnet .
-.
+. Base . ,
+, . 100 -
+Base Sepolia Base mainnet .
+
+```
+TesseraDeck           0x88ec2e5c454b89208f77a6Ae877CE3a1a3f0fAf3  45032469
+MegapotLegacyAdapter  0xcEFd98581bb131a505e9De53d7f9b191fe94E074
+200 · 1 · 1 +2 · 6 +1
+```
+
+: -(), , -.
+Sepolia ETH .
 
 . tessera .
 , .
