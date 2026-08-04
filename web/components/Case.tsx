@@ -123,7 +123,7 @@ export function Case({ phase, value, deck, size = 300, onClick }: Props) {
           style={{
             top: lidTop + wellHeight * 0.55,
             height: wellHeight * 0.62,
-            background: "linear-gradient(180deg, var(--color-stone-700), var(--color-stone-900))",
+            background: "linear-gradient(180deg, #453b34, #241f1b)",
             boxShadow:
               "inset 0 1px 0 rgb(255 255 255 / 0.1), 0 14px 30px -12px rgb(0 0 0 / 0.9)",
             transform: "translateZ(1px)",
@@ -142,9 +142,9 @@ export function Case({ phase, value, deck, size = 300, onClick }: Props) {
             className="absolute inset-0 overflow-hidden rounded-t-[3px]"
             style={{
               background:
-                "linear-gradient(158deg, var(--color-stone-500) 0%, var(--color-stone-600) 40%, var(--color-stone-800) 100%)",
+                "linear-gradient(158deg, #6b5f54 0%, #574c43 42%, #2e2823 100%)",
               boxShadow:
-                "inset 0 2px 0 rgb(255 255 255 / 0.18), inset 0 -2px 6px rgb(0 0 0 / 0.5), 0 8px 20px -10px rgb(0 0 0 / 0.9)",
+                "inset 0 2px 0 rgb(255 255 255 / 0.3), inset 0 -3px 8px rgb(0 0 0 / 0.55), 0 14px 34px -12px rgb(0 0 0 / 0.95)",
               backfaceVisibility: "hidden",
             }}
           >
@@ -155,9 +155,9 @@ export function Case({ phase, value, deck, size = 300, onClick }: Props) {
                 className="t-display leading-none"
                 style={{
                   fontSize: size * 0.28,
-                  color: "color-mix(in oklab, var(--color-stone-900) 62%, transparent)",
+                  color: "rgb(0 0 0 / 0.42)",
                   textShadow:
-                    "0 1px 0 color-mix(in oklab, var(--color-travertine) 12%, transparent), 0 -1px 2px rgb(0 0 0 / 0.55)",
+                    "0 2px 0 rgb(255 255 255 / 0.14), 0 -1px 3px rgb(0 0 0 / 0.6)",
                 }}
               >
                 T
