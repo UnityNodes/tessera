@@ -39,6 +39,7 @@ contract TesseraDeck is ReentrancyGuardTransient {
     struct Slot {
         euint256 card;
         uint32 season;
+        uint64 battle;
     }
 
     mapping(address => Slot[]) private slots;
@@ -177,13 +178,26 @@ contract TesseraDeck is ReentrancyGuardTransient {
 
     ///
     function openCase() external nonReentrant returns (uint16 index, bytes32 handle) {
+        uint256 price;
+        (index, price) = _buyAndDraw();
+
+        Slot storage slot = slots[msg.sender][slots[msg.sender].length - 1];
+        handle = euint256.unwrap(slot.card);
+        _unseal(slot.card, msg.sender);
+
+        emit CaseOpened(msg.sender, index, handle, price);
+        emit SlotRevealed(msg.sender, slots[msg.sender].length - 1);
+    }
+
+    ///
+    function _buyAndDraw() internal returns (uint16 index, uint256 price) {
         if (drawn >= size) revert DeckEmpty();
         if (!adapter.purchasingAllowed()) revert PurchasingDisabled();
 
         index = drawn;
         drawn = index + 1;
 
-        uint256 price = adapter.ticketPrice();
+        price = adapter.ticketPrice();
         uint256 boughtBefore = adapter.ticketsOf(msg.sender);
 
         ticketToken.safeTransferFrom(msg.sender, address(this), price);
@@ -193,19 +207,20 @@ contract TesseraDeck is ReentrancyGuardTransient {
 
         euint256 card = e.getEuint256(deck, index);
         e.allowThis(card);
-        e.allow(card, msg.sender);
-        e.reveal(card);
-        slots[msg.sender].push(Slot({card: card, season: season}));
+        slots[msg.sender].push(Slot({card: card, season: season, battle: 0}));
+    }
 
-        handle = euint256.unwrap(card);
-        emit CaseOpened(msg.sender, index, handle, price);
-        emit SlotRevealed(msg.sender, index);
+    ///
+    function _unseal(euint256 card, address to) internal {
+        e.allowThis(card);
+        e.allow(card, to);
+        e.reveal(card);
     }
 
     function revealMine(uint256 i) external {
-        euint256 card = slots[msg.sender][i].card;
-        e.allowThis(card);
-        e.reveal(card);
+        Slot storage slot = slots[msg.sender][i];
+        if (_inBattle(slot)) revert SlotInBattle(slot.battle);
+        _unseal(slot.card, msg.sender);
         emit SlotRevealed(msg.sender, i);
     }
 
@@ -230,6 +245,7 @@ contract TesseraDeck is ReentrancyGuardTransient {
             bytes32 handle = euint256.unwrap(card);
 
             if (shardSpent[handle]) revert ShardAlreadySpent(handle);
+            if (_inBattle(slot)) revert SlotInBattle(slot.battle);
             if (!e.verifyDecryption(card, values[i], signatures[i])) revert BadAttestation(handle);
 
             uint16 w = weightOf(slot.season, values[i]);
@@ -287,6 +303,7 @@ contract TesseraDeck is ReentrancyGuardTransient {
             bytes32 handle = euint256.unwrap(card);
 
             if (shardSpent[handle]) revert ShardAlreadySpent(handle);
+            if (_inBattle(slot)) revert SlotInBattle(slot.battle);
             if (!e.verifyDecryption(card, values[i], signatures[i])) revert BadAttestation(handle);
 
             uint16 w = weightOf(slot.season, values[i]);
@@ -313,6 +330,7 @@ contract TesseraDeck is ReentrancyGuardTransient {
         if (slots[msg.sender].length <= st.slotIndex) revert StakeNotSettled();
 
         Slot storage slot = slots[msg.sender][st.slotIndex];
+        if (_inBattle(slot)) revert SlotInBattle(slot.battle);
         euint256 card = slot.card;
         if (!e.verifyDecryption(card, value, signatures)) {
             revert BadAttestation(euint256.unwrap(card));
@@ -358,6 +376,195 @@ contract TesseraDeck is ReentrancyGuardTransient {
         paidWeight += weight;
     }
 
+    //
+    //
+    //
+
+    struct Battle {
+        address a;
+        uint64 slotA;
+        bool resolved;
+        address b;
+        uint64 slotB;
+        uint16 indexA;
+        uint64 openedAt;
+        uint128 paidA;
+    }
+
+    Battle[] private battles;
+
+    mapping(address => uint256[]) private battlesOfPlayer;
+
+    uint64 public constant BATTLE_TIMEOUT = 15 minutes;
+
+    event BattleOpened(uint256 indexed id, address indexed a, uint64 slotA);
+    event BattleJoined(uint256 indexed id, address indexed b, uint64 slotB);
+    event BattleResolved(uint256 indexed id, address indexed winner, uint256 weight);
+    event BattleAbandoned(uint256 indexed id, address indexed a);
+
+    error NoSuchBattle();
+    error BattleGone();
+    error BattleTaken();
+    error BattleWaiting();
+    error CannotFightYourself();
+    error SlotInBattle(uint64 id);
+    error NotYourBattle();
+    error TooEarlyToAbandon(uint64 openAt);
+
+    function openBattle() external nonReentrant returns (uint256 id, uint64 slotIndex) {
+        (uint16 index, uint256 price) = _buyAndDraw();
+        slotIndex = uint64(slots[msg.sender].length - 1);
+
+        battles.push(
+            Battle({
+                a: msg.sender,
+                slotA: slotIndex,
+                resolved: false,
+                b: address(0),
+                slotB: 0,
+                indexA: index,
+                openedAt: uint64(block.timestamp),
+                // forge-lint: disable-next-line(unsafe-typecast)
+                paidA: uint128(price)
+            })
+        );
+        id = battles.length;
+
+        // forge-lint: disable-next-line(unsafe-typecast)
+        slots[msg.sender][slotIndex].battle = uint64(id);
+        battlesOfPlayer[msg.sender].push(id);
+
+        emit BattleOpened(id, msg.sender, slotIndex);
+    }
+
+    function joinBattle(uint256 id) external nonReentrant returns (uint64 slotIndex) {
+        Battle storage bt = _battle(id);
+        if (bt.resolved) revert BattleGone();
+        if (bt.b != address(0)) revert BattleTaken();
+        if (bt.a == msg.sender) revert CannotFightYourself();
+
+        (uint16 index, uint256 price) = _buyAndDraw();
+        slotIndex = uint64(slots[msg.sender].length - 1);
+
+        bt.b = msg.sender;
+        bt.slotB = slotIndex;
+        // forge-lint: disable-next-line(unsafe-typecast)
+        slots[msg.sender][slotIndex].battle = uint64(id);
+        battlesOfPlayer[msg.sender].push(id);
+
+        Slot storage sa = slots[bt.a][bt.slotA];
+        _unseal(sa.card, bt.a);
+        _unseal(slots[msg.sender][slotIndex].card, msg.sender);
+
+        emit BattleJoined(id, msg.sender, slotIndex);
+        emit CaseOpened(bt.a, bt.indexA, euint256.unwrap(sa.card), bt.paidA);
+        emit CaseOpened(msg.sender, index, euint256.unwrap(slots[msg.sender][slotIndex].card), price);
+    }
+
+    ///
+    function resolveBattle(
+        uint256 id,
+        uint256 valueA,
+        bytes[] calldata signaturesA,
+        uint256 valueB,
+        bytes[] calldata signaturesB
+    ) external nonReentrant returns (address winner, uint256 banked) {
+        Battle storage bt = _battle(id);
+        if (bt.resolved) revert BattleGone();
+        if (bt.b == address(0)) revert BattleWaiting();
+
+        bt.resolved = true;
+
+        (uint16 wa, uint256 pa) = _fight(slots[bt.a][bt.slotA], valueA, signaturesA);
+        (uint16 wb, uint256 pb) = _fight(slots[bt.b][bt.slotB], valueB, signaturesB);
+
+        if (pa == pb) {
+            if (wa > 0) bankedWeight[bt.a] += wa;
+            if (wb > 0) bankedWeight[bt.b] += wb;
+        } else {
+            winner = pa > pb ? bt.a : bt.b;
+            banked = uint256(wa) + uint256(wb);
+            if (banked > 0) bankedWeight[winner] += banked;
+        }
+
+        emit BattleResolved(id, winner, banked);
+    }
+
+    ///
+    function abandonBattle(uint256 id) external {
+        Battle storage bt = _battle(id);
+        if (bt.resolved) revert BattleGone();
+        if (bt.b != address(0)) revert BattleTaken();
+        if (bt.a != msg.sender) revert NotYourBattle();
+        if (block.timestamp < bt.openedAt + BATTLE_TIMEOUT) revert TooEarlyToAbandon(bt.openedAt);
+
+        bt.resolved = true;
+        Slot storage sa = slots[bt.a][bt.slotA];
+        sa.battle = 0;
+        _unseal(sa.card, bt.a);
+
+        emit BattleAbandoned(id, msg.sender);
+        emit CaseOpened(bt.a, bt.indexA, euint256.unwrap(sa.card), bt.paidA);
+    }
+
+    ///
+    function _fight(Slot storage slot, uint256 value, bytes[] calldata signatures)
+        internal
+        returns (uint16 w, uint256 power)
+    {
+        bytes32 handle = euint256.unwrap(slot.card);
+        if (!e.verifyDecryption(slot.card, value, signatures)) revert BadAttestation(handle);
+
+        slot.battle = 0;
+        w = weightOf(slot.season, value);
+        power = _power(slot.season, value, w);
+        if (w > 0) shardSpent[handle] = true;
+    }
+
+    ///
+    function _power(uint32 forSeason, uint256 value, uint16 w) internal view returns (uint256) {
+        uint16 upTo = vaultUpToOfSeason[forSeason];
+        if (upTo > 0 && value >= 1 && value <= upTo) return type(uint256).max;
+        return w;
+    }
+
+    function _battle(uint256 id) internal view returns (Battle storage) {
+        if (id == 0 || id > battles.length) revert NoSuchBattle();
+        return battles[id - 1];
+    }
+
+    function _inBattle(Slot storage slot) internal view returns (bool) {
+        return slot.battle != 0 && !battles[slot.battle - 1].resolved;
+    }
+
+    function battleCount() external view returns (uint256) {
+        return battles.length;
+    }
+
+    function battleAt(uint256 id) external view returns (Battle memory) {
+        return _battle(id);
+    }
+
+    function battlesOf(address player) external view returns (uint256[] memory) {
+        return battlesOfPlayer[player];
+    }
+
+    function openBattleIds(uint256 max) external view returns (uint256[] memory ids) {
+        uint256 n = battles.length;
+        uint256 found;
+        ids = new uint256[](max);
+        for (uint256 i = n; i > 0 && found < max; i--) {
+            Battle storage bt = battles[i - 1];
+            if (!bt.resolved && bt.b == address(0)) {
+                ids[found] = i;
+                found++;
+            }
+        }
+        assembly {
+            mstore(ids, found)
+        }
+    }
+
 
     function sweepFees() external returns (uint256 claimed) {
         return _sweepFees();
@@ -396,6 +603,7 @@ contract TesseraDeck is ReentrancyGuardTransient {
         bytes32 handle = euint256.unwrap(card);
 
         if (shardSpent[handle]) revert ShardAlreadySpent(handle);
+        if (_inBattle(slot)) revert SlotInBattle(slot.battle);
         if (!e.verifyDecryption(card, value, signatures)) revert BadAttestation(handle);
 
         uint16 upTo = vaultUpToOfSeason[slot.season];
