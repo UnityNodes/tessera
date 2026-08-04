@@ -549,6 +549,22 @@ contract TesseraDeck is ReentrancyGuardTransient {
         return battlesOfPlayer[player];
     }
 
+    ///
+    function sealedSlotsOf(address player) external view returns (uint64[] memory out) {
+        uint256[] storage mine = battlesOfPlayer[player];
+        out = new uint64[](mine.length);
+        uint256 found;
+        for (uint256 i = 0; i < mine.length; i++) {
+            Battle storage bt = battles[mine[i] - 1];
+            if (bt.resolved || bt.b != address(0)) continue;
+            out[found] = bt.slotA;
+            found++;
+        }
+        assembly {
+            mstore(out, found)
+        }
+    }
+
     function openBattleIds(uint256 max) external view returns (uint256[] memory ids) {
         uint256 n = battles.length;
         uint256 found;

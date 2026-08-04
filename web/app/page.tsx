@@ -12,6 +12,7 @@ import { Feed } from "@/components/Feed";
 import { PoolCounter } from "@/components/PoolCounter";
 import { MegapotPanel } from "@/components/MegapotPanel";
 import { StakePanel } from "@/components/StakePanel";
+import { Battles } from "@/components/Battles";
 import { useDeck } from "@/hooks/useDeck";
 import { useOpenCase } from "@/hooks/useOpenCase";
 import { useInventory, useRefreshInventory, heldWeight, pickForRedeem } from "@/hooks/useInventory";
@@ -21,6 +22,7 @@ import { usePool } from "@/hooks/usePool";
 import { useFeed } from "@/hooks/useFeed";
 import { useMegapot } from "@/hooks/useMegapot";
 import { useVault } from "@/hooks/useVault";
+import { useBattles } from "@/hooks/useBattles";
 import { specOf, slotsPerTier, weightOf, ticketsFromWeight, isVault, type DeckShape } from "@/lib/deck";
 import { addressUrl, DECK_ADDRESS } from "@/lib/chain";
 
@@ -51,6 +53,7 @@ export default function Home() {
   const redeem = useRedeem(refresh);
   const stake = useStake(refresh);
   const vault = useVault(refresh);
+  const battles = useBattles(refresh);
 
   const weight = heldWeight(inventory.data);
   const toRedeem = pickForRedeem(inventory.data);
@@ -240,6 +243,14 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      <Battles
+        battles={battles}
+        deck={shape}
+        needsApproval={deck.needsApproval}
+        canAfford={deck.canAfford}
+        deckEmpty={deck.deckEmpty}
+      />
 
       <div className="mt-16 grid grid-cols-3 gap-px overflow-hidden rounded-[3px] border border-[var(--edge)] bg-[var(--edge)]">
         <Stat

@@ -4,6 +4,7 @@ import { useAccount, useConfig } from "wagmi";
 import { readContract, readContracts } from "wagmi/actions";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
+import type { ContractFunctionParameters } from "viem";
 import { TESSERA_DECK_ABI } from "@/lib/abi";
 import { DECK_ADDRESS } from "@/lib/chain";
 import { revealHandles } from "@/lib/inco";
@@ -16,6 +17,7 @@ export interface Slot {
   signatures?: `0x${string}`[];
   weight: number;
   spent: boolean;
+  sealed: boolean;
 }
 
 const KEY = (address?: string) => ["inventory", address] as const;
@@ -45,31 +47,43 @@ export function useInventory(deck: DeckShape) {
 
       const indexes = Array.from({ length: count }, (_, i) => i);
 
-      const handles = (await readContracts(config, {
-        contracts: indexes.map((i) => ({
-          address: DECK_ADDRESS,
-          abi: TESSERA_DECK_ABI,
-          functionName: "handleOf",
-          args: [address!, BigInt(i)],
-        })),
-      })) as { result?: `0x${string}` }[];
+      const handleCalls: ContractFunctionParameters[] = indexes.map((i) => ({
+        address: DECK_ADDRESS,
+        abi: TESSERA_DECK_ABI,
+        functionName: "handleOf",
+        args: [address!, BigInt(i)],
+      }));
+      const handles = (await readContracts(config, { contracts: handleCalls })) as {
+        result?: `0x${string}`;
+      }[];
 
       const list = handles
         .map((h, i) => ({ index: i, handle: h.result }))
         .filter((x): x is { index: number; handle: `0x${string}` } => Boolean(x.handle));
 
-      const spentFlags = (await readContracts(config, {
-        contracts: list.map((s) => ({
+      const spentCalls: ContractFunctionParameters[] = list.map((s) => ({
+        address: DECK_ADDRESS,
+        abi: TESSERA_DECK_ABI,
+        functionName: "shardSpent",
+        args: [s.handle],
+      }));
+      const spentFlags = (await readContracts(config, { contracts: spentCalls })) as {
+        result?: boolean;
+      }[];
+
+      const sealed = new Set(
+        ((await readContract(config, {
           address: DECK_ADDRESS,
           abi: TESSERA_DECK_ABI,
-          functionName: "shardSpent",
-          args: [s.handle],
-        })),
-      })) as { result?: boolean }[];
+          functionName: "sealedSlotsOf",
+          args: [address!],
+        })) as readonly bigint[]).map(Number),
+      );
 
-      const revealed = await revealHandles(list.map((s) => s.handle), {
-        priority: "background",
-      }).catch(() => []);
+      const revealed = await revealHandles(
+        list.filter((s) => !sealed.has(s.index)).map((s) => s.handle),
+        { priority: "background" },
+      ).catch(() => []);
       const byHandle = new Map(revealed.map((r) => [r.handle.toLowerCase(), r]));
 
       return list.map((s, i) => {
@@ -80,6 +94,7 @@ export function useInventory(deck: DeckShape) {
           signatures: r?.signatures,
           weight: r ? weightOf(r.value, deck) : 0,
           spent: spentFlags[i]?.result ?? false,
+          sealed: sealed.has(s.index),
         };
       });
     },

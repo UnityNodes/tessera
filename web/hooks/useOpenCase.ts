@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAccount, useConfig } from "wagmi";
-import { readContract, simulateContract, writeContract, waitForTransactionReceipt } from "wagmi/actions";
-import { maxUint256 } from "viem";
+import { simulateContract, writeContract, waitForTransactionReceipt } from "wagmi/actions";
 import { TESSERA_DECK_ABI } from "@/lib/abi";
-import { DECK_ADDRESS, TICKET_TOKEN, TOKEN_ABI, txUrl } from "@/lib/chain";
+import { DECK_ADDRESS, txUrl } from "@/lib/chain";
+import { approveOnce } from "@/lib/approve";
 import { revealHandles } from "@/lib/inco";
 import { forgetPending, pendingFor, rememberPending } from "@/lib/pending";
 import { explain, type Explained } from "@/lib/errors";
@@ -37,24 +37,6 @@ export interface OpenState {
 }
 
 const IDLE: OpenState = { phase: "idle", waitedMs: 0 };
-
-async function waitForAllowance(
-  config: Parameters<typeof readContract>[0],
-  owner: `0x${string}`,
-  signal: AbortSignal,
-) {
-  for (let i = 0; i < 25; i++) {
-    if (signal.aborted) return;
-    const allowance = (await readContract(config, {
-      address: TICKET_TOKEN,
-      abi: TOKEN_ABI,
-      functionName: "allowance",
-      args: [owner, DECK_ADDRESS],
-    })) as bigint;
-    if (allowance > 0n) return;
-    await new Promise((r) => setTimeout(r, 300));
-  }
-}
 
 export function useOpenCase(onSettled?: () => void) {
   const config = useConfig();
@@ -135,17 +117,7 @@ export function useOpenCase(onSettled?: () => void) {
       try {
         if (needsApproval) {
           setState({ phase: "approving", waitedMs: 0 });
-          const { request } = await simulateContract(config, {
-            address: TICKET_TOKEN,
-            abi: TOKEN_ABI,
-            functionName: "approve",
-            args: [DECK_ADDRESS, maxUint256],
-            account: address,
-          });
-          const hash = await writeContract(config, request);
-          await waitForTransactionReceipt(config, { hash });
-
-          await waitForAllowance(config, address, ctl.signal);
+          await approveOnce(config, address, ctl.signal);
         }
 
         setState({ phase: "signing", waitedMs: 0 });
