@@ -36,7 +36,10 @@ contract TesseraRedeemTest is Test {
         uint256 fee = deck.deckFee(DECK);
         (uint16[] memory upTo, uint16[] memory weight) = _flat(SHARD_MAX);
         vm.prank(owner);
-        deck.createDeck{value: fee}(DECK, upTo, weight);
+        deck.createDeck{value: fee}(DECK, upTo, weight, 0);
+
+        vm.prank(owner);
+        deck.setVaultShare(0);
 
         IMintable(address(MPUSDC)).mint(player, 1000e6);
         verifier = address(inco.incoVerifier());
@@ -250,7 +253,7 @@ contract TesseraRedeemTest is Test {
         uint256 fee = deck.deckFee(n);
         (uint16[] memory upTo, uint16[] memory weight) = _flat(shardMax);
         vm.prank(owner);
-        deck.createDeck{value: fee}(n, upTo, weight);
+        deck.createDeck{value: fee}(n, upTo, weight, 0);
     }
 
     function test_season_incrementsAndRecordsItsDropTable() public {
@@ -306,11 +309,11 @@ contract TesseraRedeemTest is Test {
         (uint16[] memory tooMuch, uint16[] memory w1) = _flat(11); // 11 > 20/2
         vm.prank(owner);
         vm.expectRevert(TesseraDeck.TooManyShardSlots.selector);
-        deck.createDeck{value: fee}(20, tooMuch, w1);
+        deck.createDeck{value: fee}(20, tooMuch, w1, 0);
 
         (uint16[] memory exact, uint16[] memory w2) = _flat(10);
         vm.prank(owner);
-        deck.createDeck{value: fee}(20, exact, w2);
+        deck.createDeck{value: fee}(20, exact, w2, 0);
         assertEq(deck.weightNow(10), 1);
         assertEq(deck.weightNow(11), 0);
     }
@@ -328,7 +331,7 @@ contract TesseraRedeemTest is Test {
         upTo[2] = 12;
         weight[2] = 1; //
         vm.prank(owner);
-        deck.createDeck{value: fee}(100, upTo, weight);
+        deck.createDeck{value: fee}(100, upTo, weight, 0);
         assertEq(deck.weightNow(1), 25);
         assertEq(deck.weightNow(4), 5);
         assertEq(deck.weightNow(12), 1);

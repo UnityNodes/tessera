@@ -90,6 +90,35 @@ export const TESSERA_DECK_ABI = [
   },
   {
     "type": "function",
+    "name": "claimVault",
+    "inputs": [
+      {
+        "name": "slotIndex",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "value",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "signatures",
+        "type": "bytes[]",
+        "internalType": "bytes[]"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "paid",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "countOf",
     "inputs": [
       {
@@ -125,6 +154,11 @@ export const TESSERA_DECK_ABI = [
         "name": "weight",
         "type": "uint16[]",
         "internalType": "uint16[]"
+      },
+      {
+        "name": "vaultSlots",
+        "type": "uint16",
+        "internalType": "uint16"
       }
     ],
     "outputs": [],
@@ -350,6 +384,19 @@ export const TESSERA_DECK_ABI = [
   },
   {
     "type": "function",
+    "name": "setVaultShare",
+    "inputs": [
+      {
+        "name": "bps",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "settleStake",
     "inputs": [
       {
@@ -429,6 +476,19 @@ export const TESSERA_DECK_ABI = [
         "name": "",
         "type": "uint32",
         "internalType": "uint32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "spendable",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -575,6 +635,64 @@ export const TESSERA_DECK_ABI = [
         "name": "",
         "type": "uint256",
         "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "vault",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "vaultShareBps",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "vaultUpTo",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "vaultUpToOfSeason",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint16",
+        "internalType": "uint16"
       }
     ],
     "stateMutability": "view"
@@ -858,6 +976,50 @@ export const TESSERA_DECK_ABI = [
     "anonymous": false
   },
   {
+    "type": "event",
+    "name": "VaultGrew",
+    "inputs": [
+      {
+        "name": "added",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "total",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "VaultOpened",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "handle",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "paid",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
     "type": "error",
     "name": "BadAttestation",
     "inputs": [
@@ -938,6 +1100,22 @@ export const TESSERA_DECK_ABI = [
   },
   {
     "type": "error",
+    "name": "NotTheVault",
+    "inputs": [
+      {
+        "name": "handle",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "value",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
     "name": "NothingBanked",
     "inputs": []
   },
@@ -975,6 +1153,11 @@ export const TESSERA_DECK_ABI = [
   },
   {
     "type": "error",
+    "name": "ShareTooBig",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "StakeAlreadyOpen",
     "inputs": []
   },
@@ -1008,6 +1191,11 @@ export const TESSERA_DECK_ABI = [
         "internalType": "uint256"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "VaultEmpty",
+    "inputs": []
   },
   {
     "type": "error",

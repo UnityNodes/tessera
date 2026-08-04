@@ -10,6 +10,7 @@ export interface Tier {
 export interface DeckShape {
   size: number;
   tiers: Tier[];
+  vaultUpTo: number;
 }
 
 export function weightOf(value: number, deck: DeckShape): number {
@@ -72,8 +73,19 @@ export function specFor(weight: number): TierSpec {
 }
 
 export function specOf(value: number, deck: DeckShape): TierSpec {
+  if (deck.vaultUpTo > 0 && value >= 1 && value <= deck.vaultUpTo) return VAULT_SPEC;
   return specFor(weightOf(value, deck));
 }
+
+export const VAULT_SPEC: TierSpec = {
+  name: "The Vault",
+  note: "everything the vault holds",
+  tint: "var(--color-porphyry-900)",
+  ink: "var(--color-porphyry-300)",
+  tickets: 0,
+};
+
+export const isVault = (spec: TierSpec) => spec.name === VAULT_SPEC.name;
 
 export function ticketsFromWeight(weight: number): number {
   return Math.floor(weight / WEIGHT_PER_TICKET);
@@ -85,7 +97,12 @@ export function slotsPerTier(deck: DeckShape): { spec: TierSpec; count: number; 
   const out: { spec: TierSpec; count: number; weight: number }[] = [];
   let prev = 0;
   for (const t of deck.tiers) {
-    out.push({ spec: specFor(t.weight), count: t.upTo - prev, weight: t.weight });
+    const count = t.upTo - prev;
+    const vaultHere = Math.max(0, Math.min(t.upTo, deck.vaultUpTo) - prev);
+    if (vaultHere > 0) out.push({ spec: VAULT_SPEC, count: vaultHere, weight: -1 });
+    if (count - vaultHere > 0) {
+      out.push({ spec: specFor(t.weight), count: count - vaultHere, weight: t.weight });
+    }
     prev = t.upTo;
   }
   const rest = deck.size - prev;

@@ -23,6 +23,8 @@ export function useDeck() {
       { ...deck, functionName: "treasury" },
       { ...deck, functionName: "feesClaimable" },
       { ...deck, functionName: "adapter" },
+      { ...deck, functionName: "vault" },
+      { ...deck, functionName: "vaultUpTo" },
     ],
     query: { refetchInterval: 12_000 },
   });
@@ -73,6 +75,8 @@ export function useDeck() {
     drawn,
     remaining: size - drawn,
     season,
+    vault: asBig(6),
+    vaultUpTo: Number((chain.data?.[7]?.result as number | undefined) ?? 0),
     tiers: ((tierTable.data as readonly { upTo: number; weight: number }[] | undefined) ?? []).map(
       (t) => ({ upTo: Number(t.upTo), weight: Number(t.weight) }),
     ),

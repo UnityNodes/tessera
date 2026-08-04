@@ -15,6 +15,8 @@ export function StakePanel({
   decided,
   onRedeem,
   redeeming,
+  treasury,
+  ticketPrice,
 }: {
   stake: ReturnType<typeof useStake>;
   toRedeem: Slot[];
@@ -22,6 +24,8 @@ export function StakePanel({
   decided?: { value: number; signatures: `0x${string}`[] };
   onRedeem: () => void;
   redeeming: boolean;
+  treasury: bigint;
+  ticketPrice: bigint;
 }) {
   const busy = stake.state.phase === "signing" || stake.state.phase === "confirming";
 
@@ -85,12 +89,19 @@ export function StakePanel({
   if (toRedeem.length === 0) return null;
 
   const tickets = Math.floor(weight / WEIGHT_PER_TICKET);
+  const needed = ticketPrice * BigInt(tickets);
+  const canPay = treasury >= needed;
+  const shortBy = canPay ? 0n : needed - treasury;
 
   return (
     <div className="mt-6">
       <div className="flex flex-col gap-2 sm:flex-row">
-        <Button block disabled={redeeming || busy} onClick={onRedeem}>
-          {redeeming ? "Claiming…" : `Take ${tickets} ticket${tickets > 1 ? "s" : ""}`}
+        <Button block disabled={redeeming || busy || !canPay} onClick={onRedeem}>
+          {redeeming
+            ? "Claiming…"
+            : canPay
+              ? `Take ${tickets} ticket${tickets > 1 ? "s" : ""}`
+              : "Not funded yet"}
         </Button>
         <Button
           block
@@ -101,6 +112,14 @@ export function StakePanel({
           {busy ? "Staking…" : `Risk ${weight} for ${weight * 2}`}
         </Button>
       </div>
+      {!canPay && (
+        <p className="mt-3 text-[0.9375rem] text-[var(--color-travertine-dim)]">
+          The game funds prizes out of the commission it earns, and it is{" "}
+          <span className="t-chain">${(Number(shortBy) / 1e6).toFixed(2)}</span> short.
+          About {Math.ceil(Number(shortBy) / 100_000)} more opens, by anyone, and this
+          ticket is yours. Nothing expires.
+        </p>
+      )}
       <p className="mt-3 text-[0.9375rem] text-[var(--color-travertine-faint)]">
         Risking stakes the bonus, never your money, the dollar you paid already
         bought a real ticket. Your next case decides it: anything at all doubles

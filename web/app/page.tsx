@@ -20,7 +20,8 @@ import { useStake } from "@/hooks/useStake";
 import { usePool } from "@/hooks/usePool";
 import { useFeed } from "@/hooks/useFeed";
 import { useMegapot } from "@/hooks/useMegapot";
-import { specOf, slotsPerTier, weightOf, ticketsFromWeight } from "@/lib/deck";
+import { useVault } from "@/hooks/useVault";
+import { specOf, slotsPerTier, weightOf, ticketsFromWeight, isVault, type DeckShape } from "@/lib/deck";
 import { addressUrl, DECK_ADDRESS } from "@/lib/chain";
 
 /**
@@ -31,7 +32,10 @@ export default function Home() {
   const deck = useDeck();
   const [showProof, setShowProof] = useState(false);
 
-  const shape = useMemo(() => ({ size: deck.size, tiers: deck.tiers }), [deck.size, deck.tiers]);
+  const shape = useMemo(
+    () => ({ size: deck.size, tiers: deck.tiers, vaultUpTo: deck.vaultUpTo }),
+    [deck.size, deck.tiers, deck.vaultUpTo],
+  );
 
   const inventory = useInventory(shape);
   const refreshInventory = useRefreshInventory();
@@ -46,6 +50,7 @@ export default function Home() {
   const open = useOpenCase(refresh);
   const redeem = useRedeem(refresh);
   const stake = useStake(refresh);
+  const vault = useVault(refresh);
 
   const weight = heldWeight(inventory.data);
   const toRedeem = pickForRedeem(inventory.data);
@@ -76,7 +81,22 @@ export default function Home() {
           <span className="text-[var(--color-sinopia-400)]">The case is free.</span>
         </h1>
 
-        <div className="mt-8 flex items-center justify-center">
+        {deck.vaultUpTo > 0 && (
+          <div className="mt-8 flex flex-col items-center">
+            <span className="t-label">the vault</span>
+            <span
+              className="t-chain mt-1 text-[clamp(2rem,7vw,3rem)] leading-none"
+              style={{ color: "var(--color-porphyry-300)" }}
+            >
+              ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
+            </span>
+            <span className="mt-2 text-[0.9375rem] text-[var(--color-travertine-dim)]">
+              one case in {deck.remaining} opens it, and takes all of it
+            </span>
+          </div>
+        )}
+
+        <div className="mt-6 flex items-center justify-center">
           {rolling ? (
             <Roll
               running
@@ -154,6 +174,39 @@ export default function Home() {
           )}
         </div>
 
+        {open.state.phase === "done" &&
+          open.state.value != null &&
+          isVault(specOf(open.state.value, shape)) &&
+          vault.state.phase !== "done" && (
+            <div className="mt-6 w-full max-w-md">
+              <Button
+                block
+                disabled={vault.state.phase === "signing" || vault.state.phase === "confirming"}
+                onClick={() => {
+                  const slot = inventory.data?.find(
+                    (s) => s.handle.toLowerCase() === open.state.handle?.toLowerCase(),
+                  );
+                  if (slot?.signatures) vault.claim(slot.index, slot.value!, slot.signatures);
+                }}
+              >
+                {vault.state.phase === "signing" || vault.state.phase === "confirming"
+                  ? "Opening the vault…"
+                  : `Take the vault · $${Number(formatUnits(deck.vault, 6)).toFixed(2)}`}
+              </Button>
+              {vault.state.error && (
+                <p className="mt-3 text-[0.9375rem] text-[var(--color-sinopia-400)]">
+                  {vault.state.error.title}
+                </p>
+              )}
+            </div>
+          )}
+
+        {vault.state.phase === "done" && (
+          <p className="mt-6 text-[1.0625rem]" style={{ color: "var(--color-porphyry-300)" }}>
+            The vault paid you ${Number(formatUnits(vault.state.paid ?? 0n, 6)).toFixed(2)}.
+          </p>
+        )}
+
         {(bonusTickets > 0 || stake.open || stake.bankedWeight > 0) && (
           <div className="surface mt-10 w-full max-w-md rounded-[3px] p-6 text-left">
             <StakePanel
@@ -169,16 +222,30 @@ export default function Home() {
               redeeming={
                 redeem.state.phase === "signing" || redeem.state.phase === "confirming"
               }
+              treasury={deck.treasury}
+              ticketPrice={deck.ticketPrice}
             />
+
+            {redeem.state.phase === "done" && (
+              <p className="mt-4 text-[0.9375rem] text-[var(--color-patina-400)]">
+                Claimed. The game bought you {redeem.state.tickets ?? 1} more real ticket
+                {(redeem.state.tickets ?? 1) > 1 ? "s" : ""}.
+              </p>
+            )}
+            {redeem.state.error && (
+              <p className="mt-4 text-[0.9375rem] text-[var(--color-sinopia-400)]">
+                {redeem.state.error.title}
+              </p>
+            )}
           </div>
         )}
       </div>
 
       <div className="mt-16 grid grid-cols-3 gap-px overflow-hidden rounded-[3px] border border-[var(--edge)] bg-[var(--edge)]">
         <Stat
-          label="jackpot"
-          value={`$${Number(formatUnits(megapot.prizePool, 6)).toLocaleString("en-US", { maximumFractionDigits: 0 })}`}
-          ink="var(--color-ochre-300)"
+          label="the vault"
+          value={`$${Number(formatUnits(deck.vault, 6)).toFixed(2)}`}
+          ink="var(--color-porphyry-300)"
         />
         <Stat label="prizes left" value={`${prizesLeft} of ${deck.remaining}`} />
         <Stat
@@ -260,7 +327,7 @@ function Result({
   deck,
 }: {
   open: ReturnType<typeof useOpenCase>["state"];
-  deck: { size: number; tiers: { upTo: number; weight: number }[] };
+  deck: DeckShape;
 }) {
   const dim = "text-[1.0625rem] text-[var(--color-travertine-dim)]";
 
@@ -284,6 +351,18 @@ function Result({
       );
     case "done": {
       const spec = specOf(open.value!, deck);
+      if (isVault(spec)) {
+        return (
+          <div>
+            <p className="t-inscription text-2xl" style={{ color: "var(--color-porphyry-300)" }}>
+              you found the vault
+            </p>
+            <p className="mt-3 text-[1.0625rem] text-[var(--color-travertine-dim)]">
+              Everything it holds is yours. Claim it below.
+            </p>
+          </div>
+        );
+      }
       return (
         <div>
           <p className="text-[1.25rem] text-[var(--color-travertine)]">

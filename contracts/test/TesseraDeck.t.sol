@@ -40,7 +40,10 @@ contract TesseraDeckForkTest is Test {
         uint256 fee = deck.deckFee(20);
         vm.prank(owner);
         (uint16[] memory upTo, uint16[] memory weight) = _tiers();
-        deck.createDeck{value: fee}(20, upTo, weight);
+        deck.createDeck{value: fee}(20, upTo, weight, 0);
+
+        vm.prank(owner);
+        deck.setVaultShare(0);
 
         IMintable(address(MPUSDC)).mint(player, 100e6);
     }
@@ -173,7 +176,7 @@ contract TesseraDeckForkTest is Test {
         uint16[] memory weight = new uint16[](1);
         upTo[0] = 3;
         weight[0] = 1; // 3 10/2
-        deck.createDeck{value: fee}(10, upTo, weight);
+        deck.createDeck{value: fee}(10, upTo, weight, 0);
     }
 
     function test_createDeck_revertsWhileDeckInPlay() public {
@@ -184,7 +187,7 @@ contract TesseraDeckForkTest is Test {
         uint16[] memory weight = new uint16[](1);
         upTo[0] = 3;
         weight[0] = 1; // 3 10/2
-        deck.createDeck{value: fee}(10, upTo, weight);
+        deck.createDeck{value: fee}(10, upTo, weight, 0);
     }
 
     function test_createDeck_allowedAfterDeckExhausted() public {
@@ -201,7 +204,7 @@ contract TesseraDeckForkTest is Test {
         uint16[] memory weight = new uint16[](1);
         upTo[0] = 3;
         weight[0] = 1; // 3 10/2
-        deck.createDeck{value: fee}(10, upTo, weight);
+        deck.createDeck{value: fee}(10, upTo, weight, 0);
         assertEq(deck.size(), 10);
         assertEq(deck.drawn(), 0);
     }

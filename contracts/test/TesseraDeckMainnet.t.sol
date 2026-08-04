@@ -42,7 +42,9 @@ contract TesseraDeckMainnetForkTest is Test {
         upTo[0] = 3;
         weight[0] = 1;
         vm.prank(owner);
-        deck.createDeck{value: fee}(20, upTo, weight);
+        deck.createDeck{value: fee}(20, upTo, weight, 0);
+        vm.prank(owner);
+        deck.setVaultShare(0);
     }
 
     function test_openCase_onNewMainnetJackpot() public {

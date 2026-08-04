@@ -59,6 +59,17 @@ contract TesseraDeck is ReentrancyGuardTransient {
 
     mapping(address => uint256) public bankedWeight;
 
+    //
+    //
+
+    uint256 public vault;
+
+    uint16 public vaultShareBps = 5000;
+
+    mapping(uint32 => uint16) public vaultUpToOfSeason;
+
+    uint16 public vaultUpTo;
+
     mapping(bytes32 => bool) public shardSpent;
 
     event DeckCreated(uint32 indexed season, uint16 size, uint16 totalWeight, uint256 feePaid);
@@ -68,6 +79,8 @@ contract TesseraDeck is ReentrancyGuardTransient {
     event ShardsRedeemed(address indexed player, bytes32[] handles, uint256 weight, uint256 tickets, uint256 paid);
     event Staked(address indexed player, uint256 weight, uint64 decidingSlot);
     event StakeSettled(address indexed player, uint256 staked, bool won, uint256 banked);
+    event VaultGrew(uint256 added, uint256 total);
+    event VaultOpened(address indexed player, bytes32 handle, uint256 paid);
     event OwnerChanged(address indexed from, address indexed to);
 
     error NotOwner();
@@ -88,6 +101,9 @@ contract TesseraDeck is ReentrancyGuardTransient {
     error StakeNotSettled();
     error NothingBanked();
     error BudgetExhausted(uint256 left, uint256 need);
+    error NotTheVault(bytes32 handle, uint256 value);
+    error VaultEmpty();
+    error ShareTooBig();
 
     modifier onlyOwner() {
         if (msg.sender != owner) revert NotOwner();
@@ -108,12 +124,13 @@ contract TesseraDeck is ReentrancyGuardTransient {
     }
 
     ///
-    function createDeck(uint16 n, uint16[] calldata upTo, uint16[] calldata weight)
+    function createDeck(uint16 n, uint16[] calldata upTo, uint16[] calldata weight, uint16 vaultSlots)
         external
         payable
         onlyOwner
     {
         require(n > 0, "n=0");
+        if (vaultSlots > n) revert BadTierTable();
         if (upTo.length == 0 || upTo.length != weight.length) revert BadTierTable();
         if (size != 0 && drawn < size) revert DeckInPlay();
 
@@ -134,6 +151,8 @@ contract TesseraDeck is ReentrancyGuardTransient {
         season += 1;
 
         budgetWeight += totalWeight;
+        vaultUpTo = vaultSlots;
+        vaultUpToOfSeason[season] = vaultSlots;
 
         Tier[] storage t = tiersOfSeason[season];
         for (uint256 i = 0; i < upTo.length; i++) {
@@ -234,8 +253,8 @@ contract TesseraDeck is ReentrancyGuardTransient {
         uint256 price = adapter.ticketPrice();
         paid = price * count;
 
-        if (ticketToken.balanceOf(address(this)) < paid) _sweepFees();
-        uint256 have = ticketToken.balanceOf(address(this));
+        if (spendable() < paid) _sweepFees();
+        uint256 have = spendable();
         if (have < paid) revert TreasuryEmpty(have, paid);
 
         for (uint256 i = 0; i < count; i++) {
@@ -345,11 +364,58 @@ contract TesseraDeck is ReentrancyGuardTransient {
     }
 
     function _sweepFees() internal returns (uint256 claimed) {
+        if (adapter.claimableFor(address(this)) == 0) return 0;
+
         uint256 before = ticketToken.balanceOf(address(this));
         (bool ok, bytes memory reason) = adapter.jackpot().call(adapter.claimCalldata());
         if (!ok) revert ClaimFailed(reason);
         claimed = ticketToken.balanceOf(address(this)) - before;
+
+        uint256 toVault = (claimed * vaultShareBps) / 10_000;
+        if (toVault > 0) {
+            vault += toVault;
+            emit VaultGrew(toVault, vault);
+        }
+
         emit FeesSwept(claimed);
+    }
+
+    function spendable() public view returns (uint256) {
+        uint256 balance = ticketToken.balanceOf(address(this));
+        return balance > vault ? balance - vault : 0;
+    }
+
+    ///
+    function claimVault(uint256 slotIndex, uint256 value, bytes[] calldata signatures)
+        external
+        nonReentrant
+        returns (uint256 paid)
+    {
+        Slot storage slot = slots[msg.sender][slotIndex];
+        euint256 card = slot.card;
+        bytes32 handle = euint256.unwrap(card);
+
+        if (shardSpent[handle]) revert ShardAlreadySpent(handle);
+        if (!e.verifyDecryption(card, value, signatures)) revert BadAttestation(handle);
+
+        uint16 upTo = vaultUpToOfSeason[slot.season];
+        if (value == 0 || value > upTo) revert NotTheVault(handle, value);
+
+        shardSpent[handle] = true;
+
+        _sweepFees();
+
+        paid = vault;
+        if (paid == 0) revert VaultEmpty();
+        vault = 0;
+
+        ticketToken.safeTransfer(msg.sender, paid);
+        emit VaultOpened(msg.sender, handle, paid);
+    }
+
+    function setVaultShare(uint16 bps) external onlyOwner {
+        if (bps > 10_000) revert ShareTooBig();
+        vaultShareBps = bps;
     }
 
 
@@ -386,7 +452,7 @@ contract TesseraDeck is ReentrancyGuardTransient {
     }
 
     function treasury() external view returns (uint256) {
-        return ticketToken.balanceOf(address(this));
+        return spendable();
     }
 
 

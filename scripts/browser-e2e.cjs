@@ -139,7 +139,7 @@ async function ensureConnected(page) {
   const t0 = Date.now();
   await openBtn.click();
 
-  await page.getByText(/covalidators are decrypting/).waitFor({ timeout: 90000 });
+  await page.getByText(/covalidators decrypt/).waitFor({ timeout: 90000 });
   const tWait = Date.now() - t0;
   console.log(`  , : ${tWait} ms`);
   await shot(page, "e2e-waiting");
@@ -147,7 +147,7 @@ async function ensureConnected(page) {
   await page.getByRole("button", { name: /Open another/ }).waitFor({ timeout: 120000 });
   console.log(`⏱ : ${Date.now() - t0} ms`);
 
-  const prize = await page.locator("main").getByText(/You bought/).first().textContent();
+  const prize = await page.locator("main").getByText(/You own|found the vault/).first().textContent();
   console.log(`  ${prize.trim()}`);
   await shot(page, "e2e-revealed");
 
@@ -158,7 +158,7 @@ async function ensureConnected(page) {
     const btn = second.getByRole("button", { name: /Open a case|Approve once/ });
     await btn.waitFor({ timeout: 30000 });
     await btn.click();
-    await second.getByText(/covalidators are decrypting/).waitFor({ timeout: 90000 });
+    await second.getByText(/covalidators decrypt/).waitFor({ timeout: 90000 });
     console.log("▶ ");
     await second.close();
 
@@ -174,7 +174,7 @@ async function ensureConnected(page) {
     await back.close();
   }
 
-  const redeem = page.getByRole("button", { name: /Take \d+ ticket/ });
+  const redeem = page.getByRole("button", { name: /^Take \d+ ticket/ });
   if (await redeem.count()) {
     console.log("▶ ");
     await redeem.click();
@@ -182,7 +182,7 @@ async function ensureConnected(page) {
     console.log("✓ ");
     await shot(page, "e2e-redeemed");
   } else {
-    const held = await page.getByText(/No bonus tickets yet|real ticket/).first().textContent();
+    const held = await page.getByText(/No bonus tickets|real ticket|the vault/).first().textContent();
     console.log(`  ${held.trim()}`);
   }
 

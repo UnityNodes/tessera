@@ -29,6 +29,11 @@ Frontend is next. See [BRIEF.md](BRIEF.md) for the full technical record.
 5. Five shards redeem for another real Megapot ticket, funded entirely by the
    10% referral fee the game earns on every purchase
 
+Half of that commission does not get handed out a ticket at a time. It piles
+up in **the vault**, and exactly one case in the deck opens it, all of it, at
+once. Same money, but a pot you can watch grow while the number of remaining
+cases falls.
+
 Or don't take the ticket: **stake what you won** instead. Your next case
 decides it, anything at all doubles the stake, an empty slot burns it. You
 never risk money, only the bonus; the dollar already bought a real ticket

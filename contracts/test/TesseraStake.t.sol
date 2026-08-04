@@ -40,7 +40,10 @@ contract TesseraStakeTest is Test {
         upTo[0] = PRIZE_MAX;
         weight[0] = 1;
         vm.prank(owner);
-        deck.createDeck{value: fee}(DECK, upTo, weight);
+        deck.createDeck{value: fee}(DECK, upTo, weight, 0);
+
+        vm.prank(owner);
+        deck.setVaultShare(0);
 
         IMintable(address(MPUSDC)).mint(player, 1000e6);
         IMintable(address(MPUSDC)).mint(other, 1000e6);
