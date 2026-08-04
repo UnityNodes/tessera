@@ -27,6 +27,69 @@ export const TESSERA_DECK_ABI = [
   },
   {
     "type": "function",
+    "name": "bankedWeight",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "budgetLeft",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "budgetWeight",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "claimBanked",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "tickets",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "paid",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "countOf",
     "inputs": [
       {
@@ -201,6 +264,19 @@ export const TESSERA_DECK_ABI = [
   },
   {
     "type": "function",
+    "name": "paidWeight",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "redeem",
     "inputs": [
       {
@@ -274,6 +350,35 @@ export const TESSERA_DECK_ABI = [
   },
   {
     "type": "function",
+    "name": "settleStake",
+    "inputs": [
+      {
+        "name": "value",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "signatures",
+        "type": "bytes[]",
+        "internalType": "bytes[]"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "won",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "banked",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "shardSpent",
     "inputs": [
       {
@@ -324,6 +429,69 @@ export const TESSERA_DECK_ABI = [
         "name": "",
         "type": "uint32",
         "internalType": "uint32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "stake",
+    "inputs": [
+      {
+        "name": "slotIndexes",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "values",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "signatures",
+        "type": "bytes[][]",
+        "internalType": "bytes[][]"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "weight",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "decidingSlot",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "stakeOf",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "weight",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "slotIndex",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "open",
+        "type": "bool",
+        "internalType": "bool"
       }
     ],
     "stateMutability": "view"
@@ -634,6 +802,62 @@ export const TESSERA_DECK_ABI = [
     "anonymous": false
   },
   {
+    "type": "event",
+    "name": "StakeSettled",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "staked",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "won",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      },
+      {
+        "name": "banked",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Staked",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "weight",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "decidingSlot",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
     "type": "error",
     "name": "BadAttestation",
     "inputs": [
@@ -648,6 +872,22 @@ export const TESSERA_DECK_ABI = [
     "type": "error",
     "name": "BadTierTable",
     "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "BudgetExhausted",
+    "inputs": [
+      {
+        "name": "left",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "need",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
   },
   {
     "type": "error",
@@ -672,6 +912,11 @@ export const TESSERA_DECK_ABI = [
   },
   {
     "type": "error",
+    "name": "NoStakeOpen",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "NotEnoughWeight",
     "inputs": [
       {
@@ -689,6 +934,11 @@ export const TESSERA_DECK_ABI = [
   {
     "type": "error",
     "name": "NotOwner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NothingBanked",
     "inputs": []
   },
   {
@@ -722,6 +972,16 @@ export const TESSERA_DECK_ABI = [
         "internalType": "bytes32"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "StakeAlreadyOpen",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "StakeNotSettled",
+    "inputs": []
   },
   {
     "type": "error",

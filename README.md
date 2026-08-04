@@ -29,7 +29,13 @@ Frontend is next. See [BRIEF.md](BRIEF.md) for the full technical record.
 5. Five shards redeem for another real Megapot ticket, funded entirely by the
    10% referral fee the game earns on every purchase
 
-No external funding. The prize pool pays for itself out of its own turnover.
+Or don't take the ticket: **stake what you won** instead. Your next case
+decides it, anything at all doubles the stake, an empty slot burns it. You
+never risk money, only the bonus; the dollar already bought a real ticket
+either way.
+
+No external funding. The prize pool pays for itself out of its own turnover,
+and the contract cannot pay out more weight than its decks were built with, that ceiling is enforced in code, not policy.
 
 ## Verified numbers
 
@@ -68,7 +74,7 @@ BRIEF.md                  Full technical record: addresses, measurements, traps.
 
 | | |
 |---|---|
-| TesseraDeck | `0xaD0E81de4A9aA1F86C5CD68e54fd3997a62b7BeD` |
+| TesseraDeck | `0x773b44eDe2D5454336F98b1DBA3d0c2484cB6579` |
 | MegapotLegacyAdapter | `0xcEFd98581bb131a505e9De53d7f9b191fe94E074` |
 
 Season 1, 100 slots: **1 Porphyry** (five real tickets at once), 3 Aureus

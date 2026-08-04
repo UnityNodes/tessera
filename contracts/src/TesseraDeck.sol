@@ -43,6 +43,22 @@ contract TesseraDeck is ReentrancyGuardTransient {
 
     mapping(address => Slot[]) private slots;
 
+    ///
+    ///
+    uint256 public budgetWeight;
+
+    uint256 public paidWeight;
+
+    struct Stake {
+        uint128 weight;
+        uint64 slotIndex;
+        bool open;
+    }
+
+    mapping(address => Stake) public stakeOf;
+
+    mapping(address => uint256) public bankedWeight;
+
     mapping(bytes32 => bool) public shardSpent;
 
     event DeckCreated(uint32 indexed season, uint16 size, uint16 totalWeight, uint256 feePaid);
@@ -50,6 +66,8 @@ contract TesseraDeck is ReentrancyGuardTransient {
     event SlotRevealed(address indexed player, uint256 index);
     event FeesSwept(uint256 amount);
     event ShardsRedeemed(address indexed player, bytes32[] handles, uint256 weight, uint256 tickets, uint256 paid);
+    event Staked(address indexed player, uint256 weight, uint64 decidingSlot);
+    event StakeSettled(address indexed player, uint256 staked, bool won, uint256 banked);
     event OwnerChanged(address indexed from, address indexed to);
 
     error NotOwner();
@@ -65,6 +83,11 @@ contract TesseraDeck is ReentrancyGuardTransient {
     error TreasuryEmpty(uint256 have, uint256 need);
     error TicketNotCredited();
     error ClaimFailed(bytes reason);
+    error StakeAlreadyOpen();
+    error NoStakeOpen();
+    error StakeNotSettled();
+    error NothingBanked();
+    error BudgetExhausted(uint256 left, uint256 need);
 
     modifier onlyOwner() {
         if (msg.sender != owner) revert NotOwner();
@@ -109,6 +132,8 @@ contract TesseraDeck is ReentrancyGuardTransient {
         size = n;
         drawn = 0;
         season += 1;
+
+        budgetWeight += totalWeight;
 
         Tier[] storage t = tiersOfSeason[season];
         for (uint256 i = 0; i < upTo.length; i++) {
@@ -199,24 +224,119 @@ contract TesseraDeck is ReentrancyGuardTransient {
         tickets = weight / WEIGHT_PER_TICKET;
         if (tickets == 0) revert NotEnoughWeight(weight, WEIGHT_PER_TICKET);
 
+        _spendBudget(weight);
+        paid = _buyTickets(tickets);
+
+        emit ShardsRedeemed(msg.sender, handles, weight, tickets, paid);
+    }
+
+    function _buyTickets(uint256 count) internal returns (uint256 paid) {
         uint256 price = adapter.ticketPrice();
-        paid = price * tickets;
+        paid = price * count;
 
         if (ticketToken.balanceOf(address(this)) < paid) _sweepFees();
         uint256 have = ticketToken.balanceOf(address(this));
         if (have < paid) revert TreasuryEmpty(have, paid);
 
-        for (uint256 i = 0; i < tickets; i++) {
+        for (uint256 i = 0; i < count; i++) {
             uint256 boughtBefore = adapter.ticketsOf(msg.sender);
             adapter.buyTicket(msg.sender, address(this));
             if (adapter.ticketsOf(msg.sender) <= boughtBefore) revert TicketNotCredited();
         }
-
-        emit ShardsRedeemed(msg.sender, handles, weight, tickets, paid);
     }
 
     function weightNow(uint256 value) external view returns (uint16) {
         return weightOf(season, value);
+    }
+
+
+    ///
+    ///
+    function stake(uint256[] calldata slotIndexes, uint256[] calldata values, bytes[][] calldata signatures)
+        external
+        nonReentrant
+        returns (uint256 weight, uint64 decidingSlot)
+    {
+        if (stakeOf[msg.sender].open) revert StakeAlreadyOpen();
+
+        uint256 n = slotIndexes.length;
+        if (n == 0 || values.length != n || signatures.length != n) revert BadTierTable();
+
+        for (uint256 i = 0; i < n; i++) {
+            Slot storage slot = slots[msg.sender][slotIndexes[i]];
+            euint256 card = slot.card;
+            bytes32 handle = euint256.unwrap(card);
+
+            if (shardSpent[handle]) revert ShardAlreadySpent(handle);
+            if (!e.verifyDecryption(card, values[i], signatures[i])) revert BadAttestation(handle);
+
+            uint16 w = weightOf(slot.season, values[i]);
+            if (w == 0) revert WorthlessSlot(handle, values[i]);
+
+            shardSpent[handle] = true;
+            weight += w;
+        }
+
+        decidingSlot = uint64(slots[msg.sender].length);
+        stakeOf[msg.sender] = Stake({weight: uint128(weight), slotIndex: decidingSlot, open: true});
+
+        emit Staked(msg.sender, weight, decidingSlot);
+    }
+
+    ///
+    function settleStake(uint256 value, bytes[] calldata signatures)
+        external
+        nonReentrant
+        returns (bool won, uint256 banked)
+    {
+        Stake memory st = stakeOf[msg.sender];
+        if (!st.open) revert NoStakeOpen();
+        if (slots[msg.sender].length <= st.slotIndex) revert StakeNotSettled();
+
+        Slot storage slot = slots[msg.sender][st.slotIndex];
+        euint256 card = slot.card;
+        if (!e.verifyDecryption(card, value, signatures)) {
+            revert BadAttestation(euint256.unwrap(card));
+        }
+
+        won = weightOf(slot.season, value) > 0;
+        delete stakeOf[msg.sender];
+
+        if (won) {
+            banked = uint256(st.weight) * 2;
+            bankedWeight[msg.sender] += banked;
+        }
+
+        emit StakeSettled(msg.sender, st.weight, won, banked);
+    }
+
+    ///
+    function claimBanked() external nonReentrant returns (uint256 tickets, uint256 paid) {
+        uint256 weight = bankedWeight[msg.sender];
+        if (weight == 0) revert NothingBanked();
+
+        uint256 left = budgetLeft();
+        uint256 usable = weight > left ? left : weight;
+
+        tickets = usable / WEIGHT_PER_TICKET;
+        if (tickets == 0) revert NotEnoughWeight(usable, WEIGHT_PER_TICKET);
+
+        uint256 spent = tickets * WEIGHT_PER_TICKET;
+        bankedWeight[msg.sender] = weight - spent;
+        _spendBudget(spent);
+
+        paid = _buyTickets(tickets);
+        emit ShardsRedeemed(msg.sender, new bytes32[](0), spent, tickets, paid);
+    }
+
+    function budgetLeft() public view returns (uint256) {
+        return budgetWeight > paidWeight ? budgetWeight - paidWeight : 0;
+    }
+
+    function _spendBudget(uint256 weight) internal {
+        uint256 left = budgetLeft();
+        if (weight > left) revert BudgetExhausted(left, weight);
+        paidWeight += weight;
     }
 
 

@@ -15,6 +15,8 @@ import { useDeck } from "@/hooks/useDeck";
 import { useOpenCase } from "@/hooks/useOpenCase";
 import { useInventory, useRefreshInventory, heldWeight, pickForRedeem } from "@/hooks/useInventory";
 import { useRedeem } from "@/hooks/useRedeem";
+import { useStake } from "@/hooks/useStake";
+import { StakePanel } from "@/components/StakePanel";
 import { usePool } from "@/hooks/usePool";
 import { useFeed } from "@/hooks/useFeed";
 import { Feed } from "@/components/Feed";
@@ -38,6 +40,11 @@ export default function Home() {
 
   const open = useOpenCase(refresh);
   const redeem = useRedeem(refresh);
+  const stake = useStake(refresh);
+
+  const decidingSlot = stake.open
+    ? inventory.data?.find((s) => s.index === stake.decidingSlot)
+    : undefined;
 
   const weight = heldWeight(inventory.data);
   const toRedeem = pickForRedeem(inventory.data);
@@ -167,21 +174,20 @@ export default function Home() {
           <Panel label="Your inventory">
             <ShardMeter weight={weight} />
 
-            {toRedeem.length > 0 && (
-              <Button
-                block
-                className="mt-6"
-                variant="quiet"
-                disabled={redeem.state.phase === "signing" || redeem.state.phase === "confirming"}
-                onClick={() => redeem.redeem(toRedeem)}
-              >
-                {redeem.state.phase === "signing"
-                  ? "Confirm in wallet…"
-                  : redeem.state.phase === "confirming"
-                    ? "Claiming…"
-                    : "Claim real tickets"}
-              </Button>
-            )}
+            <StakePanel
+              stake={stake}
+              toRedeem={toRedeem}
+              weight={weight}
+              decided={
+                decidingSlot?.value != null && decidingSlot.signatures
+                  ? { value: decidingSlot.value, signatures: decidingSlot.signatures }
+                  : undefined
+              }
+              onRedeem={() => redeem.redeem(toRedeem)}
+              redeeming={
+                redeem.state.phase === "signing" || redeem.state.phase === "confirming"
+              }
+            />
 
             {redeem.state.phase === "done" && (
               <p className="mt-4 text-[0.9375rem] text-[var(--color-patina-400)]">
