@@ -629,17 +629,26 @@ contract TesseraDeck is ReentrancyGuardTransient {
 
     ///
     ///
+    ///
     function _fillVaults(uint256 amount) internal {
-        uint64 total = unsweptOpens;
-        if (total == 0) return;
+        uint64 total;
+        for (uint256 i = 0; i < decks.length; i++) {
+            if (decks[i].vaultUpTo > 0) total += decks[i].unsweptOpens;
+        }
+        if (total == 0) {
+            for (uint256 i = 0; i < decks.length; i++) decks[i].unsweptOpens = 0;
+            unsweptOpens = 0;
+            return;
+        }
 
         uint256 given;
         uint256 last = type(uint256).max;
         for (uint256 i = 0; i < decks.length; i++) {
             Deck storage d = decks[i];
-            if (d.unsweptOpens == 0) continue;
-            uint256 share = (amount * d.unsweptOpens) / total;
+            uint64 opens = d.unsweptOpens;
             d.unsweptOpens = 0;
+            if (opens == 0 || d.vaultUpTo == 0) continue;
+            uint256 share = (amount * opens) / total;
             if (share == 0) continue;
             // forge-lint: disable-next-line(unsafe-typecast)
             d.vault += uint128(share);

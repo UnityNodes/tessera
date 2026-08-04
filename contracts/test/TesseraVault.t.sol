@@ -281,6 +281,28 @@ contract TesseraVaultTest is Test {
         assertEq(deck.vaultOf(0), theirs, unicode"");
     }
 
+    function test_vault_deckWithoutAVaultSlotTakesNoShare() public {
+        uint256 fee = deck.deckFee(DECK);
+        uint16[] memory upTo = new uint16[](1);
+        uint16[] memory weight = new uint16[](1);
+        upTo[0] = 6;
+        weight[0] = 5;
+        vm.prank(owner);
+        uint32 plain = deck.createDeck{value: fee}(DECK, upTo, weight, 0); //
+
+        vm.startPrank(player);
+        MPUSDC.approve(address(deck), type(uint256).max);
+        for (uint256 i = 0; i < 10; i++) deck.openCase(0);
+        for (uint256 i = 0; i < 10; i++) deck.openCase(plain);
+        vm.stopPrank();
+
+        deck.sweepFees(); // $2.00 , $1.00
+
+        assertEq(deck.vaultOf(plain), 0, unicode"");
+        assertEq(deck.vaultOf(0), 1_000_000, unicode", ");
+        assertEq(deck.treasury(), 1_000_000, unicode"");
+    }
+
     function test_setVaultShare_onlyOwnerAndBounded() public {
         vm.prank(player);
         vm.expectRevert(TesseraDeck.NotOwner.selector);
