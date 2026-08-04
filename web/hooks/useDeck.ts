@@ -75,7 +75,9 @@ export function useDeck() {
     drawn,
     remaining: size - drawn,
     season,
-    vault: asBig(6),
+    vaultBanked: asBig(6),
+    ///
+    vault: asBig(6) + asBig(4) / 2n,
     vaultUpTo: Number((chain.data?.[7]?.result as number | undefined) ?? 0),
     tiers: ((tierTable.data as readonly { upTo: number; weight: number }[] | undefined) ?? []).map(
       (t) => ({ upTo: Number(t.upTo), weight: Number(t.weight) }),
