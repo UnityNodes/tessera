@@ -47,10 +47,10 @@ export function Ticker({ items }: { items: FeedItem[] }) {
                     height: CARD,
                     background: prize
                       ? `linear-gradient(158deg, color-mix(in oklab, ${it.spec.ink} 24%, ${it.spec.tint}), ${it.spec.tint})`
-                      : "var(--color-stone-800)",
+                      : "linear-gradient(158deg, var(--color-stone-700), var(--color-stone-800))",
                     boxShadow: prize
                       ? `inset 0 2px 0 ${it.spec.ink}, inset 0 0 0 1px color-mix(in oklab, ${it.spec.ink} 26%, transparent)`
-                      : "inset 0 2px 0 var(--edge)",
+                      : "inset 0 2px 0 var(--edge-strong), inset 0 0 0 1px var(--edge)",
                   }}
                 >
                   <div className="px-2 text-center">

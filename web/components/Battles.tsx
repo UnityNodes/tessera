@@ -38,43 +38,50 @@ export function Battles({
     state.phase === "approving" || state.phase === "signing" || state.phase === "confirming";
 
   return (
-    <section className="mt-16">
-      <div className="mb-6 text-center">
-        <p className="t-label">battles</p>
-        <p className="mt-2 text-[1.0625rem] text-[var(--color-travertine-dim)]">
-          Two cases open at once. The better card takes both prizes, <br className="hidden sm:block" /> and both of you still keep the real ticket you paid
-          for.
-        </p>
-      </div>
+    <section id="battles" className="surface mt-5 rounded-[3px] p-6 sm:p-8">
+      <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div className="max-w-xl">
+          <p className="t-label">battles</p>
+          <p className="mt-1 text-[1.0625rem] text-[var(--color-travertine-dim)]">
+            Two cases open at once. The better card takes both prizes, and both of you still
+            keep the real ticket you paid for.
+          </p>
+        </div>
+        {!mine && (
+          <div className="shrink-0">
+            <Button
+              disabled={busy || !canAfford || deckEmpty || !address}
+              onClick={() => void battles.open(needsApproval)}
+            >
+              {busy ? "…" : "Open a battle · $1"}
+            </Button>
+          </div>
+        )}
+      </header>
 
       {mine ? (
         <Arena battles={battles} deck={deck} pool={pool} />
       ) : (
-        <div className="mx-auto max-w-md">
-          <Button
-            block
-            disabled={busy || !canAfford || deckEmpty || !address}
-            onClick={() => void battles.open(needsApproval)}
-          >
-            {busy ? "…" : "Open a battle · $1"}
-          </Button>
-          <p className="mt-3 text-center text-[0.9375rem] text-[var(--color-travertine-faint)]">
+        <>
+          <p className="text-[0.9375rem] text-[var(--color-travertine-faint)]">
             Your card stays sealed until someone pays to face it. Nobody can peek and pick an
             easy fight, not even you.
           </p>
 
-          {battles.waiting.length > 0 && (
-            <div className="mt-8">
+          {battles.waiting.length > 0 ? (
+            <div className="mt-6">
               <p className="t-label mb-3">waiting for an opponent</p>
-              <ul className="divide-y divide-[var(--edge)] overflow-hidden rounded-[3px] border border-[var(--edge)]">
+              <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {battles.waiting.map((b) => (
                   <li
                     key={String(b.id)}
-                    className="flex items-center justify-between gap-4 bg-[var(--color-stone-900)] px-4 py-3"
+                    className="flex items-center justify-between gap-3 rounded-[3px] border border-[var(--edge)] bg-[var(--color-stone-900)] px-4 py-3"
                   >
-                    <span className="t-chain text-[0.8125rem] text-[var(--color-travertine-dim)]">
-                      {short(b.a)}
-                      <span className="ml-3 text-[var(--color-travertine-faint)]">
+                    <span className="min-w-0">
+                      <span className="t-chain block truncate text-[0.8125rem] text-[var(--color-travertine-dim)]">
+                        {short(b.a)}
+                      </span>
+                      <span className="t-label">
                         <Ago at={b.openedAt} />
                       </span>
                     </span>
@@ -89,8 +96,10 @@ export function Battles({
                 ))}
               </ul>
             </div>
+          ) : (
+            <p className="mt-6 t-label">nobody is waiting right now, open one and be first</p>
           )}
-        </div>
+        </>
       )}
 
       {state.error && (
@@ -130,7 +139,7 @@ function Arena({
   const theirSpec = iAmCreator ? specB : specA;
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div>
       <div className="grid gap-4 sm:grid-cols-2">
         <Side
           label="you"

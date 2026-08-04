@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useAccount } from "wagmi";
 import { formatUnits } from "viem";
 import { motion, AnimatePresence } from "motion/react";
@@ -29,11 +29,11 @@ import { addressUrl, DECK_ADDRESS } from "@/lib/chain";
 
 /**
  *
+ *
  */
 export default function Home() {
   const { isConnected } = useAccount();
   const deck = useDeck();
-  const [showProof, setShowProof] = useState(false);
 
   const shape = useMemo(
     () => ({ size: deck.size, tiers: deck.tiers, vaultUpTo: deck.vaultUpTo }),
@@ -75,169 +75,202 @@ export default function Home() {
     open.state.phase,
   );
   const canOpen = isConnected && !deck.deckEmpty && deck.canAfford && !busy;
-  const prizesLeft = pool.data?.prizesLeft ?? slotsPerTier(shape).filter((t) => t.weight > 0).reduce((n, t) => n + t.count, 0);
+  const prizesLeft =
+    pool.data?.prizesLeft ??
+    slotsPerTier(shape)
+      .filter((t) => t.weight > 0)
+      .reduce((n, t) => n + t.count, 0);
   const playerCount = new Set((opens.data ?? []).map((o) => o.player.toLowerCase())).size;
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-6 pb-20 pt-8">
-      <header className="mb-14 flex items-center justify-between gap-4">
-        <span className="t-label">Tessera · season {deck.season}</span>
-        <ConnectBar onMinted={refresh} />
+    <div className="min-h-screen">
+      <header className="sticky top-0 z-40 border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-grout)_88%,transparent)] backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-6 px-4 sm:px-6">
+          <a href="#top" className="t-inscription shrink-0 text-[0.9375rem]">
+            Tessera
+          </a>
+          <span className="t-label hidden shrink-0 sm:block">season {deck.season}</span>
+
+          <nav className="hidden flex-1 items-center gap-6 md:flex">
+            <NavLink href="#top">the case</NavLink>
+            <NavLink href="#battles">battles</NavLink>
+            <NavLink href="#proof">proof</NavLink>
+          </nav>
+
+          <div className="ml-auto">
+            <ConnectBar onMinted={refresh} />
+          </div>
+        </div>
       </header>
 
-      <div className="mb-4 grid grid-cols-2 gap-px overflow-hidden rounded-[3px] border border-[var(--edge)] bg-[var(--edge)] sm:grid-cols-4">
-        <Stat label="cases opened" value={String(deck.drawn)} />
-        <Stat label="players" value={String(playerCount)} />
-        <Stat label="prizes left" value={`${prizesLeft} of ${deck.remaining}`} />
-        <Stat
-          label="your tickets"
-          value={megapot.tickets.toFixed(0)}
-          ink="var(--color-patina-400)"
-        />
+      <div className="border-b border-[var(--edge)] bg-[var(--color-stone-900)]">
+        <div className="mx-auto grid max-w-[1440px] grid-cols-2 divide-x divide-[var(--edge)] px-4 sm:px-6 md:grid-cols-4">
+          <Stat label="cases opened" value={String(deck.drawn)} />
+          <Stat label="players" value={String(playerCount)} />
+          <Stat label="prizes left" value={`${prizesLeft} of ${deck.remaining}`} />
+          <Stat
+            label="your tickets"
+            value={megapot.tickets.toFixed(0)}
+            ink="var(--color-patina-400)"
+          />
+        </div>
       </div>
 
-      <div className="mb-10">
-        <Ticker items={feed} />
+      <div className="border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-stone-900)_60%,transparent)]">
+        <div className="mx-auto max-w-[1440px] px-4 sm:px-6">
+          <Ticker items={feed} />
+        </div>
       </div>
 
-      <div className="flex flex-col items-center text-center">
-        <h1 className="t-display text-[clamp(2rem,6vw,3.25rem)]">
-          $1 buys a real lottery ticket.
-          <br />
-          <span className="text-[var(--color-sinopia-400)]">The case is free.</span>
-        </h1>
-
-        {deck.vaultUpTo > 0 && (
-          <div className="mt-8 flex flex-col items-center">
-            <span className="t-label">the vault</span>
-            <span
-              className="t-chain mt-1 text-[clamp(2rem,7vw,3rem)] leading-none"
-              style={{ color: "var(--color-porphyry-300)" }}
-            >
-              ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
-            </span>
-            <span className="mt-2 text-[0.9375rem] text-[var(--color-travertine-dim)]">
-              {!pool.data?.vaultTaken ? (
-                <>one case in {deck.remaining} opens it, and takes all of it</>
-              ) : vaultSlot ? (
-                <span style={{ color: "var(--color-porphyry-300)" }}>
-                  you drew it, take it below
-                </span>
-              ) : (
-                <>
-                  the vault case has been drawn already · it pays out the moment its
-                  holder claims it
-                </>
-              )}
-            </span>
+      <main id="top" className="mx-auto max-w-[1440px] px-4 pb-24 pt-8 sm:px-6">
+        <section className="grid items-stretch gap-5 lg:grid-cols-2">
+          <div className="surface flex min-h-[26rem] items-center justify-center overflow-hidden rounded-[3px] p-6">
+            {rolling ? (
+              <Roll
+                running
+                landed={open.state.value != null ? specOf(open.state.value, shape) : undefined}
+                deck={shape}
+                pool={pool.data}
+              />
+            ) : (
+              <Case
+                phase={open.state.phase === "done" ? "opened" : "idle"}
+                value={open.state.value}
+                deck={shape}
+                size={340}
+                onClick={
+                  canOpen ? () => open.open({ needsApproval: deck.needsApproval }) : undefined
+                }
+              />
+            )}
           </div>
-        )}
 
-        <div className="mt-6 flex items-center justify-center">
-          {rolling ? (
-            <Roll
-              running
-              landed={open.state.value != null ? specOf(open.state.value, shape) : undefined}
-              deck={shape}
-              pool={pool.data}
-            />
-          ) : (
-            <Case
-              phase={open.state.phase === "done" ? "opened" : "idle"}
-              value={open.state.value}
-              deck={shape}
-              size={340}
-              onClick={canOpen ? () => open.open({ needsApproval: deck.needsApproval }) : undefined}
-            />
-          )}
-        </div>
+          <div className="surface flex flex-col justify-center rounded-[3px] p-6 sm:p-8">
+            <h1 className="t-display text-[clamp(1.75rem,3.4vw,2.75rem)]">
+              $1 buys a real lottery ticket.
+              <br />
+              <span className="text-[var(--color-sinopia-400)]">The case is free.</span>
+            </h1>
 
-        <div className="mt-6 min-h-[5.5rem] w-full max-w-md">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={open.state.phase + (open.state.value ?? "")}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Result open={open.state} deck={shape} />
-            </motion.div>
-          </AnimatePresence>
-        </div>
+            {deck.vaultUpTo > 0 && (
+              <div className="mt-6 flex items-baseline gap-4 border-y border-[var(--edge)] py-4">
+                <div>
+                  <span className="t-label block">the vault</span>
+                  <span
+                    className="t-chain block text-[clamp(1.75rem,4vw,2.5rem)] leading-none"
+                    style={{ color: "var(--color-porphyry-300)" }}
+                  >
+                    ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
+                  </span>
+                </div>
+                <span className="text-[0.9375rem] text-[var(--color-travertine-dim)]">
+                  {!pool.data?.vaultTaken ? (
+                    <>one case in {deck.remaining} opens it, and takes all of it</>
+                  ) : vaultSlot ? (
+                    <span style={{ color: "var(--color-porphyry-300)" }}>
+                      you drew it, take it below
+                    </span>
+                  ) : (
+                    <>
+                      the vault case has been drawn already · it pays out the moment its holder
+                      claims it
+                    </>
+                  )}
+                </span>
+              </div>
+            )}
 
-        <div className="mt-2 w-full max-w-md">
-          {!isConnected ? (
-            <p className="text-[1.0625rem] text-[var(--color-travertine-dim)]">
-              Connect a wallet to open a case.
-            </p>
-          ) : deck.deckEmpty ? (
-            <p className="text-[1.0625rem] text-[var(--color-travertine-dim)]">
-              Every case in this season has been opened.
-            </p>
-          ) : !deck.canAfford ? (
-            <p className="text-[1.0625rem] text-[var(--color-travertine-dim)]">
-              You need $1 in test dollars, mint some above, they are free.
-            </p>
-          ) : (
-            <Button
-              block
-              disabled={busy}
-              onClick={() =>
-                open.state.phase === "done" || open.state.phase === "failed"
-                  ? open.reset()
-                  : open.open({ needsApproval: deck.needsApproval })
-              }
-            >
-              {busy
-                ? "…"
-                : open.state.phase === "done" || open.state.phase === "failed"
-                  ? "Open another · $1"
-                  : deck.needsApproval
-                    ? "Approve once, then open · $1"
-                    : "Open a case · $1"}
-            </Button>
-          )}
+            <div className="mt-5 min-h-[5rem]">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={open.state.phase + (open.state.value ?? "")}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Result open={open.state} deck={shape} />
+                </motion.div>
+              </AnimatePresence>
+            </div>
 
-          {open.state.txUrl && !busy && (
-            <a
-              href={open.state.txUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="t-label mt-4 block hover:text-[var(--color-travertine)]"
-            >
-              view transaction
-            </a>
-          )}
-        </div>
+            <div className="mt-2">
+              {!isConnected ? (
+                <p className="text-[1.0625rem] text-[var(--color-travertine-dim)]">
+                  Connect a wallet to open a case.
+                </p>
+              ) : deck.deckEmpty ? (
+                <p className="text-[1.0625rem] text-[var(--color-travertine-dim)]">
+                  Every case in this season has been opened.
+                </p>
+              ) : !deck.canAfford ? (
+                <p className="text-[1.0625rem] text-[var(--color-travertine-dim)]">
+                  You need $1 in test dollars, mint some above, they are free.
+                </p>
+              ) : (
+                <Button
+                  block
+                  disabled={busy}
+                  onClick={() =>
+                    open.state.phase === "done" || open.state.phase === "failed"
+                      ? open.reset()
+                      : open.open({ needsApproval: deck.needsApproval })
+                  }
+                >
+                  {busy
+                    ? "…"
+                    : open.state.phase === "done" || open.state.phase === "failed"
+                      ? "Open another · $1"
+                      : deck.needsApproval
+                        ? "Approve once, then open · $1"
+                        : "Open a case · $1"}
+                </Button>
+              )}
 
-        {vaultSlot && vault.state.phase !== "done" && (
-          <div className="mt-6 w-full max-w-md">
-            <Button
-              block
-              disabled={vault.state.phase === "signing" || vault.state.phase === "confirming"}
-              onClick={() => vault.claim(vaultSlot.index, vaultSlot.value!, vaultSlot.signatures!)}
-            >
-              {vault.state.phase === "signing" || vault.state.phase === "confirming"
-                ? "Opening the vault…"
-                : `Take the vault · $${Number(formatUnits(deck.vault, 6)).toFixed(2)}`}
-            </Button>
-            {vault.state.error && (
-              <p className="mt-3 text-[0.9375rem] text-[var(--color-sinopia-400)]">
-                {vault.state.error.title}
+              {open.state.txUrl && !busy && (
+                <a
+                  href={open.state.txUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="t-label mt-3 block hover:text-[var(--color-travertine)]"
+                >
+                  view transaction
+                </a>
+              )}
+            </div>
+
+            {vaultSlot && vault.state.phase !== "done" && (
+              <div className="mt-4">
+                <Button
+                  block
+                  disabled={vault.state.phase === "signing" || vault.state.phase === "confirming"}
+                  onClick={() =>
+                    vault.claim(vaultSlot.index, vaultSlot.value!, vaultSlot.signatures!)
+                  }
+                >
+                  {vault.state.phase === "signing" || vault.state.phase === "confirming"
+                    ? "Opening the vault…"
+                    : `Take the vault · $${Number(formatUnits(deck.vault, 6)).toFixed(2)}`}
+                </Button>
+                {vault.state.error && (
+                  <p className="mt-3 text-[0.9375rem] text-[var(--color-sinopia-400)]">
+                    {vault.state.error.title}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {vault.state.phase === "done" && (
+              <p className="mt-4 text-[1.0625rem]" style={{ color: "var(--color-porphyry-300)" }}>
+                The vault paid you ${Number(formatUnits(vault.state.paid ?? 0n, 6)).toFixed(2)}.
               </p>
             )}
           </div>
-        )}
-
-        {vault.state.phase === "done" && (
-          <p className="mt-6 text-[1.0625rem]" style={{ color: "var(--color-porphyry-300)" }}>
-            The vault paid you ${Number(formatUnits(vault.state.paid ?? 0n, 6)).toFixed(2)}.
-          </p>
-        )}
+        </section>
 
         {(bonusTickets > 0 || stake.open || stake.bankedWeight > 0) && (
-          <div className="surface mt-10 w-full max-w-md rounded-[3px] p-6 text-left">
+          <section className="surface mt-5 rounded-[3px] p-6 sm:p-8">
+            <p className="t-label">your bonus</p>
             <StakePanel
               stake={stake}
               toRedeem={toRedeem}
@@ -248,9 +281,7 @@ export default function Home() {
                   : undefined
               }
               onRedeem={() => redeem.redeem(toRedeem)}
-              redeeming={
-                redeem.state.phase === "signing" || redeem.state.phase === "confirming"
-              }
+              redeeming={redeem.state.phase === "signing" || redeem.state.phase === "confirming"}
               treasury={deck.treasury}
               ticketPrice={deck.ticketPrice}
             />
@@ -266,70 +297,60 @@ export default function Home() {
                 {redeem.state.error.title}
               </p>
             )}
+          </section>
+        )}
+
+        <Battles
+          battles={battles}
+          deck={shape}
+          pool={pool.data}
+          needsApproval={deck.needsApproval}
+          canAfford={deck.canAfford}
+          deckEmpty={deck.deckEmpty}
+        />
+
+        <section id="proof" className="mt-5 grid gap-5 lg:grid-cols-2">
+          <div className="surface rounded-[3px] p-6 sm:p-8">
+            <p className="t-label mb-4">what is still in the pool</p>
+            <PoolCounter deck={shape} drawn={deck.drawn} pool={pool.data} />
           </div>
-        )}
-      </div>
 
-      <Battles
-        battles={battles}
-        deck={shape}
-        pool={pool.data}
-        needsApproval={deck.needsApproval}
-        canAfford={deck.canAfford}
-        deckEmpty={deck.deckEmpty}
-      />
+          <div className="surface rounded-[3px] p-6 sm:p-8">
+            <p className="t-label mb-4">your Megapot, from here</p>
+            <MegapotPanel mp={megapot} />
+          </div>
+        </section>
 
-      <button
-        onClick={() => setShowProof((v) => !v)}
-        className="t-label mt-6 w-full py-2 text-center hover:text-[var(--color-travertine)]"
-      >
-        {showProof ? "hide the proof" : "how do I know this is fair?"}
-      </button>
-
-      <AnimatePresence>
-        {showProof && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.35, ease: [0.16, 0.84, 0.28, 1] }}
-            className="overflow-hidden"
+        <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--edge)] pt-6">
+          <span className="t-label">Tessera · Base Sepolia · Inco Lightning</span>
+          <a
+            href={addressUrl(DECK_ADDRESS)}
+            target="_blank"
+            rel="noreferrer"
+            className="t-chain text-[0.75rem] text-[var(--color-travertine-faint)] hover:text-[var(--color-travertine)]"
           >
-            <div className="grid gap-6 pt-4 md:grid-cols-2">
-              <section className="surface rounded-[3px] p-6">
-                <p className="t-label mb-4">what is still in the pool</p>
-                <PoolCounter deck={shape} drawn={deck.drawn} pool={pool.data} />
-              </section>
+            {DECK_ADDRESS}
+          </a>
+        </footer>
+      </main>
+    </div>
+  );
+}
 
-              <section className="surface rounded-[3px] p-6">
-                <p className="t-label mb-4">your Megapot, from here</p>
-                <MegapotPanel mp={megapot} />
-              </section>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <footer className="mt-12 text-center">
-        <a
-          href={addressUrl(DECK_ADDRESS)}
-          target="_blank"
-          rel="noreferrer"
-          className="t-chain text-[0.75rem] text-[var(--color-travertine-faint)] hover:text-[var(--color-travertine)]"
-        >
-          {DECK_ADDRESS}
-        </a>
-      </footer>
-    </main>
+function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a href={href} className="t-label hover:text-[var(--color-travertine)]">
+      {children}
+    </a>
   );
 }
 
 function Stat({ label, value, ink }: { label: string; value: string; ink?: string }) {
   return (
-    <div className="bg-[var(--color-stone-900)] px-4 py-5 text-center">
+    <div className="px-4 py-3">
       <span className="t-label block">{label}</span>
       <span
-        className="t-chain mt-2 block text-xl"
+        className="t-chain mt-1 block text-lg"
         style={{ color: ink ?? "var(--color-travertine)" }}
       >
         {value}
@@ -364,8 +385,8 @@ function Result({
         <p className={dim}>Welcome back, this case was already paid for. Fetching it.</p>
       ) : (
         <p className={dim}>
-          Ticket bought. Now the covalidators decrypt your case, a few seconds we do
-          not control.
+          Ticket bought. Now the covalidators decrypt your case, a few seconds we do not
+          control.
         </p>
       );
     case "done": {
@@ -413,8 +434,8 @@ function Result({
     default:
       return (
         <p className={dim}>
-          The same ticket sold on megapot.io, bought for you in the same transaction
-          that opens the case.
+          The same ticket sold on megapot.io, bought for you in the same transaction that opens
+          the case.
         </p>
       );
   }
