@@ -16,6 +16,8 @@ import { useOpenCase } from "@/hooks/useOpenCase";
 import { useInventory, useRefreshInventory, heldWeight, pickForRedeem } from "@/hooks/useInventory";
 import { useRedeem } from "@/hooks/useRedeem";
 import { useStake } from "@/hooks/useStake";
+import { useMegapot } from "@/hooks/useMegapot";
+import { MegapotPanel } from "@/components/MegapotPanel";
 import { StakePanel } from "@/components/StakePanel";
 import { usePool } from "@/hooks/usePool";
 import { useFeed } from "@/hooks/useFeed";
@@ -41,6 +43,7 @@ export default function Home() {
   const open = useOpenCase(refresh);
   const redeem = useRedeem(refresh);
   const stake = useStake(refresh);
+  const megapot = useMegapot();
 
   const decidingSlot = stake.open
     ? inventory.data?.find((s) => s.index === stake.decidingSlot)
@@ -173,6 +176,10 @@ export default function Home() {
             <PoolCounter deck={shape} drawn={deck.drawn} pool={pool.data} />
           </Panel>
 
+          <Panel label="Your Megapot, from here">
+            <MegapotPanel mp={megapot} />
+          </Panel>
+
           <Panel label="Live from the same deck">
             <Feed items={feed} />
           </Panel>
@@ -208,7 +215,6 @@ export default function Home() {
             )}
 
             <div className="mt-6">
-              <DataRow name="real tickets held" value={Math.floor(deck.tickets)} ink="var(--color-patina-400)" />
               <DataRow name="test dollars" value={`$${formatUnits(deck.balance, 6)}`} />
               <DataRow
                 name="game treasury"
