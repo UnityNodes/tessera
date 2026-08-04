@@ -77,7 +77,7 @@ contract TesseraBattleTest is Test {
 
     function _joined() internal returns (uint256 id) {
         vm.prank(alice);
-        (id,) = deck.openBattle();
+        (id,) = deck.openBattle(0);
         vm.prank(bob);
         deck.joinBattle(id);
     }
@@ -86,7 +86,7 @@ contract TesseraBattleTest is Test {
     ///
     function test_battle_creatorCardStaysSealed() public {
         vm.prank(alice);
-        (uint256 id, uint64 slotIndex) = deck.openBattle();
+        (uint256 id, uint64 slotIndex) = deck.openBattle(0);
 
         vm.prank(alice);
         vm.expectRevert(abi.encodeWithSelector(TesseraDeck.SlotInBattle.selector, uint64(id)));
@@ -95,7 +95,7 @@ contract TesseraBattleTest is Test {
 
     function test_battle_sealedSlotCannotBeRedeemed() public {
         vm.prank(alice);
-        (uint256 id,) = deck.openBattle();
+        (uint256 id,) = deck.openBattle(0);
         _attest(true);
 
         uint256[] memory idx = new uint256[](1);
@@ -112,7 +112,7 @@ contract TesseraBattleTest is Test {
 
     function test_battle_sealedSlotCannotBeStaked() public {
         vm.prank(alice);
-        (uint256 id,) = deck.openBattle();
+        (uint256 id,) = deck.openBattle(0);
         _attest(true);
 
         uint256[] memory idx = new uint256[](1);
@@ -129,7 +129,7 @@ contract TesseraBattleTest is Test {
 
     function test_battle_sealedSlotCannotOpenTheVault() public {
         vm.prank(alice);
-        (uint256 id,) = deck.openBattle();
+        (uint256 id,) = deck.openBattle(0);
         _attest(true);
 
         vm.prank(alice);
@@ -146,7 +146,7 @@ contract TesseraBattleTest is Test {
 
         assertGt(_tickets(alice) - aliceBefore, 0, unicode"");
         assertGt(_tickets(bob) - bobBefore, 0, unicode"");
-        assertEq(deck.drawn(), 2, unicode"");
+        assertEq(deck.deckAt(0).drawn, 2, unicode"");
     }
 
     function test_battle_winnerTakesBothBonuses() public {
@@ -229,7 +229,7 @@ contract TesseraBattleTest is Test {
 
     function test_battle_cannotFightYourself() public {
         vm.prank(alice);
-        (uint256 id,) = deck.openBattle();
+        (uint256 id,) = deck.openBattle(0);
 
         vm.prank(alice);
         vm.expectRevert(TesseraDeck.CannotFightYourself.selector);
@@ -258,7 +258,7 @@ contract TesseraBattleTest is Test {
 
     function test_battle_cannotResolveBeforeAnOpponent() public {
         vm.prank(alice);
-        (uint256 id,) = deck.openBattle();
+        (uint256 id,) = deck.openBattle(0);
         _attest(true);
 
         vm.expectRevert(TesseraDeck.BattleWaiting.selector);
@@ -283,7 +283,7 @@ contract TesseraBattleTest is Test {
 
     function test_battle_abandonReturnsTheCard() public {
         vm.prank(alice);
-        (uint256 id, uint64 slotIndex) = deck.openBattle();
+        (uint256 id, uint64 slotIndex) = deck.openBattle(0);
 
         vm.warp(block.timestamp + deck.BATTLE_TIMEOUT());
         vm.prank(alice);
@@ -308,7 +308,7 @@ contract TesseraBattleTest is Test {
 
     function test_battle_cannotAbandonEarly() public {
         vm.prank(alice);
-        (uint256 id,) = deck.openBattle();
+        (uint256 id,) = deck.openBattle(0);
         uint64 openedAt = uint64(block.timestamp);
 
         vm.prank(alice);
@@ -318,7 +318,7 @@ contract TesseraBattleTest is Test {
 
     function test_battle_onlyCreatorAbandons() public {
         vm.prank(alice);
-        (uint256 id,) = deck.openBattle();
+        (uint256 id,) = deck.openBattle(0);
         vm.warp(block.timestamp + deck.BATTLE_TIMEOUT());
 
         vm.prank(bob);
@@ -338,9 +338,9 @@ contract TesseraBattleTest is Test {
 
     function test_battle_openListShowsWaitingOnly() public {
         vm.prank(alice);
-        (uint256 first,) = deck.openBattle();
+        (uint256 first,) = deck.openBattle(0);
         vm.prank(alice);
-        (uint256 second,) = deck.openBattle();
+        (uint256 second,) = deck.openBattle(0);
 
         uint256[] memory open = deck.openBattleIds(10);
         assertEq(open.length, 2);
@@ -357,9 +357,9 @@ contract TesseraBattleTest is Test {
 
     function test_battle_openListRespectsTheCap() public {
         vm.startPrank(alice);
-        deck.openBattle();
-        deck.openBattle();
-        deck.openBattle();
+        deck.openBattle(0);
+        deck.openBattle(0);
+        deck.openBattle(0);
         vm.stopPrank();
 
         assertEq(deck.openBattleIds(2).length, 2);
@@ -377,7 +377,7 @@ contract TesseraBattleTest is Test {
 
     function test_battle_stakeWaitsForTheBattle() public {
         vm.startPrank(alice);
-        deck.openCase();
+        deck.openCase(0);
         vm.stopPrank();
 
         _attest(true);
@@ -392,7 +392,7 @@ contract TesseraBattleTest is Test {
         deck.stake(idx, vals, sigs);
 
         vm.prank(alice);
-        (uint256 id,) = deck.openBattle();
+        (uint256 id,) = deck.openBattle(0);
 
         vm.prank(alice);
         vm.expectRevert(abi.encodeWithSelector(TesseraDeck.SlotInBattle.selector, uint64(id)));

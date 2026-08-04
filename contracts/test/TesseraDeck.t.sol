@@ -49,9 +49,9 @@ contract TesseraDeckForkTest is Test {
     }
 
     function test_deckWasCreated() public view {
-        assertEq(deck.size(), 20);
-        assertEq(deck.drawn(), 0);
-        assertEq(deck.remaining(), 20);
+        assertEq(deck.deckAt(0).size, 20);
+        assertEq(deck.deckAt(0).drawn, 0);
+        assertEq(deck.remaining(0), 20);
         assertEq(address(deck.ticketToken()), address(MPUSDC));
     }
 
@@ -63,7 +63,7 @@ contract TesseraDeckForkTest is Test {
         vm.startPrank(player);
         MPUSDC.approve(address(deck), price);
         uint256 gasBefore = gasleft();
-        (uint16 index, bytes32 handle) = deck.openCase();
+        (uint16 index, bytes32 handle) = deck.openCase(0);
         uint256 gasUsed = gasBefore - gasleft();
         vm.stopPrank();
 
@@ -71,8 +71,8 @@ contract TesseraDeckForkTest is Test {
 
         assertEq(index, 0, unicode"");
         assertTrue(handle != bytes32(0), unicode"");
-        assertEq(deck.drawn(), 1);
-        assertEq(deck.remaining(), 19);
+        assertEq(deck.deckAt(0).drawn, 1);
+        assertEq(deck.remaining(0), 19);
         assertEq(MPUSDC.balanceOf(player), balBefore - price, unicode"");
         assertGt(boughtAfter, boughtBefore, unicode", ");
         assertEq(MPUSDC.balanceOf(address(deck)), 0, unicode"");
@@ -87,7 +87,7 @@ contract TesseraDeckForkTest is Test {
 
         vm.startPrank(player);
         MPUSDC.approve(address(deck), price);
-        deck.openCase();
+        deck.openCase(0);
         vm.stopPrank();
 
         uint256 claimable = deck.feesClaimable();
@@ -98,12 +98,12 @@ contract TesseraDeckForkTest is Test {
     function test_openCase_selfReferralAccepted() public {
         vm.startPrank(player);
         MPUSDC.approve(address(deck), type(uint256).max);
-        deck.openCase();
-        deck.openCase();
-        deck.openCase();
+        deck.openCase(0);
+        deck.openCase(0);
+        deck.openCase(0);
         vm.stopPrank();
 
-        assertEq(deck.drawn(), 3);
+        assertEq(deck.deckAt(0).drawn, 3);
         assertEq(deck.countOf(player), 3);
         assertEq(deck.feesClaimable(), 3 * MEGAPOT.ticketPrice() * MEGAPOT.referralFeeBps() / 10_000);
     }
@@ -111,9 +111,9 @@ contract TesseraDeckForkTest is Test {
     function test_openCase_handlesAreDistinct() public {
         vm.startPrank(player);
         MPUSDC.approve(address(deck), type(uint256).max);
-        (, bytes32 h0) = deck.openCase();
-        (, bytes32 h1) = deck.openCase();
-        (, bytes32 h2) = deck.openCase();
+        (, bytes32 h0) = deck.openCase(0);
+        (, bytes32 h1) = deck.openCase(0);
+        (, bytes32 h2) = deck.openCase(0);
         vm.stopPrank();
 
         assertTrue(h0 != h1 && h1 != h2 && h0 != h2, unicode"");
@@ -123,8 +123,8 @@ contract TesseraDeckForkTest is Test {
     function test_sweepFees_movesReferralMoneyIntoTreasury() public {
         vm.startPrank(player);
         MPUSDC.approve(address(deck), type(uint256).max);
-        deck.openCase();
-        deck.openCase();
+        deck.openCase(0);
+        deck.openCase(0);
         vm.stopPrank();
 
         uint256 expected = deck.feesClaimable();
@@ -141,9 +141,9 @@ contract TesseraDeckForkTest is Test {
     function test_gas_openCaseWarm() public {
         vm.startPrank(player);
         MPUSDC.approve(address(deck), type(uint256).max);
-        deck.openCase();
+        deck.openCase(0);
         uint256 g = gasleft();
-        deck.openCase();
+        deck.openCase(0);
         uint256 warm = g - gasleft();
         vm.stopPrank();
         console.log("openCase gas (warm):", warm);
@@ -152,18 +152,18 @@ contract TesseraDeckForkTest is Test {
     function test_openCase_revertsWithoutApproval() public {
         vm.prank(player);
         vm.expectRevert();
-        deck.openCase();
+        deck.openCase(0);
     }
 
     function test_openCase_revertsWhenDeckEmpty() public {
         vm.startPrank(player);
         MPUSDC.approve(address(deck), type(uint256).max);
         for (uint256 i = 0; i < 20; i++) {
-            deck.openCase();
+            deck.openCase(0);
         }
-        assertEq(deck.remaining(), 0);
+        assertEq(deck.remaining(0), 0);
         vm.expectRevert(TesseraDeck.DeckEmpty.selector);
-        deck.openCase();
+        deck.openCase(0);
         vm.stopPrank();
     }
 
@@ -179,33 +179,70 @@ contract TesseraDeckForkTest is Test {
         deck.createDeck{value: fee}(10, upTo, weight, 0);
     }
 
-    function test_createDeck_revertsWhileDeckInPlay() public {
-        uint256 fee = deck.deckFee(10);
-        vm.prank(owner);
-        vm.expectRevert(TesseraDeck.DeckInPlay.selector);
-        uint16[] memory upTo = new uint16[](1);
-        uint16[] memory weight = new uint16[](1);
-        upTo[0] = 3;
-        weight[0] = 1; // 3 10/2
-        deck.createDeck{value: fee}(10, upTo, weight, 0);
-    }
-
-    function test_createDeck_allowedAfterDeckExhausted() public {
+    ///
+    function test_createDeck_addsAnotherAndLeavesTheFirstAlone() public {
         vm.startPrank(player);
         MPUSDC.approve(address(deck), type(uint256).max);
-        for (uint256 i = 0; i < 20; i++) {
-            deck.openCase();
-        }
+        deck.openCase(0);
+        deck.openCase(0);
         vm.stopPrank();
 
         uint256 fee = deck.deckFee(10);
-        vm.prank(owner);
         uint16[] memory upTo = new uint16[](1);
         uint16[] memory weight = new uint16[](1);
         upTo[0] = 3;
-        weight[0] = 1; // 3 10/2
-        deck.createDeck{value: fee}(10, upTo, weight, 0);
-        assertEq(deck.size(), 10);
-        assertEq(deck.drawn(), 0);
+        weight[0] = 1;
+        vm.prank(owner);
+        uint32 second = deck.createDeck{value: fee}(10, upTo, weight, 0);
+
+        assertEq(second, 1, unicode", ");
+        assertEq(deck.deckCount(), 2);
+        assertEq(deck.deckAt(0).size, 20, unicode"");
+        assertEq(deck.deckAt(0).drawn, 2, unicode"'");
+        assertEq(deck.deckAt(1).size, 10);
+        assertEq(deck.deckAt(1).drawn, 0);
+    }
+
+    function test_decks_haveTheirOwnDropTable() public {
+        uint256 fee = deck.deckFee(10);
+        uint16[] memory upTo = new uint16[](1);
+        uint16[] memory weight = new uint16[](1);
+        upTo[0] = 3;
+        weight[0] = 1;
+        vm.prank(owner);
+        uint32 second = deck.createDeck{value: fee}(10, upTo, weight, 0);
+
+        assertEq(deck.weightOf(0, 1), 5);
+        assertEq(deck.weightOf(second, 1), 1);
+    }
+
+    function test_decks_drawIndependently() public {
+        uint256 fee = deck.deckFee(10);
+        uint16[] memory upTo = new uint16[](1);
+        uint16[] memory weight = new uint16[](1);
+        upTo[0] = 3;
+        weight[0] = 1;
+        vm.prank(owner);
+        uint32 second = deck.createDeck{value: fee}(10, upTo, weight, 0);
+
+        vm.startPrank(player);
+        MPUSDC.approve(address(deck), type(uint256).max);
+        deck.openCase(second);
+        deck.openCase(second);
+        deck.openCase(0);
+        vm.stopPrank();
+
+        assertEq(deck.deckAt(0).drawn, 1);
+        assertEq(deck.deckAt(second).drawn, 2);
+        assertEq(deck.slotDeck(player, 0), second, unicode"'");
+        assertEq(deck.slotDeck(player, 2), 0);
+    }
+
+    function test_openCase_revertsOnUnknownDeck() public {
+        vm.startPrank(player);
+        MPUSDC.approve(address(deck), type(uint256).max);
+        vm.expectRevert(TesseraDeck.NoSuchDeck.selector);
+        deck.openCase(7);
+        vm.stopPrank();
     }
 }

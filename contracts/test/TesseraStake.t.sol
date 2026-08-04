@@ -62,7 +62,7 @@ contract TesseraStakeTest is Test {
         vm.startPrank(who);
         MPUSDC.approve(address(deck), type(uint256).max);
         for (uint256 i = 0; i < n; i++) {
-            deck.openCase();
+            deck.openCase(0);
         }
         vm.stopPrank();
     }

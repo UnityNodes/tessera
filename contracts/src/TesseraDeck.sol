@@ -18,27 +18,34 @@ contract TesseraDeck is ReentrancyGuardTransient {
 
     address public owner;
 
-    elist private deck;
-
-    uint16 public size;
-    uint16 public drawn;
-
-    uint32 public season;
-
     struct Tier {
         uint16 upTo;
         uint16 weight;
     }
 
     ///
-    mapping(uint32 => Tier[]) private tiersOfSeason;
+    ///
+    struct Deck {
+        elist cards;
+        uint16 size;
+        uint16 drawn;
+        uint16 vaultUpTo;
+        uint128 vault;
+        uint64 unsweptOpens;
+    }
+
+    Deck[] private decks;
+
+    mapping(uint256 => Tier[]) private tiersOfDeck;
+
+    uint64 public unsweptOpens;
 
     ///
     uint256 public constant WEIGHT_PER_TICKET = 5;
 
     struct Slot {
         euint256 card;
-        uint32 season;
+        uint32 deckId;
         uint64 battle;
     }
 
@@ -63,30 +70,26 @@ contract TesseraDeck is ReentrancyGuardTransient {
     //
     //
 
-    uint256 public vault;
-
     uint16 public vaultShareBps = 5000;
-
-    mapping(uint32 => uint16) public vaultUpToOfSeason;
-
-    uint16 public vaultUpTo;
 
     mapping(bytes32 => bool) public shardSpent;
 
-    event DeckCreated(uint32 indexed season, uint16 size, uint16 totalWeight, uint256 feePaid);
-    event CaseOpened(address indexed player, uint16 index, bytes32 handle, uint256 paid);
+    event DeckCreated(uint32 indexed deckId, uint16 size, uint16 totalWeight, uint256 feePaid);
+    event CaseOpened(
+        address indexed player, uint32 indexed deckId, uint16 index, bytes32 handle, uint256 paid
+    );
     event SlotRevealed(address indexed player, uint256 index);
     event FeesSwept(uint256 amount);
     event ShardsRedeemed(address indexed player, bytes32[] handles, uint256 weight, uint256 tickets, uint256 paid);
     event Staked(address indexed player, uint256 weight, uint64 decidingSlot);
     event StakeSettled(address indexed player, uint256 staked, bool won, uint256 banked);
-    event VaultGrew(uint256 added, uint256 total);
-    event VaultOpened(address indexed player, bytes32 handle, uint256 paid);
+    event VaultGrew(uint32 indexed deckId, uint256 added, uint256 total);
+    event VaultOpened(address indexed player, uint32 indexed deckId, bytes32 handle, uint256 paid);
     event OwnerChanged(address indexed from, address indexed to);
 
     error NotOwner();
     error DeckEmpty();
-    error DeckInPlay();
+    error NoSuchDeck();
     error PurchasingDisabled();
     error TooManyShardSlots();
     error BadTierTable();
@@ -125,15 +128,16 @@ contract TesseraDeck is ReentrancyGuardTransient {
     }
 
     ///
+    ///
     function createDeck(uint16 n, uint16[] calldata upTo, uint16[] calldata weight, uint16 vaultSlots)
         external
         payable
         onlyOwner
+        returns (uint32 deckId)
     {
         require(n > 0, "n=0");
         if (vaultSlots > n) revert BadTierTable();
         if (upTo.length == 0 || upTo.length != weight.length) revert BadTierTable();
-        if (size != 0 && drawn < size) revert DeckInPlay();
 
         uint256 totalWeight;
         uint16 prev;
@@ -145,57 +149,76 @@ contract TesseraDeck is ReentrancyGuardTransient {
 
         if (totalWeight * 2 > uint256(n)) revert TooManyShardSlots();
 
-        deck = e.shuffledRange(1, n + 1, ETypes.Uint256);
-        e.allowThis(deck);
-        size = n;
-        drawn = 0;
-        season += 1;
+        elist cards = e.shuffledRange(1, n + 1, ETypes.Uint256);
+        e.allowThis(cards);
+
+        // forge-lint: disable-next-line(unsafe-typecast)
+        deckId = uint32(decks.length);
+        decks.push(
+            Deck({cards: cards, size: n, drawn: 0, vaultUpTo: vaultSlots, vault: 0, unsweptOpens: 0})
+        );
 
         budgetWeight += totalWeight;
-        vaultUpTo = vaultSlots;
-        vaultUpToOfSeason[season] = vaultSlots;
 
-        Tier[] storage t = tiersOfSeason[season];
+        Tier[] storage t = tiersOfDeck[deckId];
         for (uint256 i = 0; i < upTo.length; i++) {
             t.push(Tier({upTo: upTo[i], weight: weight[i]}));
         }
 
-        emit DeckCreated(season, n, uint16(totalWeight), msg.value);
+        // forge-lint: disable-next-line(unsafe-typecast)
+        emit DeckCreated(deckId, n, uint16(totalWeight), msg.value);
     }
 
-    function weightOf(uint32 forSeason, uint256 value) public view returns (uint16) {
-        Tier[] storage t = tiersOfSeason[forSeason];
+    function weightOf(uint32 deckId, uint256 value) public view returns (uint16) {
+        Tier[] storage t = tiersOfDeck[deckId];
         for (uint256 i = 0; i < t.length; i++) {
             if (value <= t[i].upTo) return t[i].weight;
         }
         return 0;
     }
 
-    function tiers(uint32 forSeason) external view returns (Tier[] memory) {
-        return tiersOfSeason[forSeason];
+    function tiers(uint32 deckId) external view returns (Tier[] memory) {
+        return tiersOfDeck[deckId];
+    }
+
+    function deckCount() external view returns (uint256) {
+        return decks.length;
+    }
+
+    function deckAt(uint32 deckId) external view returns (Deck memory) {
+        return _deck(deckId);
+    }
+
+    function _deck(uint32 deckId) internal view returns (Deck storage) {
+        if (deckId >= decks.length) revert NoSuchDeck();
+        return decks[deckId];
     }
 
 
     ///
-    function openCase() external nonReentrant returns (uint16 index, bytes32 handle) {
+    function openCase(uint32 deckId) external nonReentrant returns (uint16 index, bytes32 handle) {
         uint256 price;
-        (index, price) = _buyAndDraw();
+        (index, price) = _buyAndDraw(deckId);
 
         Slot storage slot = slots[msg.sender][slots[msg.sender].length - 1];
         handle = euint256.unwrap(slot.card);
         _unseal(slot.card, msg.sender);
 
-        emit CaseOpened(msg.sender, index, handle, price);
+        emit CaseOpened(msg.sender, deckId, index, handle, price);
         emit SlotRevealed(msg.sender, slots[msg.sender].length - 1);
     }
 
     ///
-    function _buyAndDraw() internal returns (uint16 index, uint256 price) {
-        if (drawn >= size) revert DeckEmpty();
+    function _buyAndDraw(uint32 deckId) internal returns (uint16 index, uint256 price) {
+        Deck storage d = _deck(deckId);
+        if (d.drawn >= d.size) revert DeckEmpty();
         if (!adapter.purchasingAllowed()) revert PurchasingDisabled();
 
-        index = drawn;
-        drawn = index + 1;
+        index = d.drawn;
+        d.drawn = index + 1;
+
+        d.unsweptOpens += 1;
+        unsweptOpens += 1;
 
         price = adapter.ticketPrice();
         uint256 boughtBefore = adapter.ticketsOf(msg.sender);
@@ -205,9 +228,9 @@ contract TesseraDeck is ReentrancyGuardTransient {
 
         if (adapter.ticketsOf(msg.sender) <= boughtBefore) revert TicketNotCredited();
 
-        euint256 card = e.getEuint256(deck, index);
+        euint256 card = e.getEuint256(d.cards, index);
         e.allowThis(card);
-        slots[msg.sender].push(Slot({card: card, season: season, battle: 0}));
+        slots[msg.sender].push(Slot({card: card, deckId: deckId, battle: 0}));
     }
 
     ///
@@ -248,7 +271,7 @@ contract TesseraDeck is ReentrancyGuardTransient {
             if (_inBattle(slot)) revert SlotInBattle(slot.battle);
             if (!e.verifyDecryption(card, values[i], signatures[i])) revert BadAttestation(handle);
 
-            uint16 w = weightOf(slot.season, values[i]);
+            uint16 w = weightOf(slot.deckId, values[i]);
             if (w == 0) revert WorthlessSlot(handle, values[i]);
 
             shardSpent[handle] = true;
@@ -280,8 +303,8 @@ contract TesseraDeck is ReentrancyGuardTransient {
         }
     }
 
-    function weightNow(uint256 value) external view returns (uint16) {
-        return weightOf(season, value);
+    function weightIn(uint32 deckId, uint256 value) external view returns (uint16) {
+        return weightOf(deckId, value);
     }
 
 
@@ -306,7 +329,7 @@ contract TesseraDeck is ReentrancyGuardTransient {
             if (_inBattle(slot)) revert SlotInBattle(slot.battle);
             if (!e.verifyDecryption(card, values[i], signatures[i])) revert BadAttestation(handle);
 
-            uint16 w = weightOf(slot.season, values[i]);
+            uint16 w = weightOf(slot.deckId, values[i]);
             if (w == 0) revert WorthlessSlot(handle, values[i]);
 
             shardSpent[handle] = true;
@@ -336,7 +359,7 @@ contract TesseraDeck is ReentrancyGuardTransient {
             revert BadAttestation(euint256.unwrap(card));
         }
 
-        won = weightOf(slot.season, value) > 0;
+        won = weightOf(slot.deckId, value) > 0;
         delete stakeOf[msg.sender];
 
         if (won) {
@@ -386,6 +409,7 @@ contract TesseraDeck is ReentrancyGuardTransient {
         bool resolved;
         address b;
         uint64 slotB;
+        uint32 deckId;
         uint16 indexA;
         uint64 openedAt;
         uint128 paidA;
@@ -411,8 +435,8 @@ contract TesseraDeck is ReentrancyGuardTransient {
     error NotYourBattle();
     error TooEarlyToAbandon(uint64 openAt);
 
-    function openBattle() external nonReentrant returns (uint256 id, uint64 slotIndex) {
-        (uint16 index, uint256 price) = _buyAndDraw();
+    function openBattle(uint32 deckId) external nonReentrant returns (uint256 id, uint64 slotIndex) {
+        (uint16 index, uint256 price) = _buyAndDraw(deckId);
         slotIndex = uint64(slots[msg.sender].length - 1);
 
         battles.push(
@@ -422,6 +446,7 @@ contract TesseraDeck is ReentrancyGuardTransient {
                 resolved: false,
                 b: address(0),
                 slotB: 0,
+                deckId: deckId,
                 indexA: index,
                 openedAt: uint64(block.timestamp),
                 // forge-lint: disable-next-line(unsafe-typecast)
@@ -443,7 +468,7 @@ contract TesseraDeck is ReentrancyGuardTransient {
         if (bt.b != address(0)) revert BattleTaken();
         if (bt.a == msg.sender) revert CannotFightYourself();
 
-        (uint16 index, uint256 price) = _buyAndDraw();
+        (uint16 index, uint256 price) = _buyAndDraw(bt.deckId);
         slotIndex = uint64(slots[msg.sender].length - 1);
 
         bt.b = msg.sender;
@@ -457,8 +482,10 @@ contract TesseraDeck is ReentrancyGuardTransient {
         _unseal(slots[msg.sender][slotIndex].card, msg.sender);
 
         emit BattleJoined(id, msg.sender, slotIndex);
-        emit CaseOpened(bt.a, bt.indexA, euint256.unwrap(sa.card), bt.paidA);
-        emit CaseOpened(msg.sender, index, euint256.unwrap(slots[msg.sender][slotIndex].card), price);
+        emit CaseOpened(bt.a, bt.deckId, bt.indexA, euint256.unwrap(sa.card), bt.paidA);
+        emit CaseOpened(
+            msg.sender, bt.deckId, index, euint256.unwrap(slots[msg.sender][slotIndex].card), price
+        );
     }
 
     ///
@@ -504,7 +531,7 @@ contract TesseraDeck is ReentrancyGuardTransient {
         _unseal(sa.card, bt.a);
 
         emit BattleAbandoned(id, msg.sender);
-        emit CaseOpened(bt.a, bt.indexA, euint256.unwrap(sa.card), bt.paidA);
+        emit CaseOpened(bt.a, bt.deckId, bt.indexA, euint256.unwrap(sa.card), bt.paidA);
     }
 
     ///
@@ -516,14 +543,14 @@ contract TesseraDeck is ReentrancyGuardTransient {
         if (!e.verifyDecryption(slot.card, value, signatures)) revert BadAttestation(handle);
 
         slot.battle = 0;
-        w = weightOf(slot.season, value);
-        power = _power(slot.season, value, w);
+        w = weightOf(slot.deckId, value);
+        power = _power(slot.deckId, value, w);
         if (w > 0) shardSpent[handle] = true;
     }
 
     ///
-    function _power(uint32 forSeason, uint256 value, uint16 w) internal view returns (uint256) {
-        uint16 upTo = vaultUpToOfSeason[forSeason];
+    function _power(uint32 deckId, uint256 value, uint16 w) internal view returns (uint256) {
+        uint16 upTo = decks[deckId].vaultUpTo;
         if (upTo > 0 && value >= 1 && value <= upTo) return type(uint256).max;
         return w;
     }
@@ -595,17 +622,51 @@ contract TesseraDeck is ReentrancyGuardTransient {
         claimed = ticketToken.balanceOf(address(this)) - before;
 
         uint256 toVault = (claimed * vaultShareBps) / 10_000;
-        if (toVault > 0) {
-            vault += toVault;
-            emit VaultGrew(toVault, vault);
-        }
+        if (toVault > 0) _fillVaults(toVault);
 
         emit FeesSwept(claimed);
     }
 
+    ///
+    ///
+    function _fillVaults(uint256 amount) internal {
+        uint64 total = unsweptOpens;
+        if (total == 0) return;
+
+        uint256 given;
+        uint256 last = type(uint256).max;
+        for (uint256 i = 0; i < decks.length; i++) {
+            Deck storage d = decks[i];
+            if (d.unsweptOpens == 0) continue;
+            uint256 share = (amount * d.unsweptOpens) / total;
+            d.unsweptOpens = 0;
+            if (share == 0) continue;
+            // forge-lint: disable-next-line(unsafe-typecast)
+            d.vault += uint128(share);
+            given += share;
+            last = i;
+            // forge-lint: disable-next-line(unsafe-typecast)
+            emit VaultGrew(uint32(i), share, d.vault);
+        }
+        if (last != type(uint256).max && given < amount) {
+            // forge-lint: disable-next-line(unsafe-typecast)
+            decks[last].vault += uint128(amount - given);
+        }
+        unsweptOpens = 0;
+    }
+
+    function vault() public view returns (uint256 total) {
+        for (uint256 i = 0; i < decks.length; i++) total += decks[i].vault;
+    }
+
+    function vaultOf(uint32 deckId) external view returns (uint256) {
+        return _deck(deckId).vault;
+    }
+
     function spendable() public view returns (uint256) {
         uint256 balance = ticketToken.balanceOf(address(this));
-        return balance > vault ? balance - vault : 0;
+        uint256 locked = vault();
+        return balance > locked ? balance - locked : 0;
     }
 
     ///
@@ -622,19 +683,19 @@ contract TesseraDeck is ReentrancyGuardTransient {
         if (_inBattle(slot)) revert SlotInBattle(slot.battle);
         if (!e.verifyDecryption(card, value, signatures)) revert BadAttestation(handle);
 
-        uint16 upTo = vaultUpToOfSeason[slot.season];
-        if (value == 0 || value > upTo) revert NotTheVault(handle, value);
+        uint32 deckId = slot.deckId;
+        if (value == 0 || value > decks[deckId].vaultUpTo) revert NotTheVault(handle, value);
 
         shardSpent[handle] = true;
 
         _sweepFees();
 
-        paid = vault;
+        paid = decks[deckId].vault;
         if (paid == 0) revert VaultEmpty();
-        vault = 0;
+        decks[deckId].vault = 0;
 
         ticketToken.safeTransfer(msg.sender, paid);
-        emit VaultOpened(msg.sender, handle, paid);
+        emit VaultOpened(msg.sender, deckId, handle, paid);
     }
 
     function setVaultShare(uint16 bps) external onlyOwner {
@@ -651,12 +712,12 @@ contract TesseraDeck is ReentrancyGuardTransient {
         return euint256.unwrap(slots[player][i].card);
     }
 
-    function slotSeason(address player, uint256 i) external view returns (uint32) {
-        return slots[player][i].season;
+    function slotDeck(address player, uint256 i) external view returns (uint32) {
+        return slots[player][i].deckId;
     }
 
     function weightOfSlot(address player, uint256 i, uint256 value) external view returns (uint16) {
-        return weightOf(slots[player][i].season, value);
+        return weightOf(slots[player][i].deckId, value);
     }
 
     function myCount() external view returns (uint256) {
@@ -667,8 +728,9 @@ contract TesseraDeck is ReentrancyGuardTransient {
         return slots[player].length;
     }
 
-    function remaining() external view returns (uint16) {
-        return size - drawn;
+    function remaining(uint32 deckId) external view returns (uint16) {
+        Deck storage d = _deck(deckId);
+        return d.size - d.drawn;
     }
 
     function feesClaimable() external view returns (uint256) {

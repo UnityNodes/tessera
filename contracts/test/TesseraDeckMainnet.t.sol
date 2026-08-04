@@ -54,7 +54,7 @@ contract TesseraDeckMainnetForkTest is Test {
 
         vm.startPrank(player);
         USDC.approve(address(deck), type(uint256).max);
-        (uint16 index, bytes32 handle) = deck.openCase();
+        (uint16 index, bytes32 handle) = deck.openCase(0);
         vm.stopPrank();
 
         assertEq(index, 0);
@@ -71,7 +71,7 @@ contract TesseraDeckMainnetForkTest is Test {
 
         vm.startPrank(player);
         USDC.approve(address(deck), type(uint256).max);
-        deck.openCase();
+        deck.openCase(0);
         vm.stopPrank();
 
         assertEq(deck.feesClaimable(), 100_000);
@@ -85,8 +85,8 @@ contract TesseraDeckMainnetForkTest is Test {
         vm.startPrank(player);
         USDC.approve(address(v2), type(uint256).max);
         USDC.approve(address(legacy), type(uint256).max);
-        v2.openCase();
-        legacy.openCase();
+        v2.openCase(0);
+        legacy.openCase(0);
         vm.stopPrank();
 
         assertEq(v2.sweepFees(), 100_000, unicode"claimReferralFees() ABI");
@@ -102,11 +102,11 @@ contract TesseraDeckMainnetForkTest is Test {
         USDC.approve(address(deck), type(uint256).max);
         for (uint256 i = 0; i < 15; i++) {
             vm.roll(block.number + 1);
-            deck.openCase();
+            deck.openCase(0);
         }
         vm.stopPrank();
 
-        assertEq(deck.drawn(), 15);
+        assertEq(deck.deckAt(0).drawn, 15);
         assertEq(TICKET_NFT.balanceOf(player), 15, unicode"15 , ");
         assertEq(deck.feesClaimable(), 15 * 100_000);
     }

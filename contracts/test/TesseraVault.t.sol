@@ -59,7 +59,7 @@ contract TesseraVaultTest is Test {
         vm.startPrank(player);
         MPUSDC.approve(address(deck), type(uint256).max);
         for (uint256 i = 0; i < n; i++) {
-            deck.openCase();
+            deck.openCase(0);
         }
         vm.stopPrank();
     }
@@ -199,12 +199,86 @@ contract TesseraVaultTest is Test {
         vm.prank(owner);
         deck.createDeck{value: fee}(20, upTo, weight, 0); //
 
-        assertEq(deck.vaultUpToOfSeason(1), 1, unicode"1 ");
-        assertEq(deck.vaultUpToOfSeason(2), 0, unicode"2 ");
+        assertEq(deck.deckAt(0).vaultUpTo, 1, unicode"1 ");
+        assertEq(deck.deckAt(1).vaultUpTo, 0, unicode"2 ");
 
         _attest(true);
         vm.prank(player);
         deck.claimVault(0, 1, _sigs()); // 1
+    }
+
+
+    ///
+    function test_vault_splitsFeesBetweenDecksByOpens() public {
+        uint256 fee = deck.deckFee(DECK);
+        uint16[] memory upTo = new uint16[](2);
+        uint16[] memory weight = new uint16[](2);
+        upTo[0] = 1;
+        weight[0] = 0;
+        upTo[1] = 6;
+        weight[1] = 5;
+        vm.prank(owner);
+        uint32 second = deck.createDeck{value: fee}(DECK, upTo, weight, 1);
+
+        vm.startPrank(player);
+        MPUSDC.approve(address(deck), type(uint256).max);
+        for (uint256 i = 0; i < 15; i++) deck.openCase(0);
+        for (uint256 i = 0; i < 5; i++) deck.openCase(second);
+        vm.stopPrank();
+
+        deck.sweepFees();
+
+        assertEq(deck.vaultOf(0), 750_000, unicode", ");
+        assertEq(deck.vaultOf(second), 250_000, unicode"");
+        assertEq(deck.vault(), 1_000_000, unicode"");
+    }
+
+    function test_vault_untouchedDeckGetsNothing() public {
+        uint256 fee = deck.deckFee(DECK);
+        uint16[] memory upTo = new uint16[](2);
+        uint16[] memory weight = new uint16[](2);
+        upTo[0] = 1;
+        weight[0] = 0;
+        upTo[1] = 6;
+        weight[1] = 5;
+        vm.prank(owner);
+        uint32 second = deck.createDeck{value: fee}(DECK, upTo, weight, 1);
+
+        _open(10);
+        deck.sweepFees();
+
+        assertEq(deck.vaultOf(0), 500_000);
+        assertEq(deck.vaultOf(second), 0, unicode"");
+    }
+
+    function test_vault_slotOpensItsOwnDeckVault() public {
+        uint256 fee = deck.deckFee(DECK);
+        uint16[] memory upTo = new uint16[](2);
+        uint16[] memory weight = new uint16[](2);
+        upTo[0] = 1;
+        weight[0] = 0;
+        upTo[1] = 6;
+        weight[1] = 5;
+        vm.prank(owner);
+        uint32 second = deck.createDeck{value: fee}(DECK, upTo, weight, 1);
+
+        vm.startPrank(player);
+        MPUSDC.approve(address(deck), type(uint256).max);
+        for (uint256 i = 0; i < 18; i++) deck.openCase(0);
+        deck.openCase(second); // 18
+        vm.stopPrank();
+        deck.sweepFees();
+
+        uint256 mine = deck.vaultOf(second);
+        uint256 theirs = deck.vaultOf(0);
+        assertGt(theirs, mine, unicode"");
+
+        _attest(true);
+        vm.prank(player);
+        uint256 paid = deck.claimVault(18, 1, _sigs());
+
+        assertEq(paid, mine, unicode"");
+        assertEq(deck.vaultOf(0), theirs, unicode"");
     }
 
     function test_setVaultShare_onlyOwnerAndBounded() public {
