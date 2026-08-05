@@ -245,10 +245,12 @@ body::before {
 
 .crate__lid {
   top: 0;
+  left: -3.5%;
+  width: 107%;
   height: var(--lid-h);
-  --w: var(--s);
+  --w: calc(var(--s) * 1.07);
   --h: var(--lid-h);
-  --d: var(--s);
+  --d: calc(var(--s) * 1.07);
   transform-origin: 50% 100% calc(var(--s) / -2);
   transition: transform 900ms var(--ease-out-expo);
 }
@@ -351,10 +353,16 @@ body::before {
   left: 50%;
   width: calc(var(--s) * 0.2);
   transform: translateX(-50%);
-  background: linear-gradient(90deg, var(--shade), var(--lit) 34%, var(--band) 62%, var(--shade));
+  background: linear-gradient(
+    90deg,
+    oklch(62% 0.012 250),
+    oklch(92% 0.008 250) 32%,
+    oklch(78% 0.010 250) 58%,
+    oklch(54% 0.012 250)
+  );
   box-shadow:
-    inset 0 0 0 1px oklch(0% 0 0 / 0.28),
-    0 0 calc(var(--s) * 0.02) oklch(0% 0 0 / 0.35);
+    inset 0 0 0 1px oklch(0% 0 0 / 0.35),
+    0 0 calc(var(--s) * 0.03) oklch(0% 0 0 / 0.45);
 }
 
 .crate__band--flat {
@@ -368,8 +376,8 @@ body::before {
   position: absolute;
   width: calc(var(--s) * 0.17);
   height: calc(var(--s) * 0.17);
-  border: calc(var(--s) * 0.022) solid var(--lit);
-  opacity: 0.85;
+  border: calc(var(--s) * 0.024) solid oklch(80% 0.115 82);
+  box-shadow: 0 0 0 1px oklch(0% 0 0 / 0.3);
 }
 
 .crate__bracket--tl { top: 4%; left: 4%; border-right: 0; border-bottom: 0; }
@@ -389,8 +397,9 @@ body::before {
   place-items: center;
   background: radial-gradient(circle at 40% 32%, var(--plate-lit), var(--plate) 78%);
   box-shadow:
-    inset 0 0 0 calc(var(--s) * 0.014) var(--rim),
-    inset 0 calc(var(--s) * 0.02) calc(var(--s) * 0.04) oklch(0% 0 0 / 0.55);
+    inset 0 0 0 calc(var(--s) * 0.018) oklch(80% 0.115 82),
+    inset 0 calc(var(--s) * 0.02) calc(var(--s) * 0.04) oklch(0% 0 0 / 0.6),
+    0 0 calc(var(--s) * 0.03) oklch(0% 0 0 / 0.4);
   color: var(--mark);
   font-family: var(--font-mono);
   font-weight: 700;
