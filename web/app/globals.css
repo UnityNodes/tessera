@@ -41,6 +41,8 @@
   --edge-strong: oklch(64% 0.045 258 / 0.62);
 
   --z-backdrop: 0;
+  --z-feed: 20;
+  --z-stats: 30;
   --z-sticky: 40;
   --z-overlay: 60;
   --z-grain: 61;

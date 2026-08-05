@@ -35,23 +35,32 @@ export function DeckShelf({ heading, note }: { heading?: string; note?: string }
   );
 }
 
+/**
+ *
+ */
 function Heading({ title, note }: { title: string; note: string }) {
   return (
-    <div className="mb-7 mt-12 text-center">
-      <div className="flex items-center justify-center gap-3">
+    <div className="mb-9 mt-12 text-center">
+      <div className="mb-4 flex items-center justify-center gap-3">
         <span
           className="h-px w-10"
           style={{ background: "linear-gradient(90deg, transparent, var(--color-accent))" }}
           aria-hidden
         />
-        <h2 className="t-inscription text-base">{title}</h2>
+        <span className="t-inscription text-[0.6875rem]">{note}</span>
         <span
           className="h-px w-10"
           style={{ background: "linear-gradient(90deg, var(--color-accent), transparent)" }}
           aria-hidden
         />
       </div>
-      <p className="t-label mt-2">{note}</p>
+      <h2 className="t-display text-[clamp(1.75rem,3.2vw,2.5rem)]">{title}</h2>
+      <p className="mx-auto mt-4 max-w-[62ch] text-[1.0625rem] text-[var(--color-ink-dim)]">
+        Every case costs $1 and buys you a real lottery ticket, that part never changes. What
+        the decks disagree on is the case itself: how often it pays, and how much. Each one was
+        shuffled once and is drawn without replacement, so a prize someone else takes is gone for
+        everybody.
+      </p>
     </div>
   );
 }
@@ -67,6 +76,9 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
 
   const prizes = tiers.filter((t) => t.weight > 0).reduce((n, t) => n + t.count, 0);
   const vault = Number(formatUnits(deck.vault, 6)).toFixed(2);
+
+  const paying = prizes + deck.vaultUpTo;
+  const oneIn = paying > 0 ? Math.max(1, Math.round(deck.size / paying)) : 0;
 
   return (
     <Link href={`/case/${deck.id}`} className="group block h-full">
@@ -104,26 +116,52 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
             />
           </div>
 
-          <div className="border-t border-[var(--edge)] px-6 py-5">
-            <div className="flex items-baseline justify-between gap-3">
-              <span
-                className="t-inscription text-[0.6875rem]"
-                style={{ color: best?.ink ?? "var(--color-ink-faint)" }}
-              >
-                {deck.vaultUpTo > 0 ? "vault" : "no vault"}
-                {top > 0 && ` · up to +${top}`} · {prizes} prize{prizes === 1 ? "" : "s"}
+          <div className="border-t border-[var(--edge)] px-6 py-6">
+            <div className="flex items-end justify-between gap-3">
+              <span>
+                <span className="t-display block text-[1.75rem] leading-none">
+                  {oneIn > 0 ? (
+                    <>
+                      1 in <span style={{ color: best?.ink }}>{oneIn}</span>
+                    </>
+                  ) : (
+                    ", "
+                  )}
+                </span>
+                <span className="t-label mt-2 block">cases pay something</span>
               </span>
-              <span className="chip py-0.5">$1</span>
+              <span className="chip">$1 a case</span>
             </div>
 
-            <div className="mt-4 flex items-end justify-between gap-3">
-              <span className="t-label pb-1">
-                {deck.empty ? "all opened" : `${deck.remaining} of ${deck.size} left`}
+            <p className="mt-4 min-h-[3.25rem] text-[0.9375rem] text-[var(--color-ink-dim)]">
+              {deck.empty ? (
+                "Every case in this deck has been opened."
+              ) : (
+                <>
+                  Best case{" "}
+                  <span style={{ color: best?.ink }}>
+                    {top > 0 ? `+${top} tickets` : "the vault"}
+                  </span>
+                  .{" "}
+                  {deck.vaultUpTo > 0
+                    ? "One case in the deck opens the vault and takes all of it."
+                    : "No vault here, this deck pays in tickets only."}
+                </>
+              )}
+            </p>
+
+            <div className="mt-5 flex items-end justify-between gap-3">
+              <span>
+                <span className="t-label block">still sealed</span>
+                <span className="t-chain mt-1.5 block text-[1.0625rem] leading-none">
+                  {deck.remaining}
+                  <span className="text-[var(--color-ink-faint)]"> of {deck.size}</span>
+                </span>
               </span>
               <span className="text-right">
                 <span className="t-label block">{deck.vaultUpTo > 0 ? "vault" : "no vault"}</span>
                 <span
-                  className="t-chain block text-2xl leading-none"
+                  className="t-chain mt-1.5 block text-[1.5rem] leading-none"
                   style={{
                     color:
                       deck.vaultUpTo > 0 ? "var(--color-tier-vault)" : "var(--color-ink-faint)",

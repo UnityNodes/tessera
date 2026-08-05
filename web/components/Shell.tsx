@@ -65,7 +65,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <div className="border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-surface)_70%,transparent)] backdrop-blur-md">
+      <div className="relative z-[var(--z-stats)] border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-surface)_70%,transparent)] backdrop-blur-md">
         <div className="mx-auto grid max-w-[1800px] grid-cols-2 divide-x divide-[var(--edge)] px-5 sm:px-8 2xl:px-12 md:grid-cols-4">
           <Stat icon={<IconCase />} label="cases opened" value={game.drawn} />
           <Stat icon={<IconUsers />} label="players" value={playerCount} />
@@ -75,16 +75,14 @@ export function Shell({ children }: { children: React.ReactNode }) {
             value={game.remaining}
             suffix={` in ${game.decks.length}`}
           />
-          <Stat
-            icon={<IconTicket />}
-            label="your tickets"
-            value={Math.round(megapot.tickets)}
-            ink="var(--color-accent-bright)"
+          <TicketsStat
+            tickets={Math.round(megapot.tickets)}
+            caseHref={`/case/${game.decks.find((d) => !d.empty)?.id ?? 0}#megapot`}
           />
         </div>
       </div>
 
-      <div className="border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-surface)_38%,transparent)] backdrop-blur-md">
+      <div className="relative z-[var(--z-feed)] border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-surface)_38%,transparent)] backdrop-blur-md">
         <div className="mx-auto flex max-w-[1800px] items-stretch px-5 sm:px-8 2xl:px-12">
           <div className="flex w-14 shrink-0 flex-col items-center justify-center gap-1 border-r border-[var(--edge)] pr-3">
             <IconCrown />
@@ -156,6 +154,66 @@ function Tab({
       <span>{icon}</span>
       <span className="hidden sm:block">{children}</span>
     </Link>
+  );
+}
+
+/**
+ *
+ *
+ */
+function TicketsStat({ tickets, caseHref }: { tickets: number; caseHref: string }) {
+  return (
+    <details className="group/t relative">
+      <summary className="flex cursor-pointer list-none items-center gap-3.5 px-5 py-4 transition-colors hover:bg-[color-mix(in_oklab,var(--color-accent)_8%,transparent)] [&::-webkit-details-marker]:hidden">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, var(--color-accent-bright), transparent)",
+          }}
+        />
+        <span style={{ color: "var(--color-accent-bright)" }}>
+          <IconTicket />
+        </span>
+        <span>
+          <span className="t-label flex items-center gap-1.5">
+            your tickets
+            <IconChevron />
+          </span>
+          <Counter
+            value={tickets}
+            className="t-chain mt-1.5 block text-[1.375rem] font-medium leading-none"
+            style={{
+              color: "var(--color-accent-bright)",
+              textShadow:
+                "0 0 24px color-mix(in oklab, var(--color-accent-bright) 55%, transparent)",
+            }}
+          />
+        </span>
+      </summary>
+
+      <div className="surface absolute right-0 top-full z-[var(--z-sticky)] mt-1 w-[min(22rem,calc(100vw-2rem))] p-5">
+        <p className="text-[0.9375rem] text-[var(--color-ink-dim)]">
+          Every case you open buys you one real{" "}
+          <span className="text-[var(--color-ink)]">Megapot</span>{" "}
+          lottery ticket. The ticket is recorded in Megapot&apos;s own contract against{" "}
+          <span className="text-[var(--color-ink)]">your wallet</span>, Tessera never holds it
+          and cannot touch it.
+        </p>
+        <p className="mt-3 text-[0.9375rem] text-[var(--color-ink-faint)]">
+          On this testnet the draw is frozen, so nothing is picked here. On Base mainnet the same
+          contract draws every day, and the same wallet plays.
+        </p>
+        <Link
+          href={caseHref}
+          className="t-label mt-4 inline-flex items-center gap-1.5 hover:text-[var(--color-accent-bright)]"
+          style={{ color: "var(--color-accent-bright)" }}
+        >
+          see the jackpot and claim winnings →
+        </Link>
+      </div>
+    </details>
   );
 }
 
@@ -249,6 +307,17 @@ const IconVault = () => (
     <rect x="1.5" y="2" width="13" height="12" rx="1.2" />
     <circle cx="8" cy="8" r="2.8" />
     <path d="M8 5.2v5.6M5.2 8h5.6" />
+  </svg>
+);
+
+const IconChevron = () => (
+  <svg
+    {...S}
+    width={11}
+    height={11}
+    className="transition-transform duration-200 group-open/t:rotate-180"
+  >
+    <path d="M4 6.5 8 10.5l4-4" />
   </svg>
 );
 

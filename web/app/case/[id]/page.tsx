@@ -280,7 +280,7 @@ export default function CasePage() {
         <Contents deck={shape} pool={pool.data} />
       </section>
 
-      <section className="surface mt-10 p-6 sm:p-10">
+      <section id="megapot" className="surface mt-10 scroll-mt-24 p-6 sm:p-10">
         <p className="t-label mb-4">your Megapot, from here</p>
         <MegapotPanel mp={megapot} />
       </section>
