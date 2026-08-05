@@ -1,0 +1,388 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Tessera - Open Case</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;800&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-secondary": "#2c3400",
+                        "on-primary-fixed-variant": "#00487f",
+                        "on-primary": "#00325a",
+                        "on-primary-container": "#002d52",
+                        "on-tertiary-fixed": "#231b00",
+                        "surface-bright": "#353940",
+                        "secondary-fixed": "#d5ef3d",
+                        "surface": "#0f141a",
+                        "inverse-surface": "#dfe2eb",
+                        "surface-variant": "#31353c",
+                        "primary-container": "#0096ff",
+                        "inverse-on-surface": "#2c3137",
+                        "primary": "#a1c9ff",
+                        "on-background": "#dfe2eb",
+                        "secondary-container": "#afc702",
+                        "tertiary-container": "#cea700",
+                        "tertiary-fixed": "#ffe085",
+                        "secondary-fixed-dim": "#b9d21b",
+                        "error-container": "#93000a",
+                        "surface-container": "#1c2026",
+                        "secondary": "#cae430",
+                        "surface-container-high": "#262a31",
+                        "outline-variant": "#3f4753",
+                        "surface-container-lowest": "#0a0e14",
+                        "surface-container-low": "#171c22",
+                        "on-surface-variant": "#bfc7d5",
+                        "on-secondary-fixed": "#191e00",
+                        "inverse-primary": "#0061a7",
+                        "on-error-container": "#ffdad6",
+                        "background": "#0f141a",
+                        "on-secondary-container": "#455000",
+                        "on-secondary-fixed-variant": "#414c00",
+                        "on-primary-fixed": "#001c37",
+                        "primary-fixed": "#d2e4ff",
+                        "on-error": "#690005",
+                        "surface-container-highest": "#31353c",
+                        "outline": "#89919e",
+                        "error": "#ffb4ab",
+                        "surface-dim": "#0f141a",
+                        "on-surface": "#dfe2eb",
+                        "on-tertiary-fixed-variant": "#574500",
+                        "on-tertiary": "#3c2f00",
+                        "tertiary": "#eec21d",
+                        "tertiary-fixed-dim": "#eec21d",
+                        "surface-tint": "#a1c9ff",
+                        "on-tertiary-container": "#4e3d00",
+                        "primary-fixed-dim": "#a1c9ff",
+                        // Brand Custom Colors (approximations based on spec, using tailwind arbitrary values internally to map)
+                        "grout": "#3f4753", // Using outline-variant as grout
+                        "action-azure": "#0096ff", // primary-container
+                        "aureus": "#cea700", // tertiary-container
+                        "denarius": "#89919e", // outline
+                        "porphyry": "#8b0056", // Imperial Magenta approx
+                        "vault-glow": "#fef08a" // White-gold approx
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.125rem",
+                        lg: "0.25rem",
+                        xl: "0.5rem",
+                        full: "0.75rem"
+                    },
+                    spacing: {
+                        sm: "8px",
+                        xs: "4px",
+                        xl: "64px",
+                        "container-padding": "24px",
+                        md: "16px",
+                        lg: "32px",
+                        unit: "4px"
+                    },
+                    fontFamily: {
+                        "data-lg": ["IBM Plex Mono", "monospace"],
+                        "label-caps": ["Archivo", "sans-serif"],
+                        "headline-lg": ["Archivo", "sans-serif"],
+                        "headline-xl": ["Archivo", "sans-serif"],
+                        "headline-lg-mobile": ["Archivo", "sans-serif"],
+                        "data-sm": ["IBM Plex Mono", "monospace"],
+                        "body-md": ["Archivo", "sans-serif"]
+                    },
+                    fontSize: {
+                        "data-lg": ["20px", { lineHeight: "1.4", fontWeight: "500" }],
+                        "label-caps": ["12px", { lineHeight: "1", letterSpacing: "0.1em", fontWeight: "800" }],
+                        "headline-lg": ["32px", { lineHeight: "1.2", fontWeight: "800" }],
+                        "headline-xl": ["48px", { lineHeight: "1.1", letterSpacing: "-0.02em", fontWeight: "800" }],
+                        "headline-lg-mobile": ["24px", { lineHeight: "1.2", fontWeight: "800" }],
+                        "data-sm": ["13px", { lineHeight: "1.4", letterSpacing: "0.05em", fontWeight: "400" }],
+                        "body-md": ["16px", { lineHeight: "1.6", fontWeight: "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Ambient light effects */
+        .ambient-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 150, 255, 0.03) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(206, 167, 0, 0.03) 0%, transparent 40%);
+            animation: drift 20s infinite alternate ease-in-out;
+        }
+
+        @keyframes drift {
+            0% { transform: scale(1) translate(0, 0); }
+            100% { transform: scale(1.1) translate(-20px, 20px); }
+        }
+
+        /* Hide scrollbar for strips */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Outcome state classes */
+        .state-grout-text { color: #89919e; }
+        .state-porphyry-text { color: #8b0056; text-shadow: 0 0 10px rgba(139, 0, 86, 0.5); }
+        .state-vault-text { color: #fef08a; text-shadow: 0 0 15px rgba(254, 240, 138, 0.8); }
+
+        .crate-glow-grout { box-shadow: inset 0 0 20px rgba(137, 145, 158, 0.1); }
+        .crate-glow-porphyry { box-shadow: inset 0 0 40px rgba(139, 0, 86, 0.3), 0 0 30px rgba(139, 0, 86, 0.2); }
+        .crate-glow-vault { box-shadow: inset 0 0 60px rgba(254, 240, 138, 0.4), 0 0 50px rgba(254, 240, 138, 0.3); }
+
+        /* Physical stone shadow for buttons */
+        .stone-shadow {
+            box-shadow: 4px 4px 0px black;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden min-h-screen" style="background-color: oklch(0.13 0.014 265);">
+<div class="ambient-glow"></div>
+<!-- State Toggle (Development Only) -->
+<div class="fixed top-24 right-4 z-[100] bg-surface border border-outline-variant p-2 rounded flex gap-2">
+<button class="text-xs px-2 py-1 bg-surface-variant hover:bg-outline-variant" onclick="setState('grout')">Grout</button>
+<button class="text-xs px-2 py-1 bg-surface-variant hover:bg-outline-variant" onclick="setState('porphyry')">Porphyry</button>
+<button class="text-xs px-2 py-1 bg-surface-variant hover:bg-outline-variant" onclick="setState('vault')">Vault</button>
+</div>
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-container-padding h-16 border-b border-outline-variant bg-background/80 backdrop-blur-md">
+<div class="flex items-center gap-8">
+<div class="font-headline-lg text-headline-lg-mobile md:text-headline-lg font-extrabold text-primary dark:text-primary tracking-tighter">
+                Tessera
+            </div>
+<div class="hidden md:flex gap-6">
+<a class="text-on-surface-variant font-medium pb-1 font-label-caps text-label-caps hover:text-primary transition-colors duration-200" href="#">Home</a>
+<a class="text-primary font-extrabold border-b-2 border-primary pb-1 font-label-caps text-label-caps hover:text-primary transition-colors duration-200" href="#">Cases</a>
+<a class="text-on-surface-variant font-medium pb-1 font-label-caps text-label-caps hover:text-primary transition-colors duration-200" href="#">Battles</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden lg:flex items-center gap-4 text-data-sm font-data-sm text-on-surface-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">account_balance_wallet</span>
+<span class="">$ 500.00 TEST</span>
+</div>
+<div class="flex items-center gap-2 text-tertiary">
+<span class="material-symbols-outlined text-[16px]">lock</span>
+<span class="">$ 4,204.50</span>
+</div>
+</div>
+<button class="bg-primary-container text-background font-headline-lg text-[14px] px-4 py-2 font-extrabold stone-shadow hover:bg-primary transition-colors">
+                Connect Wallet
+            </button>
+</div>
+</nav>
+<!-- Main Layout -->
+<div class="pt-24 px-container-padding max-w-[1600px] mx-auto pb-xl">
+<!-- Scoreboard Strip -->
+<div class="flex flex-wrap gap-x-8 gap-y-4 border-b border-outline-variant pb-md mb-lg">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant" style="opacity: 0;">Cases opened</span>
+<span class="font-data-lg text-data-lg text-primary">412</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant" style="opacity: 0;">Players</span>
+<span class="font-data-lg text-data-lg text-primary">87</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant" style="opacity: 0;">Cases left</span>
+<span class="font-data-lg text-data-lg text-primary">188</span>
+</div>
+<div class="flex flex-col ml-auto">
+<span class="font-label-caps text-label-caps text-on-surface-variant" style="opacity: 0;">Your tickets</span>
+<span class="font-data-lg text-data-lg text-secondary">14</span>
+</div>
+</div>
+<!-- Live Drops Strip -->
+<div class="mb-lg overflow-x-auto no-scrollbar pb-2 border-b border-outline-variant/30">
+<div class="flex gap-2 min-w-max">
+<div class="px-3 py-1 bg-surface border border-outline text-outline font-data-sm text-data-sm">Grout</div>
+<div class="px-3 py-1 bg-surface border border-outline-variant text-outline-variant font-data-sm text-data-sm">Denarius</div>
+<div class="px-3 py-1 bg-surface border border-outline-variant text-outline-variant font-data-sm text-data-sm">Denarius</div>
+<div class="px-3 py-1 bg-surface border border-outline text-outline font-data-sm text-data-sm">Grout</div>
+<div class="px-3 py-1 bg-surface border border-tertiary-container text-tertiary font-data-sm text-data-sm">Aureus</div>
+<div class="px-3 py-1 bg-surface border border-outline text-outline font-data-sm text-data-sm">Grout</div>
+<div class="px-3 py-1 bg-surface border border-outline text-outline font-data-sm text-data-sm">Grout</div>
+<div class="px-3 py-1 bg-surface border border-outline-variant text-outline-variant font-data-sm text-data-sm">Denarius</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Central Play Area -->
+<div class="lg:col-span-8 flex flex-col items-center">
+<!-- The Crate -->
+<div class="w-full max-w-[500px] aspect-square bg-surface border border-outline-variant flex items-center justify-center relative mb-lg transition-all duration-1000 crate-glow-grout" id="crate-container">
+<div class="absolute inset-4 border border-outline-variant/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-[64px] text-outline-variant/50">package_2</span>
+</div>
+<!-- Decorative corner nodes -->
+<div class="absolute top-0 left-0 w-2 h-2 bg-outline-variant"></div>
+<div class="absolute top-0 right-0 w-2 h-2 bg-outline-variant"></div>
+<div class="absolute bottom-0 left-0 w-2 h-2 bg-outline-variant"></div>
+<div class="absolute bottom-0 right-0 w-2 h-2 bg-outline-variant"></div>
+</div>
+<!-- Reveal Strip -->
+<div class="w-full max-w-[800px] overflow-hidden relative mb-8">
+<!-- Center indicator -->
+<div class="absolute top-0 bottom-0 left-1/2 w-1 bg-primary z-10 -translate-x-1/2 shadow-[0_0_10px_#0096ff]"></div>
+<div class="flex gap-2 overflow-x-hidden relative py-4">
+<div class="w-24 h-24 shrink-0 bg-surface border border-outline flex items-center justify-center text-outline font-data-sm text-data-sm">Grout</div>
+<div class="w-24 h-24 shrink-0 bg-surface border border-outline-variant flex items-center justify-center text-outline-variant font-data-sm text-data-sm">Denarius</div>
+<div class="w-24 h-24 shrink-0 bg-surface border border-tertiary-container flex items-center justify-center text-tertiary font-data-sm text-data-sm">Aureus</div>
+<!-- Winning Tile -->
+<div class="w-24 h-24 shrink-0 bg-surface border-2 border-outline flex items-center justify-center text-outline font-data-sm text-data-sm transition-all duration-500 scale-110 shadow-lg relative z-0" id="winning-tile">
+                            Grout
+                        </div>
+<div class="w-24 h-24 shrink-0 bg-surface border border-[#8b0056] flex items-center justify-center text-[#8b0056] font-data-sm text-data-sm">Porphyry</div>
+<div class="w-24 h-24 shrink-0 bg-surface border border-[#fef08a] flex items-center justify-center text-[#fef08a] font-data-sm text-data-sm">Vault</div>
+<div class="w-24 h-24 shrink-0 bg-surface border border-outline flex items-center justify-center text-outline font-data-sm text-data-sm">Grout</div>
+</div>
+</div>
+<!-- Copy Area -->
+<div class="text-center max-w-[600px] min-h-[100px] flex items-center justify-center">
+<p class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg state-grout-text transition-colors duration-500 tracking-wide" id="outcome-copy" style="opacity: 0;">You own 1 more real ticket. The case was empty. Most of them are.</p>
+</div>
+<button class="mt-8 bg-surface-variant border border-outline-variant text-on-surface px-8 py-3 font-label-caps text-label-caps uppercase hover:bg-outline-variant transition-colors">
+                    Open Another Case
+                </button>
+</div>
+<!-- Sidebar (Right) -->
+<div class="lg:col-span-4 flex flex-col gap-6">
+<!-- Still in pool -->
+<div class="bg-surface border border-outline-variant p-6">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-4 tracking-widest border-b border-outline-variant/50 pb-2">Still in pool</h3>
+<div class="flex flex-col gap-3 font-data-sm text-data-sm">
+<div class="flex justify-between items-center">
+<span class="text-outline">Grout</span>
+<span class="text-on-surface">412 / 600</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-outline-variant">Denarius</span>
+<span class="text-on-surface">88 / 150</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-tertiary">Aureus</span>
+<span class="text-on-surface">24 / 40</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[#8b0056]">Porphyry</span>
+<span class="text-on-surface">4 / 10</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[#fef08a]">The Vault</span>
+<span class="text-on-surface">1 / 1</span>
+</div>
+</div>
+</div>
+<!-- The Vault Card -->
+<div class="bg-surface border border-outline-variant p-6 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-tertiary-container/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+<h3 class="font-label-caps text-label-caps text-tertiary uppercase mb-2 tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">lock</span>
+                        The Vault
+                    </h3>
+<div class="font-data-lg text-[32px] font-medium text-on-surface mb-1">$ 124.50</div>
+<div class="font-data-sm text-data-sm text-tertiary flex items-center gap-1">
+<div class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></div>
+                        Status: In Pool
+                    </div>
+</div>
+<!-- Your Megapot Position -->
+<div class="bg-surface border border-outline-variant p-6">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-4 tracking-widest" style="opacity: 0;">Your megapot position</h3>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div>
+<div class="font-data-sm text-data-sm text-on-surface-variant mb-1">Tickets Owned</div>
+<div class="font-data-lg text-data-lg text-primary">3</div>
+</div>
+
+</div>
+<button class="w-full bg-transparent border border-outline-variant text-on-surface/30 py-3 font-label-caps text-label-caps uppercase cursor-not-allowed">
+                        Claim Position
+                    </button>
+</div>
+</div>
+</div>
+</div>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 bg-surface-container-highest/90 dark:bg-surface-container-highest/90 border-t border-outline-variant backdrop-blur-lg shadow-[0_-4px_10px_rgba(0,0,0,0.5)] lg:hidden rounded-t-full">
+<div class="flex flex-col items-center justify-center flex-col items-center justify-center text-primary font-extrabold scale-110">
+<span class="material-symbols-outlined">package_2</span>
+<span class="font-label-caps text-label-caps">Cases</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all duration-150">
+<span class="material-symbols-outlined">auto_awesome</span>
+<span class="font-label-caps text-label-caps">Drops</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all duration-150">
+<span class="material-symbols-outlined">swords</span>
+<span class="font-label-caps text-label-caps">Battles</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary-fixed-dim transition-all duration-150">
+<span class="material-symbols-outlined">account_balance</span>
+<span class="font-label-caps text-label-caps">Vault</span>
+</div>
+</nav>
+<script>
+        const states = {
+            grout: {
+                text: "You own 1 more real ticket. The case was empty. Most of them are.",
+                colorClass: "state-grout-text",
+                crateClass: "crate-glow-grout",
+                tileBorder: "border-outline",
+                tileText: "text-outline",
+                tileLabel: "Grout"
+            },
+            porphyry: {
+                text: "Five additional tickets have been added to your position.",
+                colorClass: "state-porphyry-text",
+                crateClass: "crate-glow-porphyry",
+                tileBorder: "border-[#8b0056]",
+                tileText: "text-[#8b0056]",
+                tileLabel: "Porphyry"
+            },
+            vault: {
+                text: "THE VAULT IS OPENED. The full accumulated pot has been transferred to your wallet.",
+                colorClass: "state-vault-text",
+                crateClass: "crate-glow-vault",
+                tileBorder: "border-[#fef08a]",
+                tileText: "text-[#fef08a]",
+                tileLabel: "Vault"
+            }
+        };
+
+        function setState(stateKey) {
+            const state = states[stateKey];
+            
+            // Update Copy
+            const copyEl = document.getElementById('outcome-copy');
+            copyEl.textContent = state.text;
+            copyEl.className = `font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg transition-colors duration-500 uppercase tracking-wide ${state.colorClass}`;
+
+            // Update Crate Glow
+            const crateEl = document.getElementById('crate-container');
+            crateEl.className = `w-full max-w-[500px] aspect-square bg-surface border border-outline-variant flex items-center justify-center relative mb-lg transition-all duration-1000 ${state.crateClass}`;
+
+            // Update Winning Tile
+            const tileEl = document.getElementById('winning-tile');
+            tileEl.textContent = state.tileLabel;
+            tileEl.className = `w-24 h-24 shrink-0 bg-surface border-2 flex items-center justify-center font-data-sm text-data-sm transition-all duration-500 scale-110 shadow-lg relative z-0 ${state.tileBorder} ${state.tileText}`;
+        }
+    </script>
+
+
+</body></html>

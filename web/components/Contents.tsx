@@ -57,7 +57,7 @@ export function Contents({ deck, pool }: { deck: DeckShape; pool?: PoolState }) 
           return (
             <li
               key={i}
-              className="group relative flex flex-col overflow-hidden rounded-[var(--radius-panel)] transition-transform duration-300 hover:-translate-y-1"
+              className="group relative flex flex-col overflow-hidden transition-transform duration-300 hover:-translate-y-1"
               style={{
                 background: t.spec.tint,
                 border: `1px solid color-mix(in oklab, ${t.spec.ink} 30%, transparent)`,

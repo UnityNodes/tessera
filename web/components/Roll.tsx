@@ -105,25 +105,12 @@ export function Roll({
     >
       <div
         aria-hidden
-        className="absolute left-1/2 top-0 z-20 h-full w-px -translate-x-1/2"
-        style={{ background: "var(--color-accent-bright)" }}
+        className="absolute left-1/2 top-0 z-20 h-full w-[3px] -translate-x-1/2"
+        style={{
+          background: "var(--color-accent-bright)",
+          boxShadow: "0 0 14px 1px var(--color-accent)",
+        }}
       />
-      <svg
-        aria-hidden
-        viewBox="0 0 16 10"
-        className="absolute left-1/2 top-0 z-20 -translate-x-1/2"
-        style={{ width: 16, height: 10 }}
-      >
-        <path d="M0 0 H16 L8 10 Z" fill="var(--color-accent-bright)" />
-      </svg>
-      <svg
-        aria-hidden
-        viewBox="0 0 16 10"
-        className="absolute bottom-0 left-1/2 z-20 -translate-x-1/2"
-        style={{ width: 16, height: 10 }}
-      >
-        <path d="M0 10 H16 L8 0 Z" fill="var(--color-accent-bright)" />
-      </svg>
 
       <motion.div
         className="absolute top-[18px] flex"
@@ -141,28 +128,29 @@ export function Roll({
  *
  */
 function Item({ spec }: { spec: TierSpec }) {
+  const prize = spec.tickets > 0 || spec.name === VAULT_SPEC.name;
   return (
     <div
-      className="relative shrink-0 overflow-hidden rounded-[var(--radius-panel)]"
+      className="relative shrink-0 overflow-hidden"
       style={{
         width: ITEM,
         height: ITEM,
-        background: spec.tint,
-        boxShadow:
-          spec.tickets > 0 || spec.name === "The Vault"
-            ? `inset 0 0 0 1px color-mix(in oklab, ${spec.ink} 42%, transparent), 0 0 34px -6px color-mix(in oklab, ${spec.ink} 60%, transparent), 0 4px 12px rgb(0 0 0/0.5)`
-            : `inset 0 0 0 1px color-mix(in oklab, ${spec.ink} 26%, transparent), 0 4px 12px rgb(0 0 0/0.5)`,
+        background: prize ? spec.tint : "color-mix(in oklab, var(--color-surface) 55%, transparent)",
+        border: `1px solid color-mix(in oklab, ${spec.ink} ${prize ? 70 : 30}%, transparent)`,
+        boxShadow: prize
+          ? `0 0 30px -8px color-mix(in oklab, ${spec.ink} 70%, transparent)`
+          : undefined,
       }}
     >
-      <div className="pointer-events-none absolute inset-x-0 top-3 grid place-items-center">
-        <CrateTile rarity={spec.rarity} size={ITEM - 58} />
+      <div className="pointer-events-none absolute inset-x-0 top-2 grid place-items-center">
+        <CrateTile rarity={spec.rarity} size={ITEM - 62} />
       </div>
-      <div className="absolute inset-x-0 bottom-0 px-2 pb-2.5 text-center">
+      <div className="absolute inset-x-0 bottom-0 px-2 pb-2 text-center">
         <div className="t-inscription text-[0.625rem]" style={{ color: spec.ink }}>
           {spec.name}
         </div>
         {spec.tickets > 0 && (
-          <div className="t-chain text-[0.8125rem]" style={{ color: spec.ink }}>
+          <div className="t-chain text-[0.8125rem] font-semibold" style={{ color: spec.ink }}>
             +{spec.tickets}
           </div>
         )}

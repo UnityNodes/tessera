@@ -137,6 +137,36 @@ body::before {
     );
 }
 
+/**
+ *
+ */
+.frame {
+  position: relative;
+  background: color-mix(in oklab, var(--color-surface) 45%, transparent);
+  border: 1px solid var(--edge);
+}
+
+.frame::before {
+  content: "";
+  position: absolute;
+  inset: 1rem;
+  border: 1px solid color-mix(in oklab, var(--edge) 45%, transparent);
+  pointer-events: none;
+}
+
+.frame__node {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--edge-strong);
+}
+
+.slab {
+  background: color-mix(in oklab, var(--color-surface) 55%, transparent);
+  border: 1px solid var(--edge);
+  backdrop-filter: blur(8px);
+}
+
 .raised {
   background: var(--color-raised);
   border: 1px solid var(--edge);

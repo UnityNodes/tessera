@@ -104,53 +104,60 @@ export default function CasePage() {
 
       <section className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         
-        <div className="surface flex flex-col items-center gap-9 overflow-hidden p-6 sm:p-10">
-          <Case
-            phase={open.state.phase === "done" ? "opened" : "idle"}
-            value={open.state.value}
-            deck={shape}
-            size={340}
-            onClick={
-              canOpen ? () => open.open({ deckId, needsApproval: game.needsApproval }) : undefined
-            }
-          />
+        <div className="flex flex-col items-center gap-8">
+          <div className="frame relative grid w-full place-items-center p-6 sm:p-8">
+            <span className="frame__node left-0 top-0" aria-hidden />
+            <span className="frame__node right-0 top-0" aria-hidden />
+            <span className="frame__node bottom-0 left-0" aria-hidden />
+            <span className="frame__node bottom-0 right-0" aria-hidden />
+            <Case
+              phase={open.state.phase === "done" ? "opened" : "idle"}
+              value={open.state.value}
+              deck={shape}
+              size={340}
+              onClick={
+                canOpen ? () => open.open({ deckId, needsApproval: game.needsApproval }) : undefined
+              }
+            />
+          </div>
           <Roll running={rolling} landedValue={open.state.value} deck={shape} pool={pool.data} />
         </div>
 
-        <div className="surface flex flex-col justify-center p-6 sm:p-10">
+        <div className="flex flex-col gap-4">
+          <div className="slab p-5">
+            <PoolCounter deck={shape} drawn={deck.drawn} pool={pool.data} />
+          </div>
+
           {deck.vaultUpTo > 0 && (
-            <div className="flex flex-wrap items-end gap-x-5 gap-y-2 border-b border-[var(--edge)] pb-4">
-              <div>
-                <span className="t-label block">the vault</span>
-                <span
-                  className="t-chain mt-1 block text-[clamp(1.75rem,4vw,2.5rem)] leading-none"
-                  style={{
-                    color: "var(--color-tier-vault)",
-                    textShadow:
-                      "0 0 34px color-mix(in oklab, var(--color-tier-vault) 55%, transparent)",
-                  }}
-                >
-                  ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
-                </span>
-              </div>
-              <span className="max-w-[34ch] flex-1 pb-0.5 text-[0.9375rem] text-[var(--color-ink-dim)]">
-                {!pool.data?.vaultTaken ? (
-                  <>one case in {deck.remaining} opens it, and takes all of it</>
-                ) : vaultSlot ? (
-                  <span style={{ color: "var(--color-tier-vault)" }}>
-                    you drew it, take it below
-                  </span>
-                ) : (
-                  <>
-                    the vault case has been drawn already · it pays out the moment its holder
-                    claims it
-                  </>
-                )}
+            <div
+              className="slab p-5"
+              style={{
+                borderColor: "color-mix(in oklab, var(--color-tier-vault) 35%, transparent)",
+              }}
+            >
+              <span className="t-label block" style={{ color: "var(--color-tier-vault)" }}>
+                the vault
               </span>
+              <span
+                className="t-chain mt-2 block text-[clamp(1.75rem,4vw,2.5rem)] leading-none"
+                style={{
+                  color: "var(--color-tier-vault)",
+                  textShadow:
+                    "0 0 34px color-mix(in oklab, var(--color-tier-vault) 55%, transparent)",
+                }}
+              >
+                ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
+              </span>
+              <VaultStatus
+                taken={Boolean(pool.data?.vaultTaken)}
+                mine={Boolean(vaultSlot)}
+                remaining={deck.remaining}
+              />
             </div>
           )}
 
-          <div className="mt-5 min-h-[6rem]">
+          <div className="slab flex flex-col justify-center p-5">
+          <div className="min-h-[6rem]">
             <AnimatePresence mode="wait">
               <motion.div
                 key={open.state.phase + (open.state.value ?? "")}
@@ -236,15 +243,12 @@ export default function CasePage() {
             </p>
           )}
 
-          <div className="mt-8 border-t border-[var(--edge)] pt-6">
-            <p className="t-label mb-4">what is still in the pool</p>
-            <PoolCounter deck={shape} drawn={deck.drawn} pool={pool.data} />
           </div>
         </div>
       </section>
 
       {(bonusTickets > 0 || stake.open || stake.bankedWeight > 0) && (
-        <section className="surface mt-5 p-6 sm:p-10">
+        <section className="slab mt-6 p-6 sm:p-10">
           <p className="t-label">your bonus</p>
           <StakePanel
             stake={stake}
@@ -275,15 +279,54 @@ export default function CasePage() {
         </section>
       )}
 
-      <section className="surface mt-10 p-6 sm:p-10">
+      <section className="slab mt-6 p-6 sm:p-10">
         <p className="t-label mb-6">what is in this case</p>
         <Contents deck={shape} pool={pool.data} />
       </section>
 
-      <section id="megapot" className="surface mt-10 scroll-mt-24 p-6 sm:p-10">
+      <section id="megapot" className="slab mt-6 scroll-mt-24 p-6 sm:p-10">
         <p className="t-label mb-4">your Megapot, from here</p>
         <MegapotPanel mp={megapot} />
       </section>
+    </>
+  );
+}
+
+/**
+ *
+ */
+function VaultStatus({
+  taken,
+  mine,
+  remaining,
+}: {
+  taken: boolean;
+  mine: boolean;
+  remaining: number;
+}) {
+  const [ink, label, note] = mine
+    ? ["var(--color-tier-vault)", "yours to take", "you drew it, claim it below"]
+    : taken
+      ? ["var(--color-ink-faint)", "drawn", "it pays out the moment its holder claims it"]
+      : ["var(--color-tier-denarius)", "in pool", `one case in ${remaining} opens it`];
+
+  return (
+    <>
+      <span className="mt-3 flex items-center gap-2">
+        <span
+          aria-hidden
+          className="h-1.5 w-1.5 rounded-full"
+          style={{
+            background: ink,
+            boxShadow: `0 0 8px ${ink}`,
+            animation: taken && !mine ? undefined : "marker-live 2s ease-in-out infinite",
+          }}
+        />
+        <span className="t-inscription text-[0.6875rem]" style={{ color: ink }}>
+          {label}
+        </span>
+      </span>
+      <p className="mt-2 text-[0.875rem] text-[var(--color-ink-faint)]">{note}</p>
     </>
   );
 }
