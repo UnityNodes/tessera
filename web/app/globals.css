@@ -207,12 +207,44 @@ body::before {
   will-change: transform;
 }
 
-.crate__f {
+/**
+ *
+ */
+.crate__part {
   position: absolute;
-  top: 0;
   left: 0;
   width: var(--s);
-  height: var(--s);
+  transform-style: preserve-3d;
+}
+
+.crate__lid {
+  top: 0;
+  height: var(--lid-h);
+  --w: var(--s);
+  --h: var(--lid-h);
+  --d: var(--s);
+  transform-origin: 50% 100% calc(var(--s) / -2);
+  transition: transform 900ms var(--ease-out-expo);
+}
+
+.crate--open .crate__lid {
+  transform: rotateX(-112deg);
+}
+
+.crate__body {
+  top: var(--lid-h);
+  height: var(--body-h);
+  --w: var(--s);
+  --h: var(--body-h);
+  --d: var(--s);
+}
+
+.crate__f {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--w);
+  height: var(--h);
   background: linear-gradient(160deg, var(--band), var(--base) 46%, var(--shade));
   box-shadow:
     inset 0 0 0 calc(var(--s) * 0.012) var(--rim),
@@ -220,31 +252,58 @@ body::before {
     inset 0 calc(var(--s) * -0.05) calc(var(--s) * 0.08) oklch(0% 0 0 / 0.35);
 }
 
-.crate__f--front { transform: translateZ(calc(var(--s) / 2)); }
-.crate__f--back { transform: rotateY(180deg) translateZ(calc(var(--s) / 2)); }
-.crate__f--right { transform: rotateY(90deg) translateZ(calc(var(--s) / 2)); }
-.crate__f--left { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2)); }
+.crate__f--front { transform: translate(-50%, -50%) translateZ(calc(var(--d) / 2)); }
+.crate__f--back { transform: translate(-50%, -50%) rotateY(180deg) translateZ(calc(var(--d) / 2)); }
+.crate__f--right {
+  width: var(--d);
+  transform: translate(-50%, -50%) rotateY(90deg) translateZ(calc(var(--w) / 2));
+}
+.crate__f--left {
+  width: var(--d);
+  transform: translate(-50%, -50%) rotateY(-90deg) translateZ(calc(var(--w) / 2));
+}
 .crate__f--top {
-  transform: rotateX(90deg) translateZ(calc(var(--s) / 2));
+  height: var(--d);
+  transform: translate(-50%, -50%) rotateX(90deg) translateZ(calc(var(--h) / 2));
   background: linear-gradient(160deg, var(--lit), var(--band) 60%, var(--base));
 }
 .crate__f--bottom {
-  transform: rotateX(-90deg) translateZ(calc(var(--s) / 2));
+  height: var(--d);
+  transform: translate(-50%, -50%) rotateX(-90deg) translateZ(calc(var(--h) / 2));
   background: var(--shade);
 }
 
-.crate__seam {
+.crate__inner {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 32%;
-  height: calc(var(--s) * 0.035);
-  background: linear-gradient(
-    to bottom,
-    oklch(0% 0 0 / 0.45),
-    var(--rim) 55%,
-    oklch(0% 0 0 / 0.3)
-  );
+  top: 50%;
+  left: 50%;
+  width: calc(var(--s) * 0.86);
+  height: calc(var(--s) * 0.86);
+  transform: translate(-50%, -50%) rotateX(90deg)
+    translateZ(calc(var(--h) / -2 + var(--s) * 0.04));
+  background: radial-gradient(closest-side, var(--aura), oklch(0% 0 0 / 0.92) 76%);
+  opacity: 0.14;
+  transition: opacity 500ms var(--ease-stone) 120ms;
+}
+
+.crate--open .crate__inner { opacity: 1; }
+
+.crate__beam {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--s) * 0.42);
+  width: calc(var(--s) * 0.72);
+  height: calc(var(--s) * 1.5);
+  transform: translateX(-50%);
+  transform-origin: bottom center;
+  background: linear-gradient(to top, var(--aura), transparent 72%);
+  filter: blur(calc(var(--s) * 0.06));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.crate--open .crate__beam {
+  animation: beam-rise 1.5s var(--ease-out-expo) 140ms both;
 }
 
 .crate__stud {
@@ -332,6 +391,18 @@ body::before {
 @keyframes ray-breathe {
   0%, 100% { opacity: 0.18; transform: translateX(0) scaleY(1); }
   50% { opacity: 0.42; transform: translateX(1.5%) scaleY(1.06); }
+}
+
+@keyframes beam-rise {
+  0% { opacity: 0; transform: translateX(-50%) scaleY(0.15); }
+  35% { opacity: 0.95; }
+  100% { opacity: 0; transform: translateX(-50%) scaleY(1.15); }
+}
+
+@keyframes prize-rise {
+  0% { opacity: 0; transform: translate(-50%, 20%) scale(0.25); }
+  45% { opacity: 1; }
+  100% { opacity: 1; transform: translate(-50%, -128%) scale(1); }
 }
 
 @keyframes count-bump {

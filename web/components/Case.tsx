@@ -71,24 +71,6 @@ export function Case({ phase, value, deck, size = 340, onClick }: Props) {
         />
       )}
 
-      {won && !still && (
-        <motion.span
-          aria-hidden
-          className="pointer-events-none absolute"
-          initial={{ opacity: 0, scaleY: 0.2 }}
-          animate={{ opacity: [0, 0.9, 0], scaleY: [0.2, 1, 1.25] }}
-          transition={{ duration: 1.4, ease: "easeOut" }}
-          style={{
-            width: size * 0.42,
-            height: size * 0.95,
-            bottom: "48%",
-            transformOrigin: "bottom center",
-            background: `linear-gradient(to top, ${spec!.ink}, transparent 78%)`,
-            filter: "blur(16px)",
-          }}
-        />
-      )}
-
       {won &&
         !still &&
         SHARDS.map((s, i) => (
@@ -121,12 +103,47 @@ export function Case({ phase, value, deck, size = 340, onClick }: Props) {
         transition={{ duration: 0.3, ease: [0.16, 0.84, 0.28, 1] }}
       >
         <motion.div
+          className="relative"
           key={spec?.name ?? "sealed"}
           initial={spec ? { scale: 0.8, opacity: 0 } : false}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.55, ease: [0.34, 1.3, 0.5, 1] }}
         >
-          <Crate rarity={spec ? spec.rarity : "sealed"} size={size * (spec ? 0.68 : 0.8)} drift={!spec} />
+          <Crate
+            rarity={spec ? spec.rarity : "sealed"}
+            size={size * (spec ? 0.68 : 0.8)}
+            drift={!spec}
+            open={Boolean(spec)}
+          />
+
+
+          {spec && !still && (
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-1/2 top-1/2 grid place-items-center rounded-full"
+              style={{
+                width: size * 0.3,
+                height: size * 0.3,
+                background: won
+                  ? `radial-gradient(circle at 38% 32%, ${spec.ink}, color-mix(in oklab, ${spec.ink} 55%, black) 78%)`
+                  : "radial-gradient(circle at 38% 32%, oklch(46% 0.02 252), oklch(28% 0.015 252) 78%)",
+                boxShadow: won
+                  ? `0 0 ${size * 0.22}px color-mix(in oklab, ${spec.ink} 80%, transparent), inset 0 2px 0 oklch(100% 0 0 / 0.4)`
+                  : "inset 0 2px 0 oklch(100% 0 0 / 0.18)",
+                color: won ? "oklch(99% 0.01 100)" : "var(--color-ink-faint)",
+                animation: "prize-rise 1.1s var(--ease-out-expo) 380ms both",
+              }}
+            >
+              <span
+                className="t-chain font-bold leading-none"
+                style={{
+                  fontSize: size * (isVault(spec) ? 0.14 : spec.tickets > 0 ? 0.11 : 0.055),
+                }}
+              >
+                {isVault(spec) ? "◆" : spec.tickets > 0 ? `+${spec.tickets}` : ", "}
+              </span>
+            </span>
+          )}
         </motion.div>
       </motion.button>
 
@@ -137,19 +154,7 @@ export function Case({ phase, value, deck, size = 340, onClick }: Props) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.5 }}
         >
-          {spec.tickets > 0 && (
-            <div
-              className="t-chain font-semibold leading-none"
-              style={{
-                fontSize: size * 0.14,
-                color: spec.ink,
-                textShadow: `0 0 30px color-mix(in oklab, ${spec.ink} 60%, transparent)`,
-              }}
-            >
-              +{spec.tickets}
-            </div>
-          )}
-          <div className="t-inscription mt-1 text-[0.75rem]" style={{ color: spec.ink }}>
+          <div className="t-inscription text-[0.8125rem]" style={{ color: spec.ink }}>
             {isVault(spec)
               ? spec.name
               : spec.tickets > 0

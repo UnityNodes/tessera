@@ -97,11 +97,14 @@ const LOOKS: Record<Rarity, Look> = {
   },
 };
 
-const STUDS = [
-  { left: "9%", top: "9%" },
-  { right: "9%", top: "9%" },
-  { left: "9%", bottom: "9%" },
-  { right: "9%", bottom: "9%" },
+const LID_STUDS = [
+  { left: "9%", top: "26%" },
+  { right: "9%", top: "26%" },
+] as const;
+
+const BODY_STUDS = [
+  { left: "9%", bottom: "13%" },
+  { right: "9%", bottom: "13%" },
 ] as const;
 
 function Glyph({ kind }: { kind: Look["glyph"] }) {
@@ -133,19 +136,37 @@ function Glyph({ kind }: { kind: Look["glyph"] }) {
   return <span>{kind}</span>;
 }
 
-function Face({ look, kind }: { look: Look; kind: "front" | "back" | "left" | "right" }) {
-  const plated = (kind === "front" || kind === "back") && look.glyph !== "none";
+type Side = "front" | "back" | "left" | "right";
+
+function Box({
+  part,
+  look,
+  plated,
+  studs,
+}: {
+  part: "lid" | "body";
+  look: Look;
+  plated: boolean;
+  studs: readonly React.CSSProperties[];
+}) {
+  const sides: Side[] = ["front", "back", "left", "right"];
   return (
-    <div className={`crate__f crate__f--${kind}`}>
-      <span className="crate__seam" />
-      {STUDS.map((s, i) => (
-        <span key={i} className="crate__stud" style={s} />
+    <div className={`crate__part crate__${part}`}>
+      {sides.map((side) => (
+        <div key={side} className={`crate__f crate__f--${side}`}>
+          {studs.map((s, i) => (
+            <span key={i} className="crate__stud" style={s} />
+          ))}
+          {plated && (side === "front" || side === "back") && (
+            <span className="crate__plate">
+              <Glyph kind={look.glyph} />
+            </span>
+          )}
+        </div>
       ))}
-      {plated && (
-        <span className="crate__plate">
-          <Glyph kind={look.glyph} />
-        </span>
-      )}
+      {part === "lid" && <div className="crate__f crate__f--top" />}
+      <div className="crate__f crate__f--bottom" />
+      {part === "body" && <div className="crate__inner" />}
     </div>
   );
 }
@@ -158,12 +179,14 @@ export function Crate({
   size = 160,
   drift = false,
   spin = true,
+  open = false,
   className,
 }: {
   rarity: Rarity;
   size?: number;
   drift?: boolean;
   spin?: boolean;
+  open?: boolean;
   className?: string;
 }) {
   const look = LOOKS[rarity];
@@ -201,10 +224,12 @@ export function Crate({
       >
         <span className="crate__shadow" style={{ ["--s" as string]: fluid }} />
         <div
-          className="crate"
+          className={`crate${open ? " crate--open" : ""}`}
           style={
             {
               "--s": fluid,
+              "--lid-h": `calc(${fluid} * 0.34)`,
+              "--body-h": `calc(${fluid} * 0.66)`,
               "--base": look.base,
               "--band": look.band,
               "--shade": look.shade,
@@ -213,17 +238,15 @@ export function Crate({
               "--plate": look.plate,
               "--plate-lit": look.plateLit,
               "--mark": look.mark,
-              transform: spin ? undefined : "rotateX(-16deg) rotateY(-28deg)",
-              animation: spin ? "crate-turn 11s ease-in-out infinite" : undefined,
+              "--aura": look.aura === "transparent" ? "oklch(60% 0.02 260)" : look.aura,
+              transform: spin && !open ? undefined : "rotateX(-16deg) rotateY(-26deg)",
+              animation: spin && !open ? "crate-turn 11s ease-in-out infinite" : undefined,
             } as React.CSSProperties
           }
         >
-          <Face look={look} kind="front" />
-          <Face look={look} kind="back" />
-          <Face look={look} kind="left" />
-          <Face look={look} kind="right" />
-          <div className="crate__f crate__f--top" />
-          <div className="crate__f crate__f--bottom" />
+          <Box part="body" look={look} plated={look.glyph !== "none"} studs={BODY_STUDS} />
+          <Box part="lid" look={look} plated={false} studs={LID_STUDS} />
+          <span className="crate__beam" />
         </div>
       </div>
     </div>
