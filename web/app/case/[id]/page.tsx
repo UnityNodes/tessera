@@ -9,7 +9,6 @@ import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/Button";
 import { Case } from "@/components/Case";
 import { OpenTheatre } from "@/components/OpenTheatre";
-import { Roll } from "@/components/Roll";
 import { Contents } from "@/components/Contents";
 import { PoolCounter } from "@/components/PoolCounter";
 import { MegapotPanel } from "@/components/MegapotPanel";
@@ -75,7 +74,6 @@ export default function CasePage() {
     ? inventory.data?.find((s) => s.index === stake.decidingSlot)
     : undefined;
 
-  const rolling = open.state.phase === "revealing" || open.state.phase === "landing";
   const busy = ["approving", "signing", "confirming", "revealing", "landing"].includes(
     open.state.phase,
   );
@@ -91,7 +89,7 @@ export default function CasePage() {
 
   return (
     <>
-      <OpenTheatre open={open.state} deck={shape} onClose={open.reset} />
+      <OpenTheatre open={open.state} deck={shape} pool={pool.data} onClose={open.reset} />
 
       <div className="mb-5 flex flex-wrap items-baseline justify-between gap-3">
         <div>
@@ -106,25 +104,22 @@ export default function CasePage() {
       </div>
 
       <section className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-        
-        <div className="flex flex-col items-center gap-8">
-          <div className="frame relative grid w-full place-items-center p-6 sm:p-8">
-            <span className="frame__node left-0 top-0" aria-hidden />
-            <span className="frame__node right-0 top-0" aria-hidden />
-            <span className="frame__node bottom-0 left-0" aria-hidden />
-            <span className="frame__node bottom-0 right-0" aria-hidden />
-            <Case
-              phase={open.state.phase === "done" ? "opened" : "idle"}
-              value={open.state.value}
-              deck={shape}
-              risk={open.state.risk}
-              size={340}
-              onClick={
-                canOpen ? () => open.open({ deckId, needsApproval: game.needsApproval }) : undefined
-              }
-            />
-          </div>
-          <Roll running={rolling} landedValue={open.state.value} deck={shape} pool={pool.data} />
+
+        <div className="frame relative grid w-full place-items-center p-6 sm:p-10">
+          <span className="frame__node left-0 top-0" aria-hidden />
+          <span className="frame__node right-0 top-0" aria-hidden />
+          <span className="frame__node bottom-0 left-0" aria-hidden />
+          <span className="frame__node bottom-0 right-0" aria-hidden />
+          <Case
+            phase={open.state.phase === "done" ? "opened" : "idle"}
+            value={open.state.value}
+            deck={shape}
+            risk={open.state.risk}
+            size={380}
+            onClick={
+              canOpen ? () => open.open({ deckId, needsApproval: game.needsApproval }) : undefined
+            }
+          />
         </div>
 
         <div className="flex flex-col gap-4">

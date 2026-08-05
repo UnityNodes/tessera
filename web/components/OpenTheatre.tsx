@@ -3,8 +3,10 @@
 import { useEffect } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Crate } from "./Crate";
+import { Roll } from "./Roll";
 import { specOf, isVault, type DeckShape } from "@/lib/deck";
 import type { OpenState } from "@/hooks/useOpenCase";
+import type { PoolState } from "@/hooks/usePool";
 
 /**
  *
@@ -20,25 +22,30 @@ const LIVE = new Set(["confirming", "revealing", "landing", "done"]);
 export function OpenTheatre({
   open,
   deck,
+  pool,
   onClose,
 }: {
   open: OpenState;
   deck: DeckShape;
+  pool?: PoolState;
   onClose: () => void;
 }) {
   const still = useReducedMotion();
   const on = LIVE.has(open.phase);
+  const opened = open.phase === "done";
 
+  /**
+   *
+   */
   useEffect(() => {
-    if (!on) return;
+    if (!on || !opened) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [on, onClose]);
+  }, [on, opened, onClose]);
 
-  const opened = open.phase === "done";
   const spec = opened && open.value != null ? specOf(open.value, deck) : null;
   const won = Boolean(spec && (spec.tickets > 0 || isVault(spec)));
   const paid = spec ? (open.risk ? spec.tickets * 2 : spec.tickets) : 0;
@@ -55,7 +62,8 @@ export function OpenTheatre({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.32, ease: [0.16, 0.84, 0.28, 1] }}
-          onClick={onClose}
+          onClick={opened ? onClose : undefined}
+          style={{ cursor: opened ? "pointer" : "default" }}
           role="dialog"
           aria-modal="true"
           aria-label="Opening a case"
@@ -84,22 +92,28 @@ export function OpenTheatre({
             )}
           </AnimatePresence>
 
-          <div className="relative flex flex-col items-center px-6 pb-10">
-            <div className={tier > 0 ? `theatre__shake theatre__shake--${tier}` : undefined}>
-              <motion.div
-                initial={{ scale: 0.7, y: 26 }}
-                animate={{ scale: 1, y: 0 }}
-                transition={{ duration: 0.7, ease: [0.16, 0.84, 0.28, 1] }}
+          <div className="relative flex w-full flex-col items-center px-6 pb-10">
+
+            {!opened ? (
+              <div
+                className={`w-full max-w-[1200px] ${tier > 0 ? `theatre__shake theatre__shake--${tier}` : ""}`}
               >
-                <Crate
-                  rarity={spec?.rarity ?? "sealed"}
-                  size={620}
-                  open={opened}
-                  spin={!opened}
-                  drift={!opened && open.phase !== "revealing"}
+                <Roll
+                  running={open.phase !== "confirming"}
+                  landedValue={open.value}
+                  deck={deck}
+                  pool={pool}
                 />
+              </div>
+            ) : (
+              <motion.div
+                initial={{ scale: 0.72, y: 20, opacity: 0 }}
+                animate={{ scale: 1, y: 0, opacity: 1 }}
+                transition={{ duration: 0.65, ease: [0.16, 0.84, 0.28, 1] }}
+              >
+                <Crate rarity={spec?.rarity ?? "sealed"} size={620} open spin={false} />
               </motion.div>
-            </div>
+            )}
 
             {opened && won && !still && <Shards ink={spec!.ink} />}
 
