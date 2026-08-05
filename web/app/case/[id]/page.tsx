@@ -114,12 +114,7 @@ export default function CasePage() {
               canOpen ? () => open.open({ deckId, needsApproval: game.needsApproval }) : undefined
             }
           />
-          <Roll
-            running={rolling}
-            landed={open.state.value != null ? specOf(open.state.value, shape) : undefined}
-            deck={shape}
-            pool={pool.data}
-          />
+          <Roll running={rolling} landedValue={open.state.value} deck={shape} pool={pool.data} />
         </div>
 
         <div className="surface flex flex-col justify-center p-6 sm:p-10">

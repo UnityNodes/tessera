@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { animate, useMotionValue, motion, useReducedMotion } from "motion/react";
-import { slotsPerTier, specFor, VAULT_SPEC, type TierSpec, type DeckShape } from "@/lib/deck";
+import { slotsPerTier, specFor, specOf, VAULT_SPEC, type TierSpec, type DeckShape } from "@/lib/deck";
 import { CrateTile } from "./Crate";
 import type { PoolState } from "@/hooks/usePool";
 
@@ -20,7 +20,7 @@ const STEP = ITEM + GAP;
  */
 export function Roll({
   running,
-  landed,
+  landedValue,
   deck,
   pool,
 }: {
@@ -28,44 +28,57 @@ export function Roll({
   /**
    *
    */
-  landed?: TierSpec;
+  landedValue?: number;
   deck: DeckShape;
   pool?: PoolState;
 }) {
   const still = useReducedMotion();
   const x = useMotionValue(0);
-  const spinning = useRef(false);
 
   const key = `${deck.tiers.length}|${deck.vaultUpTo}|${pool?.tiers.map((t) => `${t.weight}:${t.left}`).join(",") ?? ""}`;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const strip = useMemo(() => buildStrip(deck, pool), [key]);
+  const built = useMemo(() => buildStrip(deck, pool), [key]);
+
+  /**
+   *
+   *
+   *
+   */
+  const [frozen, setFrozen] = useState<{ value: number; strip: TierSpec[] } | null>(null);
+
+  if (landedValue != null && frozen?.value !== landedValue) {
+    setFrozen({ value: landedValue, strip: built });
+  } else if (landedValue == null && frozen !== null) {
+    setFrozen(null);
+  }
+
+  const strip = frozen?.strip ?? built;
 
   //
   useEffect(() => {
+    if (landedValue != null) return;
     if (strip.length) x.set(-STEP * strip.length);
-  }, [strip, x]);
+  }, [strip, landedValue, x]);
 
+  //
   useEffect(() => {
-    if (still) return;
-    if (running && !spinning.current) {
-      spinning.current = true;
-      animate(x, x.get() - STEP * strip.length, {
-        duration: strip.length * 0.075,
-        ease: "linear",
-        repeat: Infinity,
-        repeatType: "loop",
-      });
-    }
-    if (!running) spinning.current = false;
-  }, [running, x, still, strip]);
+    if (still || !running || landedValue != null) return;
+    const loop = animate(x, x.get() - STEP * strip.length, {
+      duration: strip.length * 0.075,
+      ease: "linear",
+      repeat: Infinity,
+      repeatType: "loop",
+    });
+    return () => loop.stop();
+  }, [running, landedValue, x, still, strip.length]);
 
+  //
   useEffect(() => {
-    if (!landed || still) return;
-    spinning.current = false;
+    if (still || landedValue == null) return;
+    const items = frozen?.strip ?? built;
+    const target = specOf(landedValue, deck).name;
 
-    const items = strip;
     const current = Math.abs(x.get()) / STEP;
-    const target = landed.name;
     let idx = Math.ceil(current) + 12;
     for (let i = 0; i < items.length * 2; i++) {
       if (items[(idx + i) % items.length].name === target) {
@@ -73,11 +86,13 @@ export function Roll({
         break;
       }
     }
-    animate(x, -(idx * STEP), {
+    const settle = animate(x, -(idx * STEP), {
       duration: 1.9,
       ease: [0.12, 0.72, 0.12, 1],
     });
-  }, [landed, x, still, strip]);
+    return () => settle.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [landedValue, still, x]);
 
   return (
     <div

@@ -85,6 +85,7 @@ export default function BattlePage() {
         <Side
           title={who(battle.a)}
           spec={specA}
+          value={cards?.a.value}
           running={battle.joined}
           sealed={!battle.joined}
           deck={shape}
@@ -94,6 +95,7 @@ export default function BattlePage() {
           <Side
             title={who(battle.b)}
             spec={specB}
+            value={cards?.b.value}
             running
             deck={shape}
             pool={pool.data}
@@ -159,6 +161,7 @@ export default function BattlePage() {
 function Side({
   title,
   spec,
+  value,
   running,
   sealed,
   deck,
@@ -166,6 +169,7 @@ function Side({
 }: {
   title: string;
   spec?: TierSpec;
+  value?: number;
   running: boolean;
   sealed?: boolean;
   deck: DeckShape;
@@ -190,7 +194,7 @@ function Side({
             <span className="t-label">sealed until someone pays</span>
           </div>
         ) : (
-          <Roll running={running && !spec} landed={spec} deck={deck} pool={pool} />
+          <Roll running={running && !spec} landedValue={value} deck={deck} pool={pool} />
         )}
       </div>
     </div>
