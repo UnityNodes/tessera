@@ -1,8 +1,9 @@
 "use client";
 
+import { useCallback } from "react";
 import { useConfig } from "wagmi";
 import { getPublicClient } from "wagmi/actions";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { parseAbiItem } from "viem";
 import { DECK_ADDRESS, DECK_FROM_BLOCK } from "@/lib/chain";
 
@@ -90,6 +91,17 @@ export function useOpens() {
       return cache.events;
     },
   });
+}
+
+/**
+ *
+ */
+export function useRefreshOpens() {
+  const client = useQueryClient();
+  return useCallback(
+    () => client.invalidateQueries({ queryKey: ["opens"] }),
+    [client],
+  );
 }
 
 

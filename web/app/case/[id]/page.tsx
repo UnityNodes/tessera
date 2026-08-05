@@ -16,6 +16,7 @@ import { StakePanel } from "@/components/StakePanel";
 import { useDeck } from "@/hooks/useDeck";
 import { useOpenCase } from "@/hooks/useOpenCase";
 import { useInventory, useRefreshInventory, heldWeight, pickForRedeem } from "@/hooks/useInventory";
+import { useRefreshOpens } from "@/hooks/useOpens";
 import { useRedeem } from "@/hooks/useRedeem";
 import { useStake } from "@/hooks/useStake";
 import { usePool } from "@/hooks/usePool";
@@ -45,12 +46,19 @@ export default function CasePage() {
 
   const inventory = useInventory(game.decks);
   const refreshInventory = useRefreshInventory();
+  const refreshOpens = useRefreshOpens();
   const pool = usePool(shape, deck?.drawn ?? 0, deckId);
   const megapot = useMegapot();
 
   const refresh = useCallback(async () => {
-    await Promise.all([game.refetch(), refreshInventory(), pool.refetch(), megapot.refetch()]);
-  }, [game, refreshInventory, pool, megapot]);
+    await Promise.all([
+      game.refetch(),
+      refreshInventory(),
+      refreshOpens(),
+      pool.refetch(),
+      megapot.refetch(),
+    ]);
+  }, [game, refreshInventory, refreshOpens, pool, megapot]);
 
   const open = useOpenCase(refresh);
   const redeem = useRedeem(refresh);

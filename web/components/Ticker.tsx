@@ -37,7 +37,8 @@ export function Ticker({ items }: { items: FeedItem[] }) {
             const mine = Boolean(address && it.player.toLowerCase() === address.toLowerCase());
             const pending = it.value === undefined;
             const prize = !pending && (it.weight > 0 || isVault(it.spec));
-            const loud = prize || mine || Boolean(it.risk);
+            //
+            const loud = prize || Boolean(it.risk);
             const width = loud ? CARD : Math.round(CARD * 0.26);
             return (
               <motion.li
@@ -56,7 +57,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
                     color: mine ? "var(--color-accent-bright)" : "var(--color-ink-faint)",
                   }}
                 >
-                  {mine ? "you" : prize ? short(it.player) : " "}
+                  {loud ? (mine ? "you" : short(it.player)) : " "}
                 </div>
               </motion.li>
             );
