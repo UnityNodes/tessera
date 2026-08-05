@@ -264,7 +264,7 @@ body::before {
 }
 
 .crate--open .crate__lid {
-  transform: rotateX(-112deg);
+  transform: rotateX(-98deg);
 }
 
 .crate__body {
@@ -524,6 +524,25 @@ body::before {
 @keyframes rim-sweep {
   from { background-position: -140% 0; }
   to { background-position: 240% 0; }
+}
+
+/**
+ *
+ *
+ */
+.theatre__shake {
+  will-change: transform;
+}
+.theatre__shake--1 { animation: theatre-shake 2.4s ease-in-out infinite; --amp: 1px; --tilt: 0.12deg; }
+.theatre__shake--2 { animation: theatre-shake 0.9s ease-in-out infinite; --amp: 2.5px; --tilt: 0.35deg; }
+.theatre__shake--3 { animation: theatre-shake 0.34s linear infinite; --amp: 5px; --tilt: 0.8deg; }
+
+@keyframes theatre-shake {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  20% { transform: translate3d(calc(var(--amp) * -1), var(--amp), 0) rotate(calc(var(--tilt) * -1)); }
+  40% { transform: translate3d(var(--amp), calc(var(--amp) * -0.6), 0) rotate(var(--tilt)); }
+  60% { transform: translate3d(calc(var(--amp) * -0.7), calc(var(--amp) * -1), 0) rotate(calc(var(--tilt) * 0.6)); }
+  80% { transform: translate3d(var(--amp), var(--amp), 0) rotate(calc(var(--tilt) * -0.4)); }
 }
 
 @keyframes shard-pop {

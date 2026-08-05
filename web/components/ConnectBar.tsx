@@ -25,7 +25,7 @@ export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
             variant="quiet"
             onClick={() => connect({ connector: c })}
             disabled={isPending}
-            className="px-3 py-2 text-[0.8125rem] sm:px-[1.4375rem] sm:py-[0.8125rem] sm:text-[0.9375rem]"
+            className="shrink-0 px-2! py-1.5! text-[0.6875rem]! sm:px-[1.4375rem]! sm:py-[0.8125rem]! sm:text-[0.9375rem]!"
           >
             <span className="sm:hidden">{c.name.split(" ")[0]}</span>
             <span className="hidden sm:inline">{c.name}</span>

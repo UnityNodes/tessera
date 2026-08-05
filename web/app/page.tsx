@@ -9,7 +9,6 @@ import { useBattleList } from "@/hooks/useBattles";
 
 /**
  *
- *
  */
 export default function Home() {
   const game = useDeck();
@@ -21,37 +20,51 @@ export default function Home() {
       <section className="relative -mx-5 -mt-8 overflow-hidden sm:-mx-8 2xl:-mx-12">
         <Stage />
 
-        <div className="relative mx-auto flex max-w-[1800px] flex-col items-center px-5 pb-14 pt-10 sm:px-8 sm:pt-12 2xl:px-12">
-          <div className="@container relative w-full max-w-[34rem]">
-            <Crate rarity="sealed" size={460} drift className="mx-auto" />
+        <div className="relative mx-auto grid max-w-[1800px] items-center gap-10 px-5 pb-16 pt-20 sm:px-8 lg:grid-cols-[1.05fr_1fr] lg:pb-20 lg:pt-28 2xl:px-12">
+          <div className="min-w-0">
+            <h1 className="t-display text-[clamp(2.6rem,5.4vw,4.6rem)]">
+              $1 buys a real lottery ticket.
+              <br />
+              <span className="text-[var(--color-accent-bright)]">The case is free.</span>
+            </h1>
+            <p className="mt-6 max-w-[58ch] text-[1.0625rem] text-[var(--color-ink-dim)]">
+              The same ticket sold on megapot.io, bought for you in the same transaction that
+              opens the case. What is inside sits in an encrypted, finite pool, shuffled once,
+              drawn without replacement, and countable by anyone.
+            </p>
+            <div className="mt-9 flex flex-wrap items-center gap-3">
+              <Link href={`/case/${first?.id ?? 0}`}>
+                <Button>Open a case · $1</Button>
+              </Link>
+              <Link href="/battles">
+                <Button variant="quiet">
+                  Battles{battles.open.length > 0 ? ` · ${battles.open.length} waiting` : ""}
+                </Button>
+              </Link>
+            </div>
+            <p className="mt-7 text-[0.9375rem] text-[var(--color-ink-faint)]">
+              The dollars are test dollars, minted free from the header. Every ticket is still
+              bought against the real Megapot contract.
+            </p>
           </div>
 
-          <h1 className="t-display mt-2 max-w-[20ch] text-balance text-center text-[clamp(2.4rem,6vw,4.2rem)] leading-[0.98]">
-            $1 buys a real lottery ticket.{" "}
-            <span className="text-[var(--color-accent-bright)]">The case is free.</span>
-          </h1>
-
-          <p className="mt-6 max-w-[56ch] text-balance text-center text-[1.0625rem] text-[var(--color-ink-dim)]">
-            The same ticket sold on megapot.io, bought for you in the transaction that opens the
-            case. What is inside sits in an encrypted, finite pool, shuffled once, drawn without
-            replacement, countable by anyone.
-          </p>
-
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link href={`/case/${first?.id ?? 0}`}>
-              <Button>Open a case · $1</Button>
-            </Link>
-            <Link href="/battles">
-              <Button variant="quiet">
-                Battles{battles.open.length > 0 ? ` · ${battles.open.length} waiting` : ""}
-              </Button>
-            </Link>
+          <div className="frame @container relative grid min-w-0 place-items-center p-6 sm:p-8">
+            <span className="frame__node left-0 top-0" aria-hidden />
+            <span className="frame__node right-0 top-0" aria-hidden />
+            <span className="frame__node bottom-0 left-0" aria-hidden />
+            <span className="frame__node bottom-0 right-0" aria-hidden />
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-1/2 top-0 h-[86%] w-[78%] -translate-x-1/2"
+              style={{
+                clipPath: "polygon(38% 0%, 62% 0%, 100% 100%, 0% 100%)",
+                background:
+                  "linear-gradient(to bottom, color-mix(in oklab, var(--color-accent-bright) 30%, transparent), transparent 78%)",
+                filter: "blur(12px)",
+              }}
+            />
+            <Crate rarity="sealed" size={380} drift className="relative" />
           </div>
-
-          <p className="mt-6 text-center text-[0.9375rem] text-[var(--color-ink-faint)]">
-            Test dollars, minted free from the header. Every ticket is still bought against the
-            real Megapot contract.
-          </p>
         </div>
       </section>
 
@@ -65,9 +78,10 @@ export default function Home() {
  */
 function Stage() {
   const rays = [
-    { left: "38%", w: "9%", rotate: "-12deg", dur: "9s", delay: "0s", blur: 20 },
-    { left: "50%", w: "6%", rotate: "3deg", dur: "13s", delay: "2.4s", blur: 14 },
-    { left: "60%", w: "8%", rotate: "14deg", dur: "11s", delay: "5s", blur: 22 },
+    { left: "50%", w: "12%", rotate: "-14deg", dur: "9s", delay: "0s", blur: 20 },
+    { left: "63%", w: "7%", rotate: "5deg", dur: "13s", delay: "2.4s", blur: 14 },
+    { left: "71%", w: "10%", rotate: "16deg", dur: "11s", delay: "5s", blur: 22 },
+    { left: "82%", w: "6%", rotate: "26deg", dur: "15s", delay: "7.5s", blur: 16 },
   ];
 
   return (
@@ -76,16 +90,7 @@ function Stage() {
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(46% 52% at 50% 18%, color-mix(in oklab, var(--color-accent) 26%, transparent), transparent 70%)",
-        }}
-      />
-      <span
-        className="absolute left-1/2 top-0 h-[62%] w-[46%] -translate-x-1/2"
-        style={{
-          clipPath: "polygon(43% 0%, 57% 0%, 100% 100%, 0% 100%)",
-          background:
-            "linear-gradient(to bottom, color-mix(in oklab, var(--color-accent-bright) 26%, transparent), transparent 82%)",
-          filter: "blur(14px)",
+            "radial-gradient(58% 78% at 72% 30%, color-mix(in oklab, var(--color-accent) 22%, transparent), transparent 68%)",
         }}
       />
       {rays.map((r, i) => (
@@ -97,7 +102,7 @@ function Stage() {
             width: r.w,
             transform: `rotate(${r.rotate})`,
             background:
-              "linear-gradient(to bottom, color-mix(in oklab, var(--color-accent-bright) 52%, transparent), transparent 62%)",
+              "linear-gradient(to bottom, color-mix(in oklab, var(--color-accent-bright) 62%, transparent), transparent 66%)",
             filter: `blur(${r.blur}px)`,
             animation: `ray-breathe ${r.dur} ease-in-out ${r.delay} infinite`,
           }}

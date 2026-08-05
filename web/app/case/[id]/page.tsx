@@ -8,6 +8,7 @@ import { formatUnits } from "viem";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/Button";
 import { Case } from "@/components/Case";
+import { OpenTheatre } from "@/components/OpenTheatre";
 import { Roll } from "@/components/Roll";
 import { Contents } from "@/components/Contents";
 import { PoolCounter } from "@/components/PoolCounter";
@@ -90,6 +91,8 @@ export default function CasePage() {
 
   return (
     <>
+      <OpenTheatre open={open.state} deck={shape} onClose={open.reset} />
+
       <div className="mb-5 flex flex-wrap items-baseline justify-between gap-3">
         <div>
           <Link href="/" className="t-label hover:text-[var(--color-ink)]">

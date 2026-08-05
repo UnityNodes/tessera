@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { Shell } from "@/components/Shell";
 import { Backdrop } from "@/components/Backdrop";
+import { HallShader } from "@/components/HallShader";
 
 //
 const archivo = Archivo({
@@ -33,6 +34,7 @@ export default function RootLayout({
     <html lang="en" className={`${archivo.variable} ${plexMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <Backdrop />
+        <HallShader />
         <Providers>
           <Shell>{children}</Shell>
         </Providers>

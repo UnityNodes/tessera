@@ -37,7 +37,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             </span>
           </Link>
 
-          <nav className="flex min-w-0 items-center gap-0.5 sm:gap-1.5">
+          <nav className="flex shrink-0 items-center gap-0.5 sm:gap-1.5">
             <Tab href="/" icon={<IconHome />}>
               home
             </Tab>

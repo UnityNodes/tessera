@@ -6,7 +6,12 @@ import { isVault } from "@/lib/deck";
 import { CrateTile } from "./Crate";
 import type { FeedItem } from "@/hooks/useFeed";
 
-const CARD = 84;
+/**
+ *
+ */
+const CARD = 132;
+
+const QUIET = 26;
 
 /**
  *
@@ -26,14 +31,14 @@ export function Ticker({ items }: { items: FeedItem[] }) {
           "linear-gradient(90deg, transparent 0%, black 4%, black 92%, transparent 100%)",
       }}
     >
-      <ul className="flex items-end gap-2 overflow-x-auto pb-2 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <ul className="flex items-end gap-2.5 overflow-x-auto pb-2.5 pt-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <AnimatePresence initial={false}>
           {items.map((it, i) => {
             const mine = Boolean(address && it.player.toLowerCase() === address.toLowerCase());
             const pending = it.value === undefined;
             const prize = !pending && (it.weight > 0 || isVault(it.spec));
             const loud = prize || mine || Boolean(it.risk);
-            const width = loud ? CARD : Math.round(CARD * 0.4);
+            const width = loud ? CARD : Math.round(CARD * 0.26);
             return (
               <motion.li
                 key={it.handle}
@@ -46,7 +51,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
               >
                 <Card item={it} index={i} mine={mine} pending={pending} prize={prize} loud={loud} />
                 <div
-                  className="t-chain mt-1 truncate text-center text-[0.625rem]"
+                  className="t-chain mt-1.5 truncate text-center text-[0.6875rem]"
                   style={{
                     color: mine ? "var(--color-accent-bright)" : "var(--color-ink-faint)",
                   }}
@@ -84,13 +89,13 @@ function Card({
       <div
         className="relative grid place-items-center overflow-hidden rounded-[3px]"
         style={{
-          height: loud ? CARD : 26,
+          height: loud ? CARD : QUIET,
           background: "var(--color-raised)",
           boxShadow: "inset 0 0 0 1px var(--edge)",
         }}
       >
         <span
-          className="t-inscription text-[0.5rem] text-[var(--color-ink-faint)]"
+          className="t-inscription text-[0.625rem] text-[var(--color-ink-faint)]"
           style={{ animation: "sealed-pulse 2.2s ease-in-out infinite" }}
         >
           sealed
@@ -103,7 +108,7 @@ function Card({
     <div
       className="relative overflow-hidden rounded-[3px]"
       style={{
-        height: loud ? CARD : 26,
+        height: loud ? CARD : QUIET,
         background: prize
           ? `linear-gradient(158deg, color-mix(in oklab, ${ink} 22%, var(--color-surface)), var(--color-surface))`
           : undefined,
@@ -127,7 +132,7 @@ function Card({
 
       <div className="pointer-events-none absolute inset-0 grid place-items-center">
         {prize ? (
-          <CrateTile rarity={item.spec.rarity} size={CARD - 26} />
+          <CrateTile rarity={item.spec.rarity} size={CARD - 30} />
         ) : (
           <span
             className="block"
@@ -143,7 +148,7 @@ function Card({
 
       {item.spec.tickets > 0 && (
         <div
-          className="t-chain absolute right-1.5 top-1 text-[0.8125rem] font-semibold leading-none"
+          className="t-chain absolute right-2 top-1.5 text-[1.25rem] font-bold leading-none"
           style={{ color: ink, textShadow: "0 1px 5px oklch(0% 0 0 / 0.95)" }}
         >
           +{item.risk ? item.spec.tickets * 2 : item.spec.tickets}
@@ -152,7 +157,7 @@ function Card({
 
       {prize && (
         <div
-          className="t-inscription absolute inset-x-0 bottom-1 text-center text-[0.5rem]"
+          className="t-inscription absolute inset-x-0 bottom-1.5 text-center text-[0.6875rem]"
           style={{ color: ink, textShadow: "0 1px 4px oklch(0% 0 0 / 0.95)" }}
         >
           {item.spec.name}
@@ -161,7 +166,7 @@ function Card({
 
       {item.risk && (
         <div
-          className="t-inscription absolute left-1 top-1 text-[0.5rem] leading-none"
+          className="t-inscription absolute left-2 top-1.5 text-[0.625rem] leading-none"
           style={{
             color: "var(--color-tier-vault)",
             textShadow: "0 1px 4px oklch(0% 0 0 / 0.95)",
@@ -175,7 +180,7 @@ function Card({
         <span
           aria-hidden
           className="pointer-events-none absolute inset-0 rounded-[3px]"
-          style={{ boxShadow: "inset 0 0 0 1.5px var(--color-accent-bright)" }}
+          style={{ boxShadow: "inset 0 0 0 2px var(--color-accent-bright)" }}
         />
       )}
     </div>
