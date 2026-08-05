@@ -201,10 +201,20 @@ export function HallShader() {
       target.y = 1 - e.clientY / window.innerHeight;
     };
 
+    //
+    const dbg = gl.getExtension("WEBGL_debug_renderer_info");
+    const renderer = dbg
+      ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) ?? "")
+      : "";
+    const software = /swiftshader|llvmpipe|software|basic render/i.test(renderer);
+
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     let raf = 0;
     let running = false;
     const start = performance.now();
+
+    let probed = 0;
+    let probeStart = 0;
 
     const frame = (now: number) => {
       eased.x += (target.x - eased.x) * 0.045;
@@ -212,6 +222,16 @@ export function HallShader() {
       gl.uniform2f(uMouse, eased.x, eased.y);
       gl.uniform1f(uTime, (now - start) / 1000);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+      if (probed < 20) {
+        if (probed === 0) probeStart = now;
+        probed += 1;
+        if (probed === 20 && (now - probeStart) / 20 > 24) {
+          stop();
+          return;
+        }
+      }
+
       raf = requestAnimationFrame(frame);
     };
 
@@ -221,7 +241,7 @@ export function HallShader() {
     };
 
     const play = () => {
-      if (running || reduced.matches || document.hidden) return;
+      if (running || software || reduced.matches || document.hidden) return;
       running = true;
       raf = requestAnimationFrame(frame);
     };
