@@ -55,9 +55,11 @@ export function Roll({
   const strip = frozen?.strip ?? built;
 
   //
+  //
   useEffect(() => {
-    if (landedValue != null) return;
-    if (strip.length) x.set(-STEP * strip.length);
+    if (landedValue != null || !strip.length) return;
+    const empty = strip.findIndex((s) => s.tickets === 0 && s.name !== VAULT_SPEC.name);
+    x.set(-STEP * (strip.length + (empty >= 0 ? empty : 0)));
   }, [strip, landedValue, x]);
 
   //
@@ -105,10 +107,11 @@ export function Roll({
     >
       <div
         aria-hidden
-        className="absolute left-1/2 top-0 z-20 h-full w-[3px] -translate-x-1/2"
+        className="absolute left-1/2 top-0 z-20 h-full w-[3px] -translate-x-1/2 transition-opacity duration-300"
         style={{
           background: "var(--color-accent-bright)",
-          boxShadow: "0 0 14px 1px var(--color-accent)",
+          boxShadow: landedValue != null ? "0 0 14px 1px var(--color-accent)" : "none",
+          opacity: landedValue != null ? 1 : running ? 0.7 : 0.28,
         }}
       />
 
