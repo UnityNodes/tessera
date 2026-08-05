@@ -218,7 +218,7 @@ export function Crate({
   return (
     <div
       className={`scene relative grid place-items-center ${className ?? ""}`}
-      style={{ width: `min(${size}px, 100%)`, aspectRatio: "1 / 1" }}
+      style={{ width: `min(${size}px, 100%)`, aspectRatio: "1 / 0.78" }}
       aria-hidden
     >
       {look.auraStrength > 0 && (
