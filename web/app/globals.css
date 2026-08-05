@@ -282,6 +282,7 @@ body::before {
   width: var(--w);
   height: var(--h);
   background: linear-gradient(166deg, var(--band), var(--base) 44%, var(--shade));
+  backface-visibility: hidden;
   box-shadow:
     inset 0 0 0 calc(var(--s) * 0.008) var(--rim),
     inset 0 calc(var(--s) * 0.015) calc(var(--s) * 0.04) oklch(100% 0 0 / 0.12),

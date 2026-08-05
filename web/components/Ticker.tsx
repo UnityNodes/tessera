@@ -22,12 +22,11 @@ export function Ticker({ items }: { items: FeedItem[] }) {
     <div
       className="relative overflow-hidden"
       style={{
-        height: CARD + 26,
         maskImage:
           "linear-gradient(90deg, transparent 0%, black 4%, black 92%, transparent 100%)",
       }}
     >
-      <ul className="flex gap-2 overflow-x-auto pb-2 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <ul className="flex items-end gap-2 overflow-x-auto pb-2 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <AnimatePresence initial={false}>
           {items.map((it, i) => {
             const mine = Boolean(address && it.player.toLowerCase() === address.toLowerCase());
@@ -82,7 +81,7 @@ function Card({
       <div
         className="relative grid place-items-center overflow-hidden rounded-[3px]"
         style={{
-          height: CARD,
+          height: mine ? CARD : 26,
           background: "var(--color-raised)",
           boxShadow: "inset 0 0 0 1px var(--edge)",
         }}
@@ -101,7 +100,7 @@ function Card({
     <div
       className="relative overflow-hidden rounded-[3px]"
       style={{
-        height: CARD,
+        height: prize || mine ? CARD : 26,
         background: prize
           ? `linear-gradient(158deg, color-mix(in oklab, ${ink} 22%, var(--color-surface)), var(--color-surface))`
           : undefined,
