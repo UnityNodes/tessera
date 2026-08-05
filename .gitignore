@@ -19,3 +19,6 @@ dist/
 .playwright-mcp/
 *.png
 !web/public/**/*.png
+
+# Stitch ,
+stitch/
