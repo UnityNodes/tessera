@@ -49,17 +49,18 @@ export function Shell({ children }: { children: React.ReactNode }) {
             </Tab>
           </nav>
 
-          <div className="ml-auto flex items-center gap-3">
-            <span className="hidden items-center gap-2 rounded-[var(--radius-panel)] border border-[var(--edge)] px-3 py-1.5 lg:flex">
-              <IconVault />
-              <Counter
-                value={Number(formatUnits(game.vault, 6))}
-                decimals={2}
-                prefix="$"
-                className="t-chain text-[0.8125rem]"
-                style={{ color: "var(--color-tier-vault)" }}
-              />
-            </span>
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <Chip
+              label="vault"
+              value={Number(formatUnits(game.vault, 6))}
+              ink="var(--color-tier-vault)"
+              icon={<IconVault />}
+            />
+            <Chip
+              label="yours"
+              value={Number(formatUnits(game.balance, 6))}
+              ink="var(--color-ink)"
+            />
             <ConnectBar />
           </div>
         </div>
@@ -117,6 +118,35 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </footer>
     </div>
+  );
+}
+
+/**
+ *
+ */
+function Chip({
+  label,
+  value,
+  ink,
+  icon,
+}: {
+  label: string;
+  value: number;
+  ink: string;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <span className="hidden items-center gap-2 rounded-[var(--radius-panel)] border border-[var(--edge)] px-3 py-1.5 lg:flex">
+      {icon}
+      <span className="t-label text-[0.5625rem] leading-none">{label}</span>
+      <Counter
+        value={value}
+        decimals={2}
+        prefix="$"
+        className="t-chain text-[0.8125rem] leading-none"
+        style={{ color: ink }}
+      />
+    </span>
   );
 }
 

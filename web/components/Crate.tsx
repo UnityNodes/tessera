@@ -275,6 +275,7 @@ export function Crate({
 
 /**
  *
+ *
  */
 export function CrateTile({
   rarity,
@@ -288,6 +289,9 @@ export function CrateTile({
   const look = LOOKS[rarity];
   const id = `tile-${rarity}`;
 
+  const L = 14, R = 66, DX = 20, DY = 11;
+  const LID_T = 30, LID_B = 44, BODY_B = 78;
+
   return (
     <svg
       width={size}
@@ -298,60 +302,73 @@ export function CrateTile({
       aria-hidden
     >
       <defs>
-        <linearGradient id={`${id}-top`} x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id={`${id}-front`} x1="0" y1="0" x2="0.3" y2="1">
+          <stop offset="0%" stopColor={look.band} />
+          <stop offset="44%" stopColor={look.base} />
+          <stop offset="100%" stopColor={look.shade} />
+        </linearGradient>
+        <linearGradient id={`${id}-side`} x1="0" y1="0" x2="0.4" y2="1">
+          <stop offset="0%" stopColor={look.shade} />
+          <stop offset="100%" stopColor={look.plate} />
+        </linearGradient>
+        <linearGradient id={`${id}-top`} x1="0" y1="0" x2="0.5" y2="1">
           <stop offset="0%" stopColor={look.lit} />
           <stop offset="100%" stopColor={look.band} />
         </linearGradient>
-        <linearGradient id={`${id}-left`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={look.base} />
-          <stop offset="100%" stopColor={look.shade} />
-        </linearGradient>
-        <linearGradient id={`${id}-right`} x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={`${id}-band`} x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%" stopColor={look.shade} />
-          <stop offset="100%" stopColor={look.shade} stopOpacity="0.72" />
+          <stop offset="34%" stopColor={look.lit} />
+          <stop offset="100%" stopColor={look.shade} />
         </linearGradient>
       </defs>
 
-      <ellipse cx="50" cy="80" rx="34" ry="5.5" fill="#000" opacity="0.5" />
-
-      <path d="M41 10.5 85 32.5 59 45.5 15 23.5Z" fill={`url(#${id}-top)`} />
-      <path d="M15 23.5 59 45.5v9L15 32.5Z" fill={`url(#${id}-left)`} />
-      <path d="M85 32.5 59 45.5v9l26-13Z" fill={`url(#${id}-right)`} />
-
-      <path d="M15 32.5 59 54.5v20L15 52.5Z" fill={`url(#${id}-left)`} />
-      <path d="M85 41.5 59 54.5v20l26-13Z" fill={`url(#${id}-right)`} />
+      <ellipse cx="48" cy="82" rx="32" ry="5" fill="#000" opacity="0.5" />
 
       <path
-        d="M15 32.5 59 54.5 85 41.5"
-        fill="none"
-        stroke={look.rim}
-        strokeWidth="1.3"
-        strokeLinejoin="round"
+        d={`M${R} ${LID_B} ${R + DX} ${LID_B - DY} ${R + DX} ${BODY_B - DY} ${R} ${BODY_B}Z`}
+        fill={`url(#${id}-side)`}
+      />
+      <path d={`M${L} ${LID_B}h${R - L}v${BODY_B - LID_B}H${L}Z`} fill={`url(#${id}-front)`} />
+
+      <path
+        d={`M${L} ${LID_T} ${L + DX} ${LID_T - DY} ${R + DX} ${LID_T - DY} ${R} ${LID_T}Z`}
+        fill={`url(#${id}-top)`}
       />
       <path
-        d="M41 10.5 85 32.5 59 45.5 15 23.5Z M15 23.5v29l44 22 26-13v-29"
+        d={`M${R} ${LID_T} ${R + DX} ${LID_T - DY} ${R + DX} ${LID_B - DY} ${R} ${LID_B}Z`}
+        fill={`url(#${id}-side)`}
+      />
+      <path d={`M${L} ${LID_T}h${R - L}v${LID_B - LID_T}H${L}Z`} fill={`url(#${id}-front)`} />
+
+      <path d={`M36 ${LID_T}h8v${BODY_B - LID_T}h-8Z`} fill={`url(#${id}-band)`} />
+      <path d={`M36 ${LID_T} 46 ${LID_T - DY}h8l-10 ${DY}Z`} fill={look.lit} opacity="0.85" />
+
+      <path
+        d={`M${L} ${LID_B}h${R - L}l${DX} ${-DY}`}
+        fill="none"
+        stroke={look.rim}
+        strokeWidth="1.1"
+      />
+      <path
+        d={`M${L} ${LID_T}h${R - L}l${DX} ${-DY}v${BODY_B - LID_T}l${-DX} ${DY}H${L}Z M${L} ${LID_T}v${BODY_B - LID_T}`}
         fill="none"
         stroke={look.rim}
         strokeWidth="1.2"
         strokeLinejoin="round"
       />
 
-      <path d="M59 45.5v29" stroke={look.rim} strokeWidth="1.6" opacity="0.7" />
-
-      <ellipse
-        cx="59"
-        cy="62"
-        rx="7"
-        ry="8"
+      <circle
+        cx="40"
+        cy="61"
+        r="7.5"
         fill={look.plate}
         stroke={look.rim}
         strokeWidth="1"
-        opacity="0.95"
       />
       {look.glyph !== "none" && look.glyph !== "lock" && look.glyph !== "diamond" && (
         <text
-          x="59"
-          y="66"
+          x="40"
+          y="65"
           textAnchor="middle"
           fontFamily="var(--font-mono)"
           fontSize="10"
@@ -361,13 +378,17 @@ export function CrateTile({
           {look.glyph}
         </text>
       )}
-      {look.glyph === "diamond" && <path d="M59 56 64.5 62 59 68 53.5 62Z" fill={look.mark} />}
+      {look.glyph === "diamond" && <path d="M40 55.5 45.5 61 40 66.5 34.5 61Z" fill={look.mark} />}
       {look.glyph === "lock" && (
         <g stroke={look.mark} strokeWidth="1.5" fill="none" strokeLinecap="round">
-          <rect x="55.5" y="60" width="7" height="6.5" rx="1.2" />
-          <path d="M57 60v-1.8a2.2 2.2 0 0 1 4.4 0V60" />
+          <rect x="36.5" y="59" width="7" height="6" rx="1.2" />
+          <path d="M38 59v-1.8a2.2 2.2 0 0 1 4.4 0V59" />
         </g>
       )}
+
+      {[18, 26, 54, 62].map((x) => (
+        <circle key={x} cx={x} cy={37} r="1.5" fill={look.lit} opacity="0.9" />
+      ))}
     </svg>
   );
 }

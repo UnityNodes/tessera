@@ -166,6 +166,8 @@ export function useOpenCase(onSettled?: () => void) {
           risk,
         });
 
+        onSettled?.();
+
         await awaitReveal(handle, ctl);
       } catch (err) {
         if (ctl.signal.aborted) return;
