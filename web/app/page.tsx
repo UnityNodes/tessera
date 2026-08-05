@@ -165,17 +165,17 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
             <span className="t-label pb-1">
               {deck.empty ? "all opened" : `${deck.remaining} of ${deck.size} left`}
             </span>
-            {deck.vaultUpTo > 0 && (
-              <span className="text-right">
-                <span className="t-label block">vault</span>
-                <span
-                  className="t-chain block text-2xl leading-none"
-                  style={{ color: "var(--color-tier-vault)" }}
-                >
-                  ${vault}
-                </span>
+            <span className="text-right">
+              <span className="t-label block">{deck.vaultUpTo > 0 ? "vault" : "no vault"}</span>
+              <span
+                className="t-chain block text-2xl leading-none"
+                style={{
+                  color: deck.vaultUpTo > 0 ? "var(--color-tier-vault)" : "var(--color-ink-faint)",
+                }}
+              >
+                {deck.vaultUpTo > 0 ? `$${vault}` : ", "}
               </span>
-            )}
+            </span>
           </div>
 
           <div className="mt-3 h-1 overflow-hidden rounded-full bg-[var(--color-raised)]">

@@ -236,6 +236,11 @@ export default function CasePage() {
               The vault paid you ${Number(formatUnits(vault.state.paid ?? 0n, 6)).toFixed(2)}.
             </p>
           )}
+
+          <div className="mt-8 border-t border-[var(--edge)] pt-6">
+            <p className="t-label mb-4">what is still in the pool</p>
+            <PoolCounter deck={shape} drawn={deck.drawn} pool={pool.data} />
+          </div>
         </div>
       </section>
 
@@ -276,15 +281,9 @@ export default function CasePage() {
         <Contents deck={shape} pool={pool.data} />
       </section>
 
-      <section className="mt-10 grid gap-5 lg:grid-cols-2">
-        <div className="surface p-6 sm:p-8">
-          <p className="t-label mb-4">what is still in the pool</p>
-          <PoolCounter deck={shape} drawn={deck.drawn} pool={pool.data} />
-        </div>
-        <div className="surface p-6 sm:p-8">
-          <p className="t-label mb-4">your Megapot, from here</p>
-          <MegapotPanel mp={megapot} />
-        </div>
+      <section className="surface mt-10 p-6 sm:p-10">
+        <p className="t-label mb-4">your Megapot, from here</p>
+        <MegapotPanel mp={megapot} />
       </section>
     </>
   );
