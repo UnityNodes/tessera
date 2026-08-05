@@ -16,6 +16,13 @@ const STEP = ITEM + GAP;
 /**
  *
  *
+ */
+const SETTLE_STEPS = 52;
+export const SETTLE_MS = 3300;
+
+/**
+ *
+ *
  *
  */
 export function Roll({
@@ -79,18 +86,22 @@ export function Roll({
     if (still || landedValue == null) return;
     const items = frozen?.strip ?? built;
     const target = specOf(landedValue, deck).name;
+    const len = items.length;
 
-    const current = Math.abs(x.get()) / STEP;
-    let idx = Math.ceil(current) + 12;
-    for (let i = 0; i < items.length * 2; i++) {
-      if (items[(idx + i) % items.length].name === target) {
+    const norm = (Math.abs(x.get()) / STEP) % len;
+    x.set(-norm * STEP);
+
+    let idx = Math.ceil(norm) + SETTLE_STEPS;
+    for (let i = 0; i < len; i++) {
+      if (items[(idx + i) % len].name === target) {
         idx += i;
         break;
       }
     }
+
     const settle = animate(x, -(idx * STEP), {
-      duration: 1.9,
-      ease: [0.12, 0.72, 0.12, 1],
+      duration: SETTLE_MS / 1000,
+      ease: [0.16, 1, 0.3, 1],
     });
     return () => settle.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -9,6 +9,7 @@ import { approveOnce } from "@/lib/approve";
 import { revealHandles } from "@/lib/inco";
 import { forgetPending, pendingFor, rememberPending } from "@/lib/pending";
 import { explain, type Explained } from "@/lib/errors";
+import { SETTLE_MS } from "@/components/Roll";
 
 /**
  *
@@ -74,7 +75,7 @@ export function useOpenCase(onSettled?: () => void) {
         value: revealed.value,
         waitedMs: Date.now() - startedWaiting,
       }));
-      await new Promise((r) => setTimeout(r, 2000));
+      await new Promise((r) => setTimeout(r, SETTLE_MS + 200));
       if (ctl.signal.aborted) return;
       setState((s) => ({ ...s, phase: "done" }));
       onSettled?.();
