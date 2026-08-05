@@ -167,14 +167,25 @@ function Stat({
   value: string;
   ink?: string;
 }) {
+  const lit = Boolean(ink);
   return (
-    <div className="flex items-center gap-3.5 px-5 py-4">
-      <span className="text-[var(--color-ink-faint)]">{icon}</span>
+    <div className="relative flex items-center gap-3.5 px-5 py-4">
+      {lit && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-px"
+          style={{ background: `linear-gradient(90deg, transparent, ${ink}, transparent)` }}
+        />
+      )}
+      <span style={{ color: lit ? ink : "var(--color-ink-faint)" }}>{icon}</span>
       <span>
         <span className="t-label block">{label}</span>
         <span
-          className="t-chain mt-1 block text-xl leading-none"
-          style={{ color: ink ?? "var(--color-ink)" }}
+          className="t-chain mt-1.5 block text-[1.375rem] font-medium leading-none"
+          style={{
+            color: ink ?? "var(--color-ink)",
+            textShadow: lit ? `0 0 24px color-mix(in oklab, ${ink} 55%, transparent)` : undefined,
+          }}
         >
           {value}
         </span>

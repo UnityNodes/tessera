@@ -54,8 +54,17 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="@container grid min-w-0 place-items-center">
-            <Crate rarity="sealed" size={380} drift />
+          <div className="@container relative grid min-w-0 place-items-center">
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(46% 40% at 50% 64%, color-mix(in oklab, var(--color-accent) 34%, transparent), transparent 72%)",
+                filter: "blur(34px)",
+              }}
+            />
+            <Crate rarity="sealed" size={400} drift className="relative" />
           </div>
         </div>
       </section>

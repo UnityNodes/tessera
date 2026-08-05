@@ -176,30 +176,19 @@ body::before {
   overflow: hidden;
 }
 
-.floor__tiles {
-  position: absolute;
-  inset: -20%;
-  background-image:
-    linear-gradient(to right, oklch(62% 0.05 262 / 0.22) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(62% 0.05 262 / 0.22) 1px, transparent 1px);
-  background-size: 34px 34px;
-  mask-image: radial-gradient(115% 105% at 50% 34%, black 10%, transparent 72%);
-}
-
 .floor__pool {
   position: absolute;
   border-radius: 50%;
-  filter: blur(70px);
+  filter: blur(80px);
   will-change: transform;
 }
 
-.floor__glint {
+.floor__mote {
   position: absolute;
-  width: 32px;
-  height: 32px;
-  border-radius: 3px;
+  border-radius: 50%;
   opacity: 0;
-  animation: glint 7s var(--ease-stone) infinite;
+  will-change: transform, opacity;
+  animation: mote-rise linear infinite;
 }
 
 
@@ -338,9 +327,11 @@ body::before {
   66% { transform: translate3d(-4vw, -3vh, 0) scale(0.94); }
 }
 
-@keyframes glint {
-  0%, 88%, 100% { opacity: 0; }
-  92% { opacity: 0.55; }
+@keyframes mote-rise {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  12% { opacity: var(--mote-opacity, 0.3); }
+  88% { opacity: var(--mote-opacity, 0.3); }
+  100% { transform: translate3d(var(--mote-dx, 2vw), -78vh, 0); opacity: 0; }
 }
 
 @keyframes rim-sweep {
@@ -364,8 +355,12 @@ body::before {
   }
 
   .floor__pool,
-  .floor__glint {
+  .floor__mote {
     animation: none !important;
+  }
+
+  .floor__mote {
+    opacity: 0 !important;
   }
 }
 

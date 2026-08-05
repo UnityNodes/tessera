@@ -6,7 +6,7 @@ import { isVault } from "@/lib/deck";
 import { CrateTile } from "./Crate";
 import type { FeedItem } from "@/hooks/useFeed";
 
-const CARD = 112;
+const CARD = 84;
 
 /**
  *
