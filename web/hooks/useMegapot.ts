@@ -1,7 +1,7 @@
 "use client";
 
 import { useAccount, useReadContracts, useConfig } from "wagmi";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { simulateContract, writeContract, waitForTransactionReceipt } from "wagmi/actions";
 import { parseAbi } from "viem";
 import { MEGAPOT, txUrl } from "@/lib/chain";
@@ -49,6 +49,13 @@ export function useMegapot() {
     query: { enabled: Boolean(address), refetchInterval: 15_000 },
   });
 
+  //
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 20_000);
+    return () => clearInterval(t);
+  }, []);
+
   const big = (i: number) => (reads.data?.[i]?.result as bigint | undefined) ?? 0n;
   const user = mine.data?.[0]?.result as readonly [bigint, bigint, boolean] | undefined;
 
@@ -83,7 +90,7 @@ export function useMegapot() {
     prizePool: big(0),
     liquidityPool: big(1),
     endsAt,
-    stalled: endsAt > 0 && endsAt < Date.now(),
+    stalled: endsAt > 0 && endsAt < now,
     lastWinner: reads.data?.[4]?.result as `0x${string}` | undefined,
     claim,
     withdraw,
