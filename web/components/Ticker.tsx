@@ -38,7 +38,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
             const pending = it.value === undefined;
             const prize = !pending && (it.weight > 0 || isVault(it.spec));
             //
-            const loud = prize || Boolean(it.risk);
+            const loud = prize;
             const width = loud ? CARD : Math.round(CARD * 0.26);
             return (
               <motion.li
@@ -138,10 +138,11 @@ function Card({
           <span
             className="block"
             style={{
-              width: "34%",
-              height: 2,
-              background: "var(--color-ink-faint)",
-              opacity: 0.4,
+              width: item.risk ? "52%" : "34%",
+              height: item.risk ? 3 : 2,
+              background: item.risk ? "var(--color-tier-vault)" : "var(--color-ink-faint)",
+              opacity: item.risk ? 0.85 : 0.4,
+              boxShadow: item.risk ? "0 0 8px -1px var(--color-tier-vault)" : undefined,
             }}
           />
         )}
@@ -165,7 +166,7 @@ function Card({
         </div>
       )}
 
-      {item.risk && (
+      {item.risk && loud && (
         <div
           className="t-inscription absolute left-2 top-1.5 text-[0.625rem] leading-none"
           style={{

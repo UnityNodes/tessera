@@ -258,7 +258,8 @@ export function Crate({
               "--plate": look.plate,
               "--plate-lit": look.plateLit,
               "--mark": look.mark,
-              "--aura": look.aura === "transparent" ? "oklch(60% 0.02 260)" : look.aura,
+              //
+              "--aura": look.auraStrength === 0 ? "oklch(0% 0 0 / 0.9)" : look.aura,
               transform: spin && !open ? undefined : "rotateX(-16deg) rotateY(-26deg)",
               animation: spin && !open ? "crate-turn 11s ease-in-out infinite" : undefined,
             } as React.CSSProperties

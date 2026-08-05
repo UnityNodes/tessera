@@ -17,8 +17,24 @@ const STEP = ITEM + GAP;
  *
  *
  */
-const SETTLE_STEPS = 52;
-export const SETTLE_MS = 3300;
+const SETTLE_STEPS = 24;
+
+/**
+ *
+ *
+ */
+const DECAY = 2;
+
+/**
+ *
+ */
+const SPEED = 15.75;
+
+const SEARCH_WINDOW = 12;
+
+/**
+ */
+export const SETTLE_MS = Math.ceil((((SETTLE_STEPS + SEARCH_WINDOW) * DECAY) / SPEED) * 1000);
 
 /**
  *
@@ -73,7 +89,7 @@ export function Roll({
   useEffect(() => {
     if (still || !running || landedValue != null) return;
     const loop = animate(x, x.get() - STEP * strip.length, {
-      duration: strip.length * 0.075,
+      duration: strip.length / SPEED,
       ease: "linear",
       repeat: Infinity,
       repeatType: "loop",
@@ -100,8 +116,8 @@ export function Roll({
     }
 
     const settle = animate(x, -(idx * STEP), {
-      duration: SETTLE_MS / 1000,
-      ease: [0.16, 1, 0.3, 1],
+      duration: Math.min(((idx - norm) * DECAY) / SPEED, SETTLE_MS / 1000),
+      ease: [0.33, 0.66, 0.66, 1],
     });
     return () => settle.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
