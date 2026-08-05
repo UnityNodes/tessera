@@ -116,28 +116,20 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
             />
           </div>
 
-          <div className="border-t border-[var(--edge)] px-6 py-6">
-            <div className="flex items-end justify-between gap-3">
-              <span>
-                <span className="t-display block text-[1.75rem] leading-none">
-                  {oneIn > 0 ? (
-                    <>
-                      1 in <span style={{ color: best?.ink }}>{oneIn}</span>
-                    </>
-                  ) : (
-                    ", "
-                  )}
-                </span>
-                <span className="t-label mt-2 block">cases pay something</span>
-              </span>
-              <span className="chip">$1 a case</span>
-            </div>
+          <div className="border-t border-[var(--edge)] px-5 py-5 text-center">
+            <p
+              className="t-display text-[1.375rem] leading-none"
+              style={{ color: best?.ink ?? "var(--color-ink)" }}
+            >
+              {deck.empty ? "Emptied" : (best?.name ?? "Sealed")}
+            </p>
 
-            <p className="mt-4 min-h-[3.25rem] text-[0.9375rem] text-[var(--color-ink-dim)]">
+            <p className="mx-auto mt-3 min-h-[4.5rem] max-w-[34ch] text-[0.875rem] leading-snug text-[var(--color-ink-dim)]">
               {deck.empty ? (
                 "Every case in this deck has been opened."
               ) : (
                 <>
+                  {oneIn > 0 ? `1 in ${oneIn} cases pay something. ` : ""}
                   Best case{" "}
                   <span style={{ color: best?.ink }}>
                     {top > 0 ? `+${top} tickets` : "the vault"}
@@ -150,40 +142,29 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
               )}
             </p>
 
-            <div className="mt-5 flex items-end justify-between gap-3">
-              <span>
-                <span className="t-label block">still sealed</span>
-                <span className="t-chain mt-1.5 block text-[1.0625rem] leading-none">
-                  {deck.remaining}
-                  <span className="text-[var(--color-ink-faint)]"> of {deck.size}</span>
-                </span>
+            <div className="mt-4 flex items-baseline justify-between gap-3 text-[0.75rem]">
+              <span className="t-chain text-[var(--color-ink-faint)]">
+                Still sealed:{" "}
+                <span className="text-[var(--color-ink)]">{deck.remaining}</span>
               </span>
-              <span className="text-right">
-                <span className="t-label block">{deck.vaultUpTo > 0 ? "vault" : "no vault"}</span>
-                <span
-                  className="t-chain mt-1.5 block text-[1.5rem] leading-none"
-                  style={{
-                    color:
-                      deck.vaultUpTo > 0 ? "var(--color-tier-vault)" : "var(--color-ink-faint)",
-                    textShadow:
-                      deck.vaultUpTo > 0
-                        ? "0 0 22px color-mix(in oklab, var(--color-tier-vault) 55%, transparent)"
-                        : undefined,
-                  }}
-                >
-                  {deck.vaultUpTo > 0 ? `$${vault}` : ", "}
-                </span>
+              <span className="t-chain text-[var(--color-ink-faint)]">
+                {deck.vaultUpTo > 0 ? (
+                  <>
+                    Vault: <span style={{ color: "var(--color-tier-vault)" }}>${vault}</span>
+                  </>
+                ) : (
+                  "No vault"
+                )}
               </span>
             </div>
 
-            <div className="mt-3 h-1 overflow-hidden rounded-full bg-[var(--color-raised)]">
+            <div className="mt-2 h-1 overflow-hidden bg-[var(--color-raised)]">
               <div
-                className="h-full rounded-full transition-[width] duration-700"
+                className="h-full transition-[width] duration-700"
                 style={{
-                  width: `${deck.size > 0 ? (deck.drawn / deck.size) * 100 : 0}%`,
-                  background:
-                    "linear-gradient(90deg, var(--color-accent-press), var(--color-accent-bright))",
-                  boxShadow: "0 0 12px -2px var(--color-accent)",
+                  width: `${deck.size > 0 ? Math.max(2, (deck.remaining / deck.size) * 100) : 0}%`,
+                  background: best?.ink ?? "var(--color-accent)",
+                  boxShadow: `0 0 12px -2px ${best?.ink ?? "var(--color-accent)"}`,
                 }}
               />
             </div>

@@ -53,6 +53,16 @@ export default function Home() {
             <span className="frame__node right-0 top-0" aria-hidden />
             <span className="frame__node bottom-0 left-0" aria-hidden />
             <span className="frame__node bottom-0 right-0" aria-hidden />
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-1/2 top-0 h-[86%] w-[78%] -translate-x-1/2"
+              style={{
+                clipPath: "polygon(38% 0%, 62% 0%, 100% 100%, 0% 100%)",
+                background:
+                  "linear-gradient(to bottom, color-mix(in oklab, var(--color-accent-bright) 30%, transparent), transparent 78%)",
+                filter: "blur(12px)",
+              }}
+            />
             <Crate rarity="sealed" size={380} drift className="relative" />
           </div>
         </div>

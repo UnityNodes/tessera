@@ -66,11 +66,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </header>
 
       <div className="relative z-[var(--z-stats)] border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-surface)_70%,transparent)] backdrop-blur-md">
-        <div className="mx-auto grid max-w-[1800px] grid-cols-2 divide-x divide-[var(--edge)] px-5 sm:px-8 2xl:px-12 md:grid-cols-4">
-          <Stat icon={<IconCase />} label="cases opened" value={game.drawn} />
-          <Stat icon={<IconUsers />} label="players" value={playerCount} />
+        <div className="mx-auto grid max-w-[1800px] grid-cols-2 gap-x-8 px-5 sm:px-8 2xl:px-12 md:grid-cols-4">
+          <Stat label="cases opened" value={game.drawn} />
+          <Stat label="players" value={playerCount} />
           <Stat
-            icon={<IconLayers />}
             label="cases left"
             value={game.remaining}
             suffix={` in ${game.decks.length}`}
@@ -83,25 +82,20 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </div>
 
       <div className="relative z-[var(--z-feed)] border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-surface)_38%,transparent)] backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1800px] items-stretch px-5 sm:px-8 2xl:px-12">
-          <div className="flex w-14 shrink-0 flex-col items-center justify-center gap-1 border-r border-[var(--edge)] pr-3">
-            <IconCrown />
-            <span className="t-label flex items-center gap-1 text-[0.5625rem]">
-              <span
-                aria-hidden
-                className="h-1.5 w-1.5 rounded-full"
-                style={{
-                  background: "var(--color-tier-denarius)",
-                  boxShadow: "0 0 8px var(--color-tier-denarius)",
-                  animation: "marker-live 1.8s ease-in-out infinite",
-                }}
-              />
-              live
-            </span>
-          </div>
-          <div className="min-w-0 flex-1 pl-3">
-            <Ticker items={feed} />
-          </div>
+        <div className="mx-auto max-w-[1800px] px-5 pt-2 sm:px-8 2xl:px-12">
+          <span className="t-label flex items-center gap-1.5 text-[0.625rem]">
+            <span
+              aria-hidden
+              className="h-1.5 w-1.5 rounded-full"
+              style={{
+                background: "var(--color-tier-denarius)",
+                boxShadow: "0 0 8px var(--color-tier-denarius)",
+                animation: "marker-live 1.8s ease-in-out infinite",
+              }}
+            />
+            live drops
+          </span>
+          <Ticker items={feed} />
         </div>
       </div>
 
@@ -164,33 +158,19 @@ function Tab({
 function TicketsStat({ tickets, caseHref }: { tickets: number; caseHref: string }) {
   return (
     <details className="group/t relative">
-      <summary className="flex cursor-pointer list-none items-center gap-3.5 px-5 py-4 transition-colors hover:bg-[color-mix(in_oklab,var(--color-accent)_8%,transparent)] [&::-webkit-details-marker]:hidden">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-px"
+      <summary className="cursor-pointer list-none py-3 [&::-webkit-details-marker]:hidden">
+        <span className="t-label flex items-center gap-1.5 text-[0.625rem]">
+          your tickets
+          <IconChevron />
+        </span>
+        <Counter
+          value={tickets}
+          className="t-chain mt-1 block text-[1.25rem] font-medium leading-none"
           style={{
-            background:
-              "linear-gradient(90deg, transparent, var(--color-accent-bright), transparent)",
+            color: "var(--color-accent-bright)",
+            textShadow: "0 0 24px color-mix(in oklab, var(--color-accent-bright) 55%, transparent)",
           }}
         />
-        <span style={{ color: "var(--color-accent-bright)" }}>
-          <IconTicket />
-        </span>
-        <span>
-          <span className="t-label flex items-center gap-1.5">
-            your tickets
-            <IconChevron />
-          </span>
-          <Counter
-            value={tickets}
-            className="t-chain mt-1.5 block text-[1.375rem] font-medium leading-none"
-            style={{
-              color: "var(--color-accent-bright)",
-              textShadow:
-                "0 0 24px color-mix(in oklab, var(--color-accent-bright) 55%, transparent)",
-            }}
-          />
-        </span>
       </summary>
 
       <div className="surface absolute right-0 top-full z-[var(--z-sticky)] mt-1 w-[min(22rem,calc(100vw-2rem))] p-5">
@@ -218,13 +198,11 @@ function TicketsStat({ tickets, caseHref }: { tickets: number; caseHref: string 
 }
 
 function Stat({
-  icon,
   label,
   value,
   suffix,
   ink,
 }: {
-  icon: React.ReactNode;
   label: string;
   value: number;
   suffix?: string;
@@ -232,27 +210,17 @@ function Stat({
 }) {
   const lit = Boolean(ink);
   return (
-    <div className="relative flex items-center gap-3.5 px-5 py-4">
-      {lit && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-px"
-          style={{ background: `linear-gradient(90deg, transparent, ${ink}, transparent)` }}
-        />
-      )}
-      <span style={{ color: lit ? ink : "var(--color-ink-faint)" }}>{icon}</span>
-      <span>
-        <span className="t-label block">{label}</span>
-        <Counter
-          value={value}
-          suffix={suffix}
-          className="t-chain mt-1.5 block text-[1.375rem] font-medium leading-none"
-          style={{
-            color: ink ?? "var(--color-ink)",
-            textShadow: lit ? `0 0 24px color-mix(in oklab, ${ink} 55%, transparent)` : undefined,
-          }}
-        />
-      </span>
+    <div className="relative py-3">
+      <span className="t-label block text-[0.625rem]">{label}</span>
+      <Counter
+        value={value}
+        suffix={suffix}
+        className="t-chain mt-1 block text-[1.25rem] font-medium leading-none"
+        style={{
+          color: ink ?? "var(--color-ink)",
+          textShadow: lit ? `0 0 24px color-mix(in oklab, ${ink} 55%, transparent)` : undefined,
+        }}
+      />
     </div>
   );
 }
@@ -281,27 +249,6 @@ const IconSwords = () => (
   </svg>
 );
 
-const IconUsers = () => (
-  <svg {...S}>
-    <circle cx="6" cy="5.5" r="2.5" />
-    <path d="M1.5 14c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4M11 3.2a2.5 2.5 0 0 1 0 4.6M12.5 10.4c1.3.6 2 1.8 2 3.6" />
-  </svg>
-);
-
-const IconLayers = () => (
-  <svg {...S}>
-    <path d="M8 1.5 14.5 5 8 8.5 1.5 5z" />
-    <path d="M1.5 8 8 11.5 14.5 8M1.5 11 8 14.5 14.5 11" />
-  </svg>
-);
-
-const IconTicket = () => (
-  <svg {...S}>
-    <path d="M1.5 5.5V4a.5.5 0 0 1 .5-.5h12a.5.5 0 0 1 .5.5v1.5a2 2 0 0 0 0 5V12a.5.5 0 0 1-.5.5H2a.5.5 0 0 1-.5-.5v-1.5a2 2 0 0 0 0-5z" />
-    <path d="M9.5 3.5v9" strokeDasharray="1.6 1.6" />
-  </svg>
-);
-
 const IconVault = () => (
   <svg {...S} width={14} height={14}>
     <rect x="1.5" y="2" width="13" height="12" rx="1.2" />
@@ -318,12 +265,6 @@ const IconChevron = () => (
     className="transition-transform duration-200 group-open/t:rotate-180"
   >
     <path d="M4 6.5 8 10.5l4-4" />
-  </svg>
-);
-
-const IconCrown = () => (
-  <svg {...S} width={16} height={16} style={{ color: "var(--color-tier-aureus)" }}>
-    <path d="M2 12h12M2.5 11 1.5 4.5l3.5 2.5L8 3l3 4 3.5-2.5L13.5 11z" />
   </svg>
 );
 

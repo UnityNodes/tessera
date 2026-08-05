@@ -152,19 +152,35 @@ function Box({
   const sides: Side[] = ["front", "back", "left", "right"];
   return (
     <div className={`crate__part crate__${part}`}>
-      {sides.map((side) => (
-        <div key={side} className={`crate__f crate__f--${side}`}>
-          {studs.map((s, i) => (
-            <span key={i} className="crate__stud" style={s} />
-          ))}
-          {plated && (side === "front" || side === "back") && (
-            <span className="crate__plate">
-              <Glyph kind={look.glyph} />
-            </span>
-          )}
+      {sides.map((side) => {
+        const face = side === "front" || side === "back";
+        return (
+          <div key={side} className={`crate__f crate__f--${side}`}>
+            {face && <span className="crate__band" />}
+            {face && (
+              <>
+                <span className="crate__bracket crate__bracket--tl" />
+                <span className="crate__bracket crate__bracket--tr" />
+                <span className="crate__bracket crate__bracket--bl" />
+                <span className="crate__bracket crate__bracket--br" />
+              </>
+            )}
+            {studs.map((s, i) => (
+              <span key={i} className="crate__stud" style={s} />
+            ))}
+            {plated && face && (
+              <span className="crate__plate">
+                <Glyph kind={look.glyph} />
+              </span>
+            )}
+          </div>
+        );
+      })}
+      {part === "lid" && (
+        <div className="crate__f crate__f--top">
+          <span className="crate__band crate__band--flat" />
         </div>
-      ))}
-      {part === "lid" && <div className="crate__f crate__f--top" />}
+      )}
       <div className="crate__f crate__f--bottom" />
       {part === "body" && <div className="crate__inner" />}
     </div>
