@@ -37,7 +37,7 @@ export function DeckShelf({ heading, note }: { heading?: string; note?: string }
 
 function Heading({ title, note }: { title: string; note: string }) {
   return (
-    <div className="mb-7 mt-20 text-center">
+    <div className="mb-7 mt-12 text-center">
       <div className="flex items-center justify-center gap-3">
         <span
           className="h-px w-10"

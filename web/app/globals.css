@@ -23,8 +23,8 @@
 
   --color-danger: oklch(65% 0.21 20);
 
-  --font-display: var(--font-source-serif), Georgia, serif;
-  --font-body: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 
   --radius-chip: 999px;
@@ -86,9 +86,9 @@ body::before {
 
 .t-display {
   font-family: var(--font-display);
-  font-weight: 700;
-  line-height: 1.05;
-  letter-spacing: -0.022em;
+  font-weight: 800;
+  line-height: 1.0;
+  letter-spacing: -0.032em;
   text-wrap: balance;
 }
 
@@ -325,6 +325,11 @@ body::before {
   0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
   33% { transform: translate3d(6vw, 4vh, 0) scale(1.12); }
   66% { transform: translate3d(-4vw, -3vh, 0) scale(0.94); }
+}
+
+@keyframes ray-breathe {
+  0%, 100% { opacity: 0.18; transform: translateX(0) scaleY(1); }
+  50% { opacity: 0.42; transform: translateX(1.5%) scaleY(1.06); }
 }
 
 @keyframes mote-rise {

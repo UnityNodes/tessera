@@ -1,21 +1,15 @@
 import type { Metadata } from "next";
-import { Source_Serif_4, Hanken_Grotesk, IBM_Plex_Mono } from "next/font/google";
+import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Shell } from "@/components/Shell";
 import { Backdrop } from "@/components/Backdrop";
 
-const sourceSerif = Source_Serif_4({
-  variable: "--font-source-serif",
+//
+const archivo = Archivo({
+  variable: "--font-archivo",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-const hanken = Hanken_Grotesk({
-  variable: "--font-hanken",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -36,10 +30,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="en"
-      className={`${sourceSerif.variable} ${hanken.variable} ${plexMono.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${archivo.variable} ${plexMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <Backdrop />
         <Providers>
