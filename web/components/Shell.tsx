@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { formatUnits } from "viem";
 import { ConnectBar } from "./ConnectBar";
 import { Ticker } from "./Ticker";
+import { Counter } from "./ui/Counter";
 import { useDeck } from "@/hooks/useDeck";
 import { useFeed } from "@/hooks/useFeed";
 import { useOpens } from "@/hooks/useOpens";
@@ -51,12 +52,13 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <div className="ml-auto flex items-center gap-3">
             <span className="hidden items-center gap-2 rounded-[var(--radius-panel)] border border-[var(--edge)] px-3 py-1.5 lg:flex">
               <IconVault />
-              <span
+              <Counter
+                value={Number(formatUnits(game.vault, 6))}
+                decimals={2}
+                prefix="$"
                 className="t-chain text-[0.8125rem]"
                 style={{ color: "var(--color-tier-vault)" }}
-              >
-                ${Number(formatUnits(game.vault, 6)).toFixed(2)}
-              </span>
+              />
             </span>
             <ConnectBar />
           </div>
@@ -65,17 +67,18 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
       <div className="border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-surface)_70%,transparent)] backdrop-blur-md">
         <div className="mx-auto grid max-w-[1800px] grid-cols-2 divide-x divide-[var(--edge)] px-5 sm:px-8 2xl:px-12 md:grid-cols-4">
-          <Stat icon={<IconCase />} label="cases opened" value={String(game.drawn)} />
-          <Stat icon={<IconUsers />} label="players" value={String(playerCount)} />
+          <Stat icon={<IconCase />} label="cases opened" value={game.drawn} />
+          <Stat icon={<IconUsers />} label="players" value={playerCount} />
           <Stat
             icon={<IconLayers />}
             label="cases left"
-            value={`${game.remaining} in ${game.decks.length}`}
+            value={game.remaining}
+            suffix={` in ${game.decks.length}`}
           />
           <Stat
             icon={<IconTicket />}
             label="your tickets"
-            value={megapot.tickets.toFixed(0)}
+            value={Math.round(megapot.tickets)}
             ink="var(--color-accent-bright)"
           />
         </div>
@@ -160,11 +163,13 @@ function Stat({
   icon,
   label,
   value,
+  suffix,
   ink,
 }: {
   icon: React.ReactNode;
   label: string;
-  value: string;
+  value: number;
+  suffix?: string;
   ink?: string;
 }) {
   const lit = Boolean(ink);
@@ -180,15 +185,15 @@ function Stat({
       <span style={{ color: lit ? ink : "var(--color-ink-faint)" }}>{icon}</span>
       <span>
         <span className="t-label block">{label}</span>
-        <span
+        <Counter
+          value={value}
+          suffix={suffix}
           className="t-chain mt-1.5 block text-[1.375rem] font-medium leading-none"
           style={{
             color: ink ?? "var(--color-ink)",
             textShadow: lit ? `0 0 24px color-mix(in oklab, ${ink} 55%, transparent)` : undefined,
           }}
-        >
-          {value}
-        </span>
+        />
       </span>
     </div>
   );
