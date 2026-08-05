@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useAccount } from "wagmi";
 import { isVault } from "@/lib/deck";
-import { Crate } from "./Crate";
+import { CrateTile } from "./Crate";
 import type { FeedItem } from "@/hooks/useFeed";
 
 const CARD = 112;
@@ -18,15 +18,14 @@ export function Ticker({ items }: { items: FeedItem[] }) {
   if (items.length === 0) return null;
 
   return (
-    <div className="relative overflow-hidden" style={{ height: CARD + 26 }}>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-10"
-        style={{
-          background:
-            "linear-gradient(90deg, var(--color-bg) 0%, transparent 6%, transparent 88%, var(--color-bg) 100%)",
-        }}
-      />
+    <div
+      className="relative overflow-hidden"
+      style={{
+        height: CARD + 26,
+        maskImage:
+          "linear-gradient(90deg, transparent 0%, black 4%, black 92%, transparent 100%)",
+      }}
+    >
       <ul className="flex gap-2 overflow-x-auto pb-2 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <AnimatePresence initial={false}>
           {items.map((it) => {
@@ -61,7 +60,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
                   ) : (
                     <>
                       <div className="pointer-events-none absolute inset-0 grid place-items-center">
-                        <Crate rarity={it.spec.rarity} size={CARD - 34} />
+                        <CrateTile rarity={it.spec.rarity} size={CARD - 30} />
                       </div>
                       {it.spec.tickets > 0 && (
                         <div

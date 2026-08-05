@@ -18,10 +18,17 @@ export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
 
   if (!isConnected) {
     return (
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         {connectors.map((c) => (
-          <Button key={c.uid} variant="quiet" onClick={() => connect({ connector: c })} disabled={isPending}>
-            {c.name}
+          <Button
+            key={c.uid}
+            variant="quiet"
+            onClick={() => connect({ connector: c })}
+            disabled={isPending}
+            className="px-3 py-2 text-[0.8125rem] sm:px-[1.4375rem] sm:py-[0.8125rem] sm:text-[0.9375rem]"
+          >
+            <span className="sm:hidden">{c.name.split(" ")[0]}</span>
+            <span className="hidden sm:inline">{c.name}</span>
           </Button>
         ))}
       </div>

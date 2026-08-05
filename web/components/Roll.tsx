@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { animate, useMotionValue, motion, useReducedMotion } from "motion/react";
 import { slotsPerTier, specFor, VAULT_SPEC, type TierSpec, type DeckShape } from "@/lib/deck";
-import { Crate } from "./Crate";
+import { CrateTile } from "./Crate";
 import type { PoolState } from "@/hooks/usePool";
 
 /**
@@ -80,7 +80,14 @@ export function Roll({
   }, [landed, x, still, strip]);
 
   return (
-    <div className="relative w-full overflow-hidden" style={{ height: ITEM + 36 }}>
+    <div
+      className="relative w-full overflow-hidden"
+      style={{
+        height: ITEM + 36,
+        maskImage:
+          "linear-gradient(90deg, transparent 0%, black 11%, black 89%, transparent 100%)",
+      }}
+    >
       <div
         aria-hidden
         className="absolute left-1/2 top-0 z-20 h-full w-px -translate-x-1/2"
@@ -102,15 +109,6 @@ export function Roll({
       >
         <path d="M0 10 H16 L8 0 Z" fill="var(--color-accent-bright)" />
       </svg>
-
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 z-10"
-        style={{
-          background:
-            "linear-gradient(90deg, var(--color-surface) 0%, transparent 14%, transparent 86%, var(--color-surface) 100%)",
-        }}
-      />
 
       <motion.div
         className="absolute top-[18px] flex"
@@ -142,7 +140,7 @@ function Item({ spec }: { spec: TierSpec }) {
       }}
     >
       <div className="pointer-events-none absolute inset-x-0 top-3 grid place-items-center">
-        <Crate rarity={spec.rarity} size={ITEM - 62} />
+        <CrateTile rarity={spec.rarity} size={ITEM - 58} />
       </div>
       <div className="absolute inset-x-0 bottom-0 px-2 pb-2.5 text-center">
         <div className="t-inscription text-[0.625rem]" style={{ color: spec.ink }}>

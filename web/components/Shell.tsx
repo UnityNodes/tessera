@@ -26,15 +26,17 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const playerCount = new Set((opens.data ?? []).map((o) => o.player.toLowerCase())).size;
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-bg)_90%,transparent)] backdrop-blur-md">
-        <div className="mx-auto flex h-[4.5rem] max-w-[1800px] items-center gap-5 px-5 sm:px-8 2xl:px-12">
+    <div className="relative z-[1] flex min-h-screen flex-col">
+      <header className="sticky top-0 z-[var(--z-sticky)] border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-bg)_82%,transparent)] backdrop-blur-xl">
+        <div className="mx-auto flex h-[4.5rem] max-w-[1800px] items-center gap-3 px-4 sm:gap-5 sm:px-8 2xl:px-12">
           <Link href="/" className="flex shrink-0 items-center gap-2.5">
             <Mark />
-            <span className="t-inscription text-[0.9375rem] leading-none">Tessera</span>
+            <span className="t-inscription hidden text-[0.9375rem] leading-none sm:block">
+              Tessera
+            </span>
           </Link>
 
-          <nav className="flex items-center gap-1.5">
+          <nav className="flex min-w-0 items-center gap-0.5 sm:gap-1.5">
             <Tab href="/" icon={<IconHome />}>
               home
             </Tab>
@@ -61,7 +63,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <div className="border-b border-[var(--edge)] bg-[var(--color-surface)]">
+      <div className="border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-surface)_70%,transparent)] backdrop-blur-md">
         <div className="mx-auto grid max-w-[1800px] grid-cols-2 divide-x divide-[var(--edge)] px-5 sm:px-8 2xl:px-12 md:grid-cols-4">
           <Stat icon={<IconCase />} label="cases opened" value={String(game.drawn)} />
           <Stat icon={<IconUsers />} label="players" value={String(playerCount)} />
@@ -79,11 +81,22 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      <div className="border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-surface)_60%,transparent)]">
+      <div className="border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-surface)_38%,transparent)] backdrop-blur-md">
         <div className="mx-auto flex max-w-[1800px] items-stretch px-5 sm:px-8 2xl:px-12">
           <div className="flex w-14 shrink-0 flex-col items-center justify-center gap-1 border-r border-[var(--edge)] pr-3">
             <IconCrown />
-            <span className="t-label text-[0.5625rem]">live</span>
+            <span className="t-label flex items-center gap-1 text-[0.5625rem]">
+              <span
+                aria-hidden
+                className="h-1.5 w-1.5 rounded-full"
+                style={{
+                  background: "var(--color-tier-denarius)",
+                  boxShadow: "0 0 8px var(--color-tier-denarius)",
+                  animation: "marker-live 1.8s ease-in-out infinite",
+                }}
+              />
+              live
+            </span>
           </div>
           <div className="min-w-0 flex-1 pl-3">
             <Ticker items={feed} />
@@ -126,7 +139,7 @@ function Tab({
   return (
     <Link
       href={href}
-      className="t-label flex items-center gap-2 whitespace-nowrap rounded-[var(--radius-panel)] px-3 py-2 transition-colors hover:text-[var(--color-ink)]"
+      className="t-label flex items-center gap-2 whitespace-nowrap rounded-[var(--radius-panel)] px-2 py-2 transition-colors hover:text-[var(--color-ink)] sm:px-3"
       style={
         active
           ? {
@@ -137,8 +150,8 @@ function Tab({
           : undefined
       }
     >
-      <span className="hidden sm:block">{icon}</span>
-      {children}
+      <span>{icon}</span>
+      <span className="hidden sm:block">{children}</span>
     </Link>
   );
 }
@@ -231,12 +244,14 @@ const IconCrown = () => (
 
 const Mark = () => (
   <span
-    className="grid h-8 w-8 shrink-0 place-items-center rounded-[var(--radius-panel)]"
+    className="grid h-8 w-8 shrink-0 place-items-center rounded-[9px]"
     style={{
-      background: "linear-gradient(150deg, var(--color-accent), color-mix(in oklab, var(--color-accent) 18%, var(--color-surface)))",
-      boxShadow: "inset 0 1px 0 rgb(255 255 255/0.22)",
+      background:
+        "linear-gradient(150deg, var(--color-accent-bright), var(--color-accent) 55%, oklch(38% 0.14 262))",
+      boxShadow:
+        "inset 0 1px 0 oklch(100% 0 0/0.4), inset 0 -2px 0 oklch(0% 0 0/0.25), 0 0 18px -6px var(--color-accent)",
     }}
   >
-    <span className="t-display text-[0.9375rem] leading-none text-[var(--color-ink)]">T</span>
+    <span className="t-display text-[1rem] leading-none text-[oklch(99%_0.005_250)]">T</span>
   </span>
 );

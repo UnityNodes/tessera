@@ -124,17 +124,21 @@ export default function CasePage() {
 
         <div className="surface flex flex-col justify-center p-6 sm:p-10">
           {deck.vaultUpTo > 0 && (
-            <div className="flex items-baseline gap-4 border-b border-[var(--edge)] pb-4">
+            <div className="flex flex-wrap items-end gap-x-5 gap-y-2 border-b border-[var(--edge)] pb-4">
               <div>
                 <span className="t-label block">the vault</span>
                 <span
-                  className="t-chain block text-[clamp(1.75rem,4vw,2.5rem)] leading-none"
-                  style={{ color: "var(--color-tier-vault)" }}
+                  className="t-chain mt-1 block text-[clamp(1.75rem,4vw,2.5rem)] leading-none"
+                  style={{
+                    color: "var(--color-tier-vault)",
+                    textShadow:
+                      "0 0 34px color-mix(in oklab, var(--color-tier-vault) 55%, transparent)",
+                  }}
                 >
                   ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
                 </span>
               </div>
-              <span className="text-[0.9375rem] text-[var(--color-ink-dim)]">
+              <span className="max-w-[34ch] flex-1 pb-0.5 text-[0.9375rem] text-[var(--color-ink-dim)]">
                 {!pool.data?.vaultTaken ? (
                   <>one case in {deck.remaining} opens it, and takes all of it</>
                 ) : vaultSlot ? (

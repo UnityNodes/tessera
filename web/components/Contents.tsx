@@ -57,15 +57,29 @@ export function Contents({ deck, pool }: { deck: DeckShape; pool?: PoolState }) 
           return (
             <li
               key={i}
-              className="flex flex-col overflow-hidden rounded-[var(--radius-panel)]"
+              className="group relative flex flex-col overflow-hidden rounded-[var(--radius-panel)] transition-transform duration-300 hover:-translate-y-1"
               style={{
                 background: t.spec.tint,
-                border: `1px solid color-mix(in oklab, ${t.spec.ink} 28%, transparent)`,
-                opacity: gone ? 0.45 : 1,
+                border: `1px solid color-mix(in oklab, ${t.spec.ink} 30%, transparent)`,
+                boxShadow:
+                  t.spec.tickets > 0 || t.spec.name === VAULT_SPEC.name
+                    ? `0 0 34px -14px ${t.spec.ink}`
+                    : undefined,
+                opacity: gone ? 0.4 : 1,
               }}
             >
-              <div className="grid flex-1 place-items-center p-4">
-                <Crate rarity={t.spec.rarity} size={104} />
+              <div className="relative grid flex-1 place-items-center p-4">
+                <span
+                  aria-hidden
+                  className="glow"
+                  style={
+                    {
+                      "--glow-color": gone ? "transparent" : t.spec.ink,
+                      "--glow-strength": 0.32,
+                    } as React.CSSProperties
+                  }
+                />
+                <Crate rarity={t.spec.rarity} size={112} className="relative" />
               </div>
               <div className="px-3 pb-4 text-center">
                 <div className="t-inscription text-[0.625rem]" style={{ color: t.spec.ink }}>

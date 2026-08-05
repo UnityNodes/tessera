@@ -43,7 +43,7 @@ export function specFor(weight: number): TierSpec {
     return {
       name: "Porphyry",
       note: `+${tickets} tickets`,
-      tint: "color-mix(in oklab, var(--color-tier-porphyry) 16%, var(--color-surface))",
+      tint: "color-mix(in oklab, var(--color-tier-porphyry) 9%, var(--color-surface))",
       ink: "var(--color-tier-porphyry)",
       tickets,
       rarity: "porphyry",
@@ -53,7 +53,7 @@ export function specFor(weight: number): TierSpec {
     return {
       name: "Aureus",
       note: `+${tickets} tickets`,
-      tint: "color-mix(in oklab, var(--color-tier-aureus) 16%, var(--color-surface))",
+      tint: "color-mix(in oklab, var(--color-tier-aureus) 9%, var(--color-surface))",
       ink: "var(--color-tier-aureus)",
       tickets,
       rarity: "aureus",
@@ -63,7 +63,7 @@ export function specFor(weight: number): TierSpec {
     return {
       name: "Denarius",
       note: "+1 ticket",
-      tint: "color-mix(in oklab, var(--color-tier-denarius) 16%, var(--color-surface))",
+      tint: "color-mix(in oklab, var(--color-tier-denarius) 9%, var(--color-surface))",
       ink: "var(--color-tier-denarius)",
       tickets: 1,
       rarity: "denarius",
@@ -72,7 +72,7 @@ export function specFor(weight: number): TierSpec {
   return {
     name: "Grout",
     note: "nothing this time",
-    tint: "color-mix(in oklab, var(--color-tier-grout) 12%, var(--color-surface))",
+    tint: "color-mix(in oklab, var(--color-tier-grout) 8%, var(--color-surface))",
     ink: "var(--color-tier-grout)",
     tickets: 0,
     rarity: "grout",
@@ -87,7 +87,7 @@ export function specOf(value: number, deck: DeckShape): TierSpec {
 export const VAULT_SPEC: TierSpec = {
   name: "The Vault",
   note: "everything the vault holds",
-  tint: "color-mix(in oklab, var(--color-tier-vault) 18%, var(--color-surface))",
+  tint: "color-mix(in oklab, var(--color-tier-vault) 10%, var(--color-surface))",
   ink: "var(--color-tier-vault)",
   tickets: 0,
   rarity: "vault",

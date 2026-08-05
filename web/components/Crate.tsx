@@ -1,114 +1,249 @@
 "use client";
 
-/**
- *
- *
- */
-
 export type Rarity = "vault" | "porphyry" | "aureus" | "denarius" | "grout" | "sealed";
 
 interface Look {
   base: string;
   band: string;
   shade: string;
+  lit: string;
+  rim: string;
   plate: string;
+  plateLit: string;
   mark: string;
-  stroke: string;
   aura: string;
-  auraR: number;
-  auraOpacity: number;
+  auraStrength: number;
   glyph: "1" | "2" | "5" | "diamond" | "lock" | "none";
 }
 
 const LOOKS: Record<Rarity, Look> = {
   vault: {
-    base: "oklch(85% 0.19 85)",
-    band: "oklch(93% 0.13 88)",
-    shade: "oklch(62% 0.18 82)",
-    plate: "oklch(29% 0.06 82)",
-    mark: "oklch(97% 0.05 88)",
-    stroke: "oklch(91% 0.12 86 / 0.75)",
-    aura: "oklch(85% 0.19 85)",
-    auraR: 46,
-    auraOpacity: 0.6,
+    base: "oklch(94% 0.105 98)",
+    band: "oklch(99% 0.045 102)",
+    shade: "oklch(74% 0.145 92)",
+    lit: "oklch(100% 0.015 100)",
+    rim: "oklch(100% 0.02 100 / 0.95)",
+    plate: "oklch(38% 0.08 92)",
+    plateLit: "oklch(58% 0.12 95)",
+    mark: "oklch(100% 0.01 100)",
+    aura: "oklch(95% 0.12 97)",
+    auraStrength: 1,
     glyph: "diamond",
   },
   porphyry: {
-    base: "oklch(76% 0.16 80)",
-    band: "oklch(85% 0.12 81)",
-    shade: "oklch(54% 0.14 78)",
-    plate: "oklch(26% 0.04 79)",
-    mark: "oklch(95% 0.03 86)",
-    stroke: "oklch(84% 0.10 81 / 0.65)",
-    aura: "oklch(76% 0.16 80)",
-    auraR: 40,
-    auraOpacity: 0.42,
+    base: "oklch(64% 0.25 340)",
+    band: "oklch(76% 0.21 342)",
+    shade: "oklch(42% 0.19 338)",
+    lit: "oklch(88% 0.14 344)",
+    rim: "oklch(86% 0.16 344 / 0.8)",
+    plate: "oklch(28% 0.10 338)",
+    plateLit: "oklch(44% 0.16 340)",
+    mark: "oklch(96% 0.05 344)",
+    aura: "oklch(64% 0.25 340)",
+    auraStrength: 0.6,
     glyph: "5",
   },
   aureus: {
-    base: "oklch(68% 0.13 76)",
-    band: "oklch(77% 0.10 77)",
-    shade: "oklch(48% 0.11 74)",
-    plate: "oklch(24% 0.03 76)",
-    mark: "oklch(94% 0.03 86)",
-    stroke: "oklch(76% 0.09 77 / 0.6)",
-    aura: "oklch(68% 0.13 76)",
-    auraR: 34,
-    auraOpacity: 0.3,
+    base: "oklch(78% 0.165 70)",
+    band: "oklch(88% 0.13 74)",
+    shade: "oklch(54% 0.13 66)",
+    lit: "oklch(95% 0.08 80)",
+    rim: "oklch(92% 0.11 76 / 0.75)",
+    plate: "oklch(30% 0.06 68)",
+    plateLit: "oklch(46% 0.10 70)",
+    mark: "oklch(97% 0.04 82)",
+    aura: "oklch(78% 0.165 70)",
+    auraStrength: 0.45,
     glyph: "2",
   },
   denarius: {
-    base: "oklch(56% 0.08 70)",
-    band: "oklch(64% 0.07 70)",
-    shade: "oklch(40% 0.07 68)",
-    plate: "oklch(22% 0.02 70)",
-    mark: "oklch(92% 0.02 86)",
-    stroke: "oklch(64% 0.06 70 / 0.55)",
-    aura: "oklch(56% 0.08 70)",
-    auraR: 28,
-    auraOpacity: 0.18,
+    base: "oklch(73% 0.16 158)",
+    band: "oklch(84% 0.13 160)",
+    shade: "oklch(48% 0.12 156)",
+    lit: "oklch(93% 0.09 164)",
+    rim: "oklch(88% 0.12 162 / 0.7)",
+    plate: "oklch(26% 0.05 156)",
+    plateLit: "oklch(42% 0.09 158)",
+    mark: "oklch(96% 0.04 166)",
+    aura: "oklch(73% 0.16 158)",
+    auraStrength: 0.34,
     glyph: "1",
   },
   grout: {
-    base: "oklch(42% 0.03 68)",
-    band: "oklch(48% 0.025 68)",
-    shade: "oklch(33% 0.022 66)",
-    plate: "oklch(26% 0.018 68)",
-    mark: "oklch(58% 0.025 68)",
-    stroke: "oklch(50% 0.02 68 / 0.5)",
+    base: "oklch(46% 0.022 252)",
+    band: "oklch(54% 0.024 252)",
+    shade: "oklch(31% 0.018 250)",
+    lit: "oklch(62% 0.026 254)",
+    rim: "oklch(58% 0.025 254 / 0.5)",
+    plate: "oklch(26% 0.016 250)",
+    plateLit: "oklch(36% 0.020 252)",
+    mark: "oklch(62% 0.024 254)",
     aura: "transparent",
-    auraR: 0,
-    auraOpacity: 0,
+    auraStrength: 0,
     glyph: "none",
   },
   sealed: {
-    base: "oklch(33% 0.012 250)",
-    band: "oklch(40% 0.014 250)",
-    shade: "oklch(24% 0.010 250)",
-    plate: "oklch(20% 0.008 250)",
-    mark: "oklch(60% 0.010 250)",
-    stroke: "oklch(48% 0.014 250 / 0.65)",
-    aura: "transparent",
-    auraR: 0,
-    auraOpacity: 0,
+    base: "oklch(40% 0.075 260)",
+    band: "oklch(50% 0.095 258)",
+    shade: "oklch(26% 0.055 262)",
+    lit: "oklch(62% 0.115 256)",
+    rim: "oklch(66% 0.13 254 / 0.72)",
+    plate: "oklch(22% 0.045 262)",
+    plateLit: "oklch(34% 0.075 258)",
+    mark: "oklch(80% 0.13 252)",
+    aura: "oklch(62% 0.19 255)",
+    auraStrength: 0.4,
     glyph: "lock",
   },
 };
 
+const STUDS = [
+  { left: "9%", top: "9%" },
+  { right: "9%", top: "9%" },
+  { left: "9%", bottom: "9%" },
+  { right: "9%", bottom: "9%" },
+] as const;
+
+function Glyph({ kind }: { kind: Look["glyph"] }) {
+  if (kind === "none") return null;
+  if (kind === "diamond") {
+    return (
+      <svg viewBox="0 0 24 24" width="46%" height="46%" fill="currentColor" aria-hidden>
+        <path d="M12 3 21 12 12 21 3 12Z" />
+      </svg>
+    );
+  }
+  if (kind === "lock") {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        width="46%"
+        height="46%"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        aria-hidden
+      >
+        <rect x="5" y="10.5" width="14" height="10" rx="2" />
+        <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
+      </svg>
+    );
+  }
+  return <span>{kind}</span>;
+}
+
+function Face({ look, kind }: { look: Look; kind: "front" | "back" | "left" | "right" }) {
+  const plated = (kind === "front" || kind === "back") && look.glyph !== "none";
+  return (
+    <div className={`crate__f crate__f--${kind}`}>
+      <span className="crate__seam" />
+      {STUDS.map((s, i) => (
+        <span key={i} className="crate__stud" style={s} />
+      ))}
+      {plated && (
+        <span className="crate__plate">
+          <Glyph kind={look.glyph} />
+        </span>
+      )}
+    </div>
+  );
+}
+
+/**
+ *
+ */
 export function Crate({
   rarity,
   size = 160,
   drift = false,
+  spin = true,
   className,
 }: {
   rarity: Rarity;
   size?: number;
   drift?: boolean;
+  spin?: boolean;
   className?: string;
 }) {
   const look = LOOKS[rarity];
-  const auraId = `crate-aura-${rarity}`;
-  const bodyId = `crate-body-${rarity}`;
+  const edge = Math.round(size * 0.62);
+  const fluid = `min(${edge}px, 62cqw)`;
+
+  return (
+    <div
+      className={`scene relative grid place-items-center ${className ?? ""}`}
+      style={{ width: `min(${size}px, 100%)`, aspectRatio: "1 / 1" }}
+      aria-hidden
+    >
+      {look.auraStrength > 0 && (
+        <span
+          className="crate__halo"
+          style={
+            {
+              "--s": fluid,
+              "--aura": look.aura,
+              "--aura-strength": look.auraStrength,
+              animation: "crate-breathe 4.2s ease-in-out infinite",
+            } as React.CSSProperties
+          }
+        />
+      )}
+
+      <div
+        className="relative"
+        style={{
+          width: fluid,
+          height: fluid,
+          animation: drift ? "crate-hover 4.4s ease-in-out infinite" : undefined,
+          ["--s" as string]: fluid,
+        }}
+      >
+        <span className="crate__shadow" style={{ ["--s" as string]: fluid }} />
+        <div
+          className="crate"
+          style={
+            {
+              "--s": fluid,
+              "--base": look.base,
+              "--band": look.band,
+              "--shade": look.shade,
+              "--lit": look.lit,
+              "--rim": look.rim,
+              "--plate": look.plate,
+              "--plate-lit": look.plateLit,
+              "--mark": look.mark,
+              transform: spin ? undefined : "rotateX(-16deg) rotateY(-28deg)",
+              animation: spin ? "crate-turn 11s ease-in-out infinite" : undefined,
+            } as React.CSSProperties
+          }
+        >
+          <Face look={look} kind="front" />
+          <Face look={look} kind="back" />
+          <Face look={look} kind="left" />
+          <Face look={look} kind="right" />
+          <div className="crate__f crate__f--top" />
+          <div className="crate__f crate__f--bottom" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ *
+ */
+export function CrateTile({
+  rarity,
+  size = 96,
+  className,
+}: {
+  rarity: Rarity;
+  size?: number;
+  className?: string;
+}) {
+  const look = LOOKS[rarity];
+  const id = `tile-${rarity}`;
 
   return (
     <svg
@@ -116,84 +251,69 @@ export function Crate({
       height={size}
       viewBox="0 0 100 100"
       className={className}
-      style={{ overflow: "visible", animation: drift ? "crate-drift 3.6s ease-in-out infinite" : undefined }}
+      style={{ overflow: "visible" }}
       aria-hidden
     >
       <defs>
-        <radialGradient id={auraId} cx="50%" cy="40%" r="65%">
-          <stop offset="0%" stopColor={look.aura} stopOpacity={look.auraOpacity} />
-          <stop offset="100%" stopColor={look.aura} stopOpacity={0} />
-        </radialGradient>
-        <linearGradient id={bodyId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={look.band} />
-          <stop offset="55%" stopColor={look.base} />
+        <linearGradient id={`${id}-top`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={look.lit} />
+          <stop offset="100%" stopColor={look.band} />
+        </linearGradient>
+        <linearGradient id={`${id}-left`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={look.base} />
           <stop offset="100%" stopColor={look.shade} />
+        </linearGradient>
+        <linearGradient id={`${id}-right`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={look.shade} />
+          <stop offset="100%" stopColor={look.shade} stopOpacity="0.72" />
         </linearGradient>
       </defs>
 
-      {look.auraR > 0 && (
-        <circle
-          cx="50"
-          cy="44"
-          r={look.auraR}
-          fill={`url(#${auraId})`}
-          style={{ animation: "crate-breathe 3.2s ease-in-out infinite" }}
-        />
-      )}
+      <ellipse cx="50" cy="95" rx="30" ry="5" fill="#000" opacity="0.5" />
 
-      <ellipse cx="50" cy="90" rx="34" ry="5.5" fill="#000" opacity="0.45" />
-      <rect x="9" y="15" width="82" height="74" rx="11" fill="#000" opacity="0.35" />
-      <rect
-        x="10"
-        y="14"
-        width="80"
-        height="72"
-        rx="10"
-        fill={`url(#${bodyId})`}
-        stroke={look.stroke}
+      <path d="M50 10 88 32 50 54 12 32Z" fill={`url(#${id}-top)`} />
+      <path d="M12 32 50 54v38L12 70Z" fill={`url(#${id}-left)`} />
+      <path d="M88 32 50 54v38l38-22Z" fill={`url(#${id}-right)`} />
+
+      <path
+        d="M50 10 88 32 50 54 12 32Z M12 32v38l38 22 38-22V32"
+        fill="none"
+        stroke={look.rim}
         strokeWidth="1.4"
+        strokeLinejoin="round"
       />
-      <rect x="10" y="33.2" width="80" height="2.6" fill={look.stroke} opacity="0.55" />
+      <path d="M50 54v38" stroke={look.rim} strokeWidth="1" opacity="0.5" />
+      <path d="M12 45 50 67l38-22" stroke={look.rim} strokeWidth="1.2" opacity="0.55" fill="none" />
 
-      {[
-        [17, 20.5],
-        [83, 20.5],
-        [17, 79.5],
-        [83, 79.5],
-      ].map(([cx, cy]) => (
-        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r="1.5" fill={look.stroke} opacity="0.6" />
-      ))}
-
-      <circle cx="50" cy="58" r="17" fill={look.plate} stroke={look.stroke} strokeWidth="1.2" />
-
-      {(look.glyph === "1" || look.glyph === "2" || look.glyph === "5") && (
+      <ellipse
+        cx="69"
+        cy="65"
+        rx="8"
+        ry="11"
+        fill={look.plate}
+        stroke={look.rim}
+        strokeWidth="1"
+        opacity="0.95"
+      />
+      {look.glyph !== "none" && look.glyph !== "lock" && look.glyph !== "diamond" && (
         <text
-          x="50"
-          y="64.5"
+          x="69"
+          y="70"
           textAnchor="middle"
           fontFamily="var(--font-mono)"
-          fontSize="17"
+          fontSize="11"
           fontWeight="700"
           fill={look.mark}
         >
           {look.glyph}
         </text>
       )}
-
-      {look.glyph === "diamond" && (
-        <path d="M50 47 L61.5 58 L50 69 L38.5 58 Z" fill={look.mark} />
-      )}
-
+      {look.glyph === "diamond" && <path d="M69 58 75 65 69 72 63 65Z" fill={look.mark} />}
       {look.glyph === "lock" && (
-        <>
-          <path d="M43 57 h14 v12.5 h-14 z" fill="none" stroke={look.mark} strokeWidth="2" />
-          <path
-            d="M45.5 57 v-4 a4.5 4.5 0 0 1 9 0 v4"
-            fill="none"
-            stroke={look.mark}
-            strokeWidth="2"
-          />
-        </>
+        <g stroke={look.mark} strokeWidth="1.6" fill="none" strokeLinecap="round">
+          <rect x="65" y="63" width="8" height="7" rx="1.2" />
+          <path d="M66.6 63v-2a2.4 2.4 0 0 1 4.8 0v2" />
+        </g>
       )}
     </svg>
   );
@@ -214,9 +334,9 @@ export function CrateWaiting({ size = 260 }: { size?: number }) {
         aria-hidden
         className="absolute rounded-full"
         style={{
-          width: size * 0.86,
-          height: size * 0.86,
-          border: "1.5px dashed oklch(50% 0.01 260 / 0.55)",
+          width: size * 0.9,
+          height: size * 0.9,
+          border: "1.5px dashed color-mix(in oklab, var(--color-accent) 60%, transparent)",
           animation: "wait-rotate 7s linear infinite",
         }}
       />
@@ -224,13 +344,13 @@ export function CrateWaiting({ size = 260 }: { size?: number }) {
         aria-hidden
         className="absolute rounded-full"
         style={{
-          width: size * 0.68,
-          height: size * 0.68,
-          border: "1px dashed oklch(50% 0.01 260 / 0.35)",
+          width: size * 0.7,
+          height: size * 0.7,
+          border: "1px dashed color-mix(in oklab, var(--color-accent-bright) 40%, transparent)",
           animation: "wait-rotate 11s linear infinite reverse",
         }}
       />
-      <Crate rarity="sealed" size={size * 0.5} drift />
+      <Crate rarity="sealed" size={size * 0.62} drift />
     </div>
   );
 }

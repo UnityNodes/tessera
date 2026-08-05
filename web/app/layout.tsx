@@ -3,6 +3,7 @@ import { Source_Serif_4, Hanken_Grotesk, IBM_Plex_Mono } from "next/font/google"
 import "./globals.css";
 import { Providers } from "./providers";
 import { Shell } from "@/components/Shell";
+import { Backdrop } from "@/components/Backdrop";
 
 const sourceSerif = Source_Serif_4({
   variable: "--font-source-serif",
@@ -40,6 +41,7 @@ export default function RootLayout({
       className={`${sourceSerif.variable} ${hanken.variable} ${plexMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <Backdrop />
         <Providers>
           <Shell>{children}</Shell>
         </Providers>
