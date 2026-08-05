@@ -32,7 +32,8 @@ export function Ticker({ items }: { items: FeedItem[] }) {
             const mine = Boolean(address && it.player.toLowerCase() === address.toLowerCase());
             const pending = it.value === undefined;
             const prize = !pending && (it.weight > 0 || isVault(it.spec));
-            const width = prize || mine ? CARD : Math.round(CARD * 0.4);
+            const loud = prize || mine || Boolean(it.risk);
+            const width = loud ? CARD : Math.round(CARD * 0.4);
             return (
               <motion.li
                 key={it.handle}
@@ -43,7 +44,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
                 className="shrink-0"
                 style={{ width }}
               >
-                <Card item={it} index={i} mine={mine} pending={pending} prize={prize} />
+                <Card item={it} index={i} mine={mine} pending={pending} prize={prize} loud={loud} />
                 <div
                   className="t-chain mt-1 truncate text-center text-[0.625rem]"
                   style={{
@@ -67,12 +68,14 @@ function Card({
   mine,
   pending,
   prize,
+  loud,
 }: {
   item: FeedItem;
   index: number;
   mine: boolean;
   pending: boolean;
   prize: boolean;
+  loud: boolean;
 }) {
   const ink = item.spec.ink;
 
@@ -81,7 +84,7 @@ function Card({
       <div
         className="relative grid place-items-center overflow-hidden rounded-[3px]"
         style={{
-          height: mine ? CARD : 26,
+          height: loud ? CARD : 26,
           background: "var(--color-raised)",
           boxShadow: "inset 0 0 0 1px var(--edge)",
         }}
@@ -100,7 +103,7 @@ function Card({
     <div
       className="relative overflow-hidden rounded-[3px]"
       style={{
-        height: prize || mine ? CARD : 26,
+        height: loud ? CARD : 26,
         background: prize
           ? `linear-gradient(158deg, color-mix(in oklab, ${ink} 22%, var(--color-surface)), var(--color-surface))`
           : undefined,
@@ -143,7 +146,7 @@ function Card({
           className="t-chain absolute right-1.5 top-1 text-[0.8125rem] font-semibold leading-none"
           style={{ color: ink, textShadow: "0 1px 5px oklch(0% 0 0 / 0.95)" }}
         >
-          +{item.spec.tickets}
+          +{item.risk ? item.spec.tickets * 2 : item.spec.tickets}
         </div>
       )}
 
@@ -153,6 +156,18 @@ function Card({
           style={{ color: ink, textShadow: "0 1px 4px oklch(0% 0 0 / 0.95)" }}
         >
           {item.spec.name}
+        </div>
+      )}
+
+      {item.risk && (
+        <div
+          className="t-inscription absolute left-1 top-1 text-[0.5rem] leading-none"
+          style={{
+            color: "var(--color-tier-vault)",
+            textShadow: "0 1px 4px oklch(0% 0 0 / 0.95)",
+          }}
+        >
+          risked
         </div>
       )}
 

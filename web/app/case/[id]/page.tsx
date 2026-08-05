@@ -114,6 +114,7 @@ export default function CasePage() {
               phase={open.state.phase === "done" ? "opened" : "idle"}
               value={open.state.value}
               deck={shape}
+              risk={open.state.risk}
               size={340}
               onClick={
                 canOpen ? () => open.open({ deckId, needsApproval: game.needsApproval }) : undefined

@@ -12,6 +12,12 @@ const CASE_OPENED = parseAbiItem(
 
 /**
  */
+const RISK_TAKEN = parseAbiItem(
+  "event RiskTaken(address indexed player, uint32 indexed deckId, uint16 index, bytes32 handle, uint256 toVault)",
+);
+
+/**
+ */
 const WINDOW = 1900n;
 
 /**
@@ -25,6 +31,7 @@ export interface OpenEvent {
   index: number;
   handle: `0x${string}`;
   block: bigint;
+  risk?: boolean;
 }
 
 /**
@@ -51,12 +58,20 @@ export function useOpens() {
         const to = from + WINDOW - 1n > latest ? latest : from + WINDOW - 1n;
         const logs = await client.getLogs({
           address: DECK_ADDRESS,
-          event: CASE_OPENED,
+          events: [CASE_OPENED, RISK_TAKEN],
           fromBlock: from,
           toBlock: to,
         });
 
+        const risky = new Set<string>();
         for (const l of logs) {
+          if (l.eventName === "RiskTaken" && l.args.handle) {
+            risky.add(l.args.handle.toLowerCase());
+          }
+        }
+
+        for (const l of logs) {
+          if (l.eventName !== "CaseOpened") continue;
           if (!l.args.player || !l.args.handle) continue;
           cache.events.push({
             player: l.args.player,
@@ -64,6 +79,7 @@ export function useOpens() {
             index: Number(l.args.index ?? 0),
             handle: l.args.handle,
             block: l.blockNumber ?? 0n,
+            risk: risky.has(l.args.handle.toLowerCase()) || undefined,
           });
         }
         cache.scanned = to;
@@ -82,7 +98,7 @@ interface Cache {
   events: OpenEvent[];
 }
 
-const KEY = "tessera.opens.v2";
+const KEY = "tessera.opens.v3";
 
 /**
  */

@@ -12,6 +12,7 @@ interface Props {
   deck: DeckShape;
   size?: number;
   onClick?: () => void;
+  risk?: boolean;
 }
 
 /**
@@ -35,11 +36,12 @@ const SHARDS = [
  *
  *
  */
-export function Case({ phase, value, deck, size = 340, onClick }: Props) {
+export function Case({ phase, value, deck, size = 340, onClick, risk = false }: Props) {
   const still = useReducedMotion();
   const spec = phase === "opened" && value != null ? specOf(value, deck) : null;
   const clickable = Boolean(onClick) && phase === "idle";
   const won = Boolean(spec && (spec.tickets > 0 || isVault(spec)));
+  const paid = spec ? (risk ? spec.tickets * 2 : spec.tickets) : 0;
 
   if (phase === "waiting") {
     return (
@@ -137,10 +139,10 @@ export function Case({ phase, value, deck, size = 340, onClick }: Props) {
               <span
                 className="t-chain font-bold leading-none"
                 style={{
-                  fontSize: size * (isVault(spec) ? 0.14 : spec.tickets > 0 ? 0.11 : 0.055),
+                  fontSize: size * (isVault(spec) ? 0.14 : paid > 0 ? 0.11 : 0.055),
                 }}
               >
-                {isVault(spec) ? "◆" : spec.tickets > 0 ? `+${spec.tickets}` : ", "}
+                {isVault(spec) ? "◆" : paid > 0 ? `+${paid}` : ", "}
               </span>
             </span>
           )}
