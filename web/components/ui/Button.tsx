@@ -40,7 +40,7 @@ export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
       "active:bg-[color-mix(in_oklab,var(--color-accent)_20%,transparent)] " +
       "disabled:border-[oklch(30%_0.014_262)] disabled:text-[oklch(46%_0.018_260)] disabled:bg-transparent",
     ghost:
-      "px-4 py-3 rounded-[8px] text-[0.875rem] " +
+      "px-4 py-3 rounded-[2px] text-[0.875rem] " +
       "text-[var(--color-ink-dim)] " +
       "hover:text-[var(--color-ink)] hover:bg-[color-mix(in_oklab,var(--color-accent)_10%,transparent)] " +
       "disabled:text-[oklch(42%_0.016_260)]",

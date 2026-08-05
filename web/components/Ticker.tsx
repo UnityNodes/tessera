@@ -79,7 +79,7 @@ function Card({
   if (pending) {
     return (
       <div
-        className="relative grid place-items-center overflow-hidden rounded-[12px]"
+        className="relative grid place-items-center overflow-hidden rounded-[3px]"
         style={{
           height: CARD,
           background: "var(--color-raised)",
@@ -98,7 +98,7 @@ function Card({
 
   return (
     <div
-      className="relative overflow-hidden rounded-[12px]"
+      className="relative overflow-hidden rounded-[3px]"
       style={{
         height: CARD,
         background: prize
@@ -149,7 +149,7 @@ function Card({
       {mine && (
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-[12px]"
+          className="pointer-events-none absolute inset-0 rounded-[3px]"
           style={{ boxShadow: "inset 0 0 0 1.5px var(--color-accent-bright)" }}
         />
       )}
