@@ -33,6 +33,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
             const mine = Boolean(address && it.player.toLowerCase() === address.toLowerCase());
             const pending = it.value === undefined;
             const prize = !pending && (it.weight > 0 || isVault(it.spec));
+            const width = prize || mine ? CARD : Math.round(CARD * 0.4);
             return (
               <motion.li
                 key={it.handle}
@@ -41,7 +42,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 transition={{ duration: 0.45, ease: [0.16, 0.84, 0.28, 1] }}
                 className="shrink-0"
-                style={{ width: CARD }}
+                style={{ width }}
               >
                 <Card item={it} index={i} mine={mine} pending={pending} prize={prize} />
                 <div
@@ -50,7 +51,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
                     color: mine ? "var(--color-accent-bright)" : "var(--color-ink-faint)",
                   }}
                 >
-                  {mine ? "you" : short(it.player)}
+                  {mine ? "you" : prize ? short(it.player) : " "}
                 </div>
               </motion.li>
             );
@@ -103,10 +104,10 @@ function Card({
         height: CARD,
         background: prize
           ? `linear-gradient(158deg, color-mix(in oklab, ${ink} 22%, var(--color-surface)), var(--color-surface))`
-          : "color-mix(in oklab, var(--color-raised) 55%, transparent)",
+          : undefined,
         boxShadow: prize
           ? `inset 0 0 0 1px color-mix(in oklab, ${ink} 55%, transparent), 0 0 26px -6px color-mix(in oklab, ${ink} 70%, transparent)`
-          : "inset 0 0 0 1px var(--edge)",
+          : undefined,
       }}
     >
       {prize && (
@@ -121,11 +122,21 @@ function Card({
         />
       )}
 
-      <div
-        className="pointer-events-none absolute inset-0 grid place-items-center"
-        style={{ opacity: prize ? 1 : 0.55 }}
-      >
-        <CrateTile rarity={item.spec.rarity} size={CARD - 26} />
+
+      <div className="pointer-events-none absolute inset-0 grid place-items-center">
+        {prize ? (
+          <CrateTile rarity={item.spec.rarity} size={CARD - 26} />
+        ) : (
+          <span
+            className="block"
+            style={{
+              width: "34%",
+              height: 2,
+              background: "var(--color-ink-faint)",
+              opacity: 0.4,
+            }}
+          />
+        )}
       </div>
 
       {item.spec.tickets > 0 && (

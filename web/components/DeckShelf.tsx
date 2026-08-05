@@ -5,7 +5,7 @@ import { formatUnits } from "viem";
 import { Tilt } from "@/components/ui/Tilt";
 import { Crate } from "@/components/Crate";
 import { useDeck, type DeckInfo } from "@/hooks/useDeck";
-import { slotsPerTier, specFor } from "@/lib/deck";
+import { slotsPerTier } from "@/lib/deck";
 
 /**
  *
@@ -70,8 +70,14 @@ function Heading({ title, note }: { title: string; note: string }) {
  */
 function DeckCard({ deck }: { deck: DeckInfo }) {
   const tiers = slotsPerTier(deck);
-  const empty = specFor(0).name;
-  const best = tiers.find((t) => t.spec.name !== empty)?.spec;
+
+  //
+  const best = tiers
+    .filter((t) => t.weight > 0)
+    .reduce<(typeof tiers)[number] | undefined>(
+      (a, b) => (b.spec.tickets > (a?.spec.tickets ?? -1) ? b : a),
+      undefined,
+    )?.spec;
   const top = tiers.reduce((n, t) => Math.max(n, t.spec.tickets), 0);
 
   const prizes = tiers.filter((t) => t.weight > 0).reduce((n, t) => n + t.count, 0);

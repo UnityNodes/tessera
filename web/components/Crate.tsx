@@ -98,13 +98,19 @@ const LOOKS: Record<Rarity, Look> = {
 };
 
 const LID_STUDS = [
-  { left: "9%", top: "26%" },
-  { right: "9%", top: "26%" },
+  { left: "6%", top: "50%" },
+  { left: "19%", top: "50%" },
+  { left: "32%", top: "50%" },
+  { right: "32%", top: "50%" },
+  { right: "19%", top: "50%" },
+  { right: "6%", top: "50%" },
 ] as const;
 
 const BODY_STUDS = [
-  { left: "9%", bottom: "13%" },
-  { right: "9%", bottom: "13%" },
+  { left: "6%", bottom: "14%" },
+  { left: "19%", bottom: "14%" },
+  { right: "19%", bottom: "14%" },
+  { right: "6%", bottom: "14%" },
 ] as const;
 
 function Glyph({ kind }: { kind: Look["glyph"] }) {
@@ -233,7 +239,7 @@ export function Crate({
         className="relative"
         style={{
           width: fluid,
-          height: fluid,
+          height: `calc(${fluid} * 0.64)`,
           animation: drift ? "crate-hover 4.4s ease-in-out infinite" : undefined,
           ["--s" as string]: fluid,
         }}
@@ -244,8 +250,6 @@ export function Crate({
           style={
             {
               "--s": fluid,
-              "--lid-h": `calc(${fluid} * 0.34)`,
-              "--body-h": `calc(${fluid} * 0.66)`,
               "--base": look.base,
               "--band": look.band,
               "--shade": look.shade,
@@ -308,27 +312,37 @@ export function CrateTile({
         </linearGradient>
       </defs>
 
-      <ellipse cx="50" cy="95" rx="30" ry="5" fill="#000" opacity="0.5" />
+      <ellipse cx="50" cy="80" rx="34" ry="5.5" fill="#000" opacity="0.5" />
 
-      <path d="M50 10 88 32 50 54 12 32Z" fill={`url(#${id}-top)`} />
-      <path d="M12 32 50 54v38L12 70Z" fill={`url(#${id}-left)`} />
-      <path d="M88 32 50 54v38l38-22Z" fill={`url(#${id}-right)`} />
+      <path d="M41 10.5 85 32.5 59 45.5 15 23.5Z" fill={`url(#${id}-top)`} />
+      <path d="M15 23.5 59 45.5v9L15 32.5Z" fill={`url(#${id}-left)`} />
+      <path d="M85 32.5 59 45.5v9l26-13Z" fill={`url(#${id}-right)`} />
+
+      <path d="M15 32.5 59 54.5v20L15 52.5Z" fill={`url(#${id}-left)`} />
+      <path d="M85 41.5 59 54.5v20l26-13Z" fill={`url(#${id}-right)`} />
 
       <path
-        d="M50 10 88 32 50 54 12 32Z M12 32v38l38 22 38-22V32"
+        d="M15 32.5 59 54.5 85 41.5"
         fill="none"
         stroke={look.rim}
-        strokeWidth="1.4"
+        strokeWidth="1.3"
         strokeLinejoin="round"
       />
-      <path d="M50 54v38" stroke={look.rim} strokeWidth="1" opacity="0.5" />
-      <path d="M12 45 50 67l38-22" stroke={look.rim} strokeWidth="1.2" opacity="0.55" fill="none" />
+      <path
+        d="M41 10.5 85 32.5 59 45.5 15 23.5Z M15 23.5v29l44 22 26-13v-29"
+        fill="none"
+        stroke={look.rim}
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+
+      <path d="M59 45.5v29" stroke={look.rim} strokeWidth="1.6" opacity="0.7" />
 
       <ellipse
-        cx="69"
-        cy="65"
-        rx="8"
-        ry="11"
+        cx="59"
+        cy="62"
+        rx="7"
+        ry="8"
         fill={look.plate}
         stroke={look.rim}
         strokeWidth="1"
@@ -336,22 +350,22 @@ export function CrateTile({
       />
       {look.glyph !== "none" && look.glyph !== "lock" && look.glyph !== "diamond" && (
         <text
-          x="69"
-          y="70"
+          x="59"
+          y="66"
           textAnchor="middle"
           fontFamily="var(--font-mono)"
-          fontSize="11"
+          fontSize="10"
           fontWeight="700"
           fill={look.mark}
         >
           {look.glyph}
         </text>
       )}
-      {look.glyph === "diamond" && <path d="M69 58 75 65 69 72 63 65Z" fill={look.mark} />}
+      {look.glyph === "diamond" && <path d="M59 56 64.5 62 59 68 53.5 62Z" fill={look.mark} />}
       {look.glyph === "lock" && (
-        <g stroke={look.mark} strokeWidth="1.6" fill="none" strokeLinecap="round">
-          <rect x="65" y="63" width="8" height="7" rx="1.2" />
-          <path d="M66.6 63v-2a2.4 2.4 0 0 1 4.8 0v2" />
+        <g stroke={look.mark} strokeWidth="1.5" fill="none" strokeLinecap="round">
+          <rect x="55.5" y="60" width="7" height="6.5" rx="1.2" />
+          <path d="M57 60v-1.8a2.2 2.2 0 0 1 4.4 0V60" />
         </g>
       )}
     </svg>
