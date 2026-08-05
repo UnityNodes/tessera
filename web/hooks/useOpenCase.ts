@@ -34,6 +34,7 @@ export interface OpenState {
   error?: Explained;
   waitedMs: number;
   resumed?: boolean;
+  risk?: boolean;
 }
 
 const IDLE: OpenState = { phase: "idle", waitedMs: 0 };
@@ -97,6 +98,7 @@ export function useOpenCase(onSettled?: () => void) {
       txHash: p.txHash,
       txUrl: txUrl(p.txHash),
       waitedMs: 0,
+      risk: p.risk,
     });
     awaitReveal(p.handle, ctl).catch((err) => {
       if (ctl.signal.aborted) return;
@@ -108,7 +110,15 @@ export function useOpenCase(onSettled?: () => void) {
   }, [address]);
 
   const open = useCallback(
-    async ({ deckId, needsApproval }: { deckId: number; needsApproval: boolean }) => {
+    async ({
+      deckId,
+      needsApproval,
+      risk = false,
+    }: {
+      deckId: number;
+      needsApproval: boolean;
+      risk?: boolean;
+    }) => {
       if (!address) return;
       abort.current?.abort();
       const ctl = new AbortController();
@@ -124,7 +134,7 @@ export function useOpenCase(onSettled?: () => void) {
         const sim = await simulateContract(config, {
           address: DECK_ADDRESS,
           abi: TESSERA_DECK_ABI,
-          functionName: "openCase",
+          functionName: risk ? "openRisk" : "openCase",
           args: [deckId],
           account: address,
         });
@@ -138,6 +148,7 @@ export function useOpenCase(onSettled?: () => void) {
           txHash: hash,
           txUrl: txUrl(hash),
           waitedMs: 0,
+          risk,
         });
 
         const receipt = await waitForTransactionReceipt(config, { hash });
@@ -152,6 +163,7 @@ export function useOpenCase(onSettled?: () => void) {
           handle,
           txHash: hash,
           at: Date.now(),
+          risk,
         });
 
         await awaitReveal(handle, ctl);

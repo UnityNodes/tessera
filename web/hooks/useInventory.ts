@@ -17,6 +17,7 @@ export interface Slot {
   value?: number;
   signatures?: `0x${string}`[];
   weight: number;
+  risk: boolean;
   spent: boolean;
   sealed: boolean;
 }
@@ -61,19 +62,27 @@ export function useInventory(decks: DeckShape[]) {
           functionName: "slotDeck",
           args: [address!, BigInt(i)],
         },
+        {
+          address: DECK_ADDRESS,
+          abi: TESSERA_DECK_ABI,
+          functionName: "slotIsRisk",
+          args: [address!, BigInt(i)],
+        },
       ]);
       const reads = (await readContracts(config, { contracts: handleCalls })) as {
-        result?: `0x${string}` | number;
+        result?: `0x${string}` | number | boolean;
       }[];
 
       const list = indexes
         .map((i) => ({
           index: i,
-          handle: reads[i * 2]?.result as `0x${string}` | undefined,
-          deckId: Number(reads[i * 2 + 1]?.result ?? 0),
+          handle: reads[i * 3]?.result as `0x${string}` | undefined,
+          deckId: Number(reads[i * 3 + 1]?.result ?? 0),
+          risk: Boolean(reads[i * 3 + 2]?.result),
         }))
-        .filter((x): x is { index: number; handle: `0x${string}`; deckId: number } =>
-          Boolean(x.handle),
+        .filter(
+          (x): x is { index: number; handle: `0x${string}`; deckId: number; risk: boolean } =>
+            Boolean(x.handle),
         );
 
       const spentCalls: ContractFunctionParameters[] = list.map((s) => ({
@@ -103,11 +112,12 @@ export function useInventory(decks: DeckShape[]) {
 
       return list.map((s, i) => {
         const r = byHandle.get(s.handle.toLowerCase());
+        const base = r && decks[s.deckId] ? weightOf(r.value, decks[s.deckId]) : 0;
         return {
           ...s,
           value: r?.value,
           signatures: r?.signatures,
-          weight: r && decks[s.deckId] ? weightOf(r.value, decks[s.deckId]) : 0,
+          weight: s.risk ? base * 2 : base,
           spent: spentFlags[i]?.result ?? false,
           sealed: sealed.has(s.index),
         };

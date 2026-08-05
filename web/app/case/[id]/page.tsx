@@ -185,23 +185,35 @@ export default function CasePage() {
                 You need $1 in test dollars, mint some from the header, they are free.
               </p>
             ) : (
-              <Button
-                block
-                disabled={busy}
-                onClick={() =>
-                  open.state.phase === "done" || open.state.phase === "failed"
-                    ? open.reset()
-                    : open.open({ deckId, needsApproval: game.needsApproval })
-                }
-              >
-                {busy
-                  ? "…"
-                  : open.state.phase === "done" || open.state.phase === "failed"
-                    ? "Open another · $1"
-                    : game.needsApproval
-                      ? "Approve once, then open · $1"
-                      : "Open a case · $1"}
-              </Button>
+              <>
+                <Button
+                  block
+                  disabled={busy}
+                  onClick={() =>
+                    open.state.phase === "done" || open.state.phase === "failed"
+                      ? open.reset()
+                      : open.open({ deckId, needsApproval: game.needsApproval })
+                  }
+                >
+                  {busy
+                    ? "…"
+                    : open.state.phase === "done" || open.state.phase === "failed"
+                      ? "Open another · $1"
+                      : game.needsApproval
+                        ? "Approve once, then open · $1"
+                        : "Open a case · $1"}
+                </Button>
+
+                {deck.vaultUpTo > 0 && open.state.phase !== "done" && (
+                  <ForfeitAction
+                    disabled={busy}
+                    vault={deck.vault}
+                    onClick={() =>
+                      open.open({ deckId, needsApproval: game.needsApproval, risk: true })
+                    }
+                  />
+                )}
+              </>
             )}
 
             {open.state.txUrl && !busy && (
@@ -294,6 +306,42 @@ export default function CasePage() {
 
 /**
  *
+ *
+ */
+function ForfeitAction({
+  disabled,
+  vault,
+  onClick,
+}: {
+  disabled: boolean;
+  vault: bigint;
+  onClick: () => void;
+}) {
+  const ink = "var(--color-tier-vault)";
+  return (
+    <div className="mt-3">
+      <Button
+        block
+        variant="quiet"
+        disabled={disabled}
+        onClick={onClick}
+        className="!border-[color-mix(in_oklab,var(--color-tier-vault)_45%,transparent)] hover:!border-[var(--color-tier-vault)] hover:!bg-[color-mix(in_oklab,var(--color-tier-vault)_12%,transparent)]"
+        style={{ color: ink }}
+      >
+        Risk it · give the ticket up
+      </Button>
+      <p className="mt-2.5 text-[0.875rem] leading-snug text-[var(--color-ink-faint)]">
+        Same $1, but no Megapot ticket for you, it goes into the vault instead, which is now
+        at <span style={{ color: ink }}>${Number(formatUnits(vault, 6)).toFixed(2)}</span>. In
+        exchange whatever you draw is <span className="text-[var(--color-ink)]">worth double</span>.
+        Most cases are still empty, and double nothing is nothing.
+      </p>
+    </div>
+  );
+}
+
+/**
+ *
  */
 function VaultStatus({
   taken,
@@ -349,12 +397,17 @@ function Result({
     case "signing":
       return <p className={dim}>Confirm in your wallet.</p>;
     case "confirming":
-      return <p className={dim}>Buying your ticket…</p>;
+      return <p className={dim}>{open.risk ? "Putting your dollar in the vault…" : "Buying your ticket…"}</p>;
     case "landing":
       return <p className={dim}>&nbsp;</p>;
     case "revealing":
       return open.resumed ? (
         <p className={dim}>Welcome back, this case was already paid for. Fetching it.</p>
+      ) : open.risk ? (
+        <p className={dim}>
+          Ticket given up, dollar in the vault. Now the covalidators decrypt your case, a few
+          seconds we do not control.
+        </p>
       ) : (
         <p className={dim}>
           Ticket bought. Now the covalidators decrypt your case, a few seconds we do not
@@ -372,6 +425,25 @@ function Result({
             <p className="mt-3 text-[1.0625rem] text-[var(--color-ink-dim)]">
               Everything it holds is yours. Claim it below.
             </p>
+          </div>
+        );
+      }
+      if (open.risk) {
+        return (
+          <div>
+            <p className="text-[1.25rem] text-[var(--color-ink)]">
+              No ticket, your dollar went{" "}
+              <span style={{ color: "var(--color-tier-vault)" }}>into the vault</span>.
+            </p>
+            {spec.tickets > 0 ? (
+              <p className="t-inscription mt-3 text-2xl" style={{ color: spec.ink }}>
+                and the case paid {spec.tickets * 2}, doubled
+              </p>
+            ) : (
+              <p className="mt-3 text-[1.0625rem] text-[var(--color-ink-faint)]">
+                The case was empty, and double nothing is nothing. That was the bet.
+              </p>
+            )}
           </div>
         );
       }
