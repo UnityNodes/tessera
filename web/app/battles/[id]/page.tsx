@@ -120,7 +120,7 @@ export default function BattlePage() {
         </p>
       )}
 
-      <section className="surface mt-5 rounded-[var(--radius-panel)] p-6 sm:p-8">
+      <section className="slab mt-5 p-6 sm:p-8">
         {specA && specB ? (
           <Verdict
             specA={specA}
@@ -176,8 +176,13 @@ function Side({
   pool?: ReturnType<typeof usePool>["data"];
 }) {
   return (
-    <div className="surface overflow-hidden rounded-[var(--radius-panel)]">
-      <div className="flex items-center justify-between border-b border-[var(--edge)] px-5 py-3">
+    <div className="frame relative overflow-hidden">
+      <span className="frame__node left-0 top-0" aria-hidden />
+      <span className="frame__node right-0 top-0" aria-hidden />
+      <span className="frame__node bottom-0 left-0" aria-hidden />
+      <span className="frame__node bottom-0 right-0" aria-hidden />
+
+      <div className="relative flex items-center justify-between border-b border-[var(--edge)] px-5 py-3">
         <span className="t-chain text-[0.8125rem] text-[var(--color-ink-dim)]">{title}</span>
         <span
           className="t-inscription text-[0.6875rem]"
@@ -187,10 +192,10 @@ function Side({
         </span>
       </div>
 
-      <div className="flex min-h-[13rem] items-center justify-center px-4 py-6">
+      <div className="relative flex min-h-[13rem] items-center justify-center px-4 py-6">
         {sealed ? (
           <div className="flex flex-col items-center gap-3 py-6">
-            <Crate rarity="sealed" size={120} drift />
+            <Crate rarity="sealed" size={140} drift />
             <span className="t-label">sealed until someone pays</span>
           </div>
         ) : (
@@ -211,7 +216,7 @@ function OpenSeat({
   onJoin: () => void;
 }) {
   return (
-    <div className="surface grid place-items-center rounded-[var(--radius-panel)] border-dashed p-8">
+    <div className="slab grid place-items-center border-dashed p-8">
       <div className="text-center">
         <p className="t-label">open seat</p>
         <p className="mt-2 max-w-xs text-[1.0625rem] text-[var(--color-ink-dim)]">

@@ -87,7 +87,14 @@ export default function BattlesPage() {
 
       {mine && (
         <Link href={`/battles/${mine.id}`} className="block">
-          <div className="surface surface--marked mb-4 flex flex-wrap items-center justify-between gap-4 p-6">
+          <div
+            className="slab mb-4 flex flex-wrap items-center justify-between gap-4 p-6"
+            style={{
+              borderColor: "color-mix(in oklab, var(--color-accent) 48%, transparent)",
+              background:
+                "linear-gradient(100deg, color-mix(in oklab, var(--color-accent) 14%, var(--color-surface)), color-mix(in oklab, var(--color-surface) 82%, transparent) 55%)",
+            }}
+          >
             <div>
               <p className="t-label">your battle</p>
               <p className="mt-1 text-[1.0625rem]">
@@ -101,7 +108,7 @@ export default function BattlesPage() {
         </Link>
       )}
 
-      <section className="surface overflow-hidden">
+      <section className="slab overflow-hidden">
         {battles.all.length === 0 ? (
           <p className="p-10 text-center text-[1.0625rem] text-[var(--color-ink-dim)]">
             {battles.loading ? "Reading the chain…" : "No battles yet, open the first one."}
