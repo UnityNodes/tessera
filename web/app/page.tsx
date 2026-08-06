@@ -51,7 +51,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="mt-10 flex flex-wrap items-end gap-x-14 gap-y-8">
+          <div className="mt-10 max-w-[46ch]">
             <p className="max-w-[46ch] text-[1.0625rem] leading-relaxed text-[var(--color-ink-dim)]">
               A case costs $1 and buys you a real Megapot lottery ticket, the same one sold on
               megapot.io, bought in the transaction that opens the case. What is inside the case
@@ -59,7 +59,7 @@ export default function Home() {
               else takes is gone for everybody.
             </p>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link href={`/case/${first?.id ?? 0}`}>
                 <Button>Open a case · $1</Button>
               </Link>
