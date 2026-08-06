@@ -34,7 +34,7 @@ export default function Home() {
             </h1>
 
             <div className="lg:text-right">
-              <span className="t-label block text-[0.5625rem]">still sealed, all decks</span>
+              <span className="t-label block text-[0.75rem]">still sealed, all decks</span>
               <span className="mt-2 flex items-baseline gap-2 lg:justify-end">
                 <Counter
                   value={game.remaining}
@@ -158,7 +158,7 @@ function PoolRow({ deck }: { deck: DeckInfo }) {
         <div className="flex items-center gap-6 lg:flex-col lg:items-end lg:gap-3">
           {deck.vaultUpTo > 0 ? (
             <div className="lg:text-right">
-              <span className="t-label block text-[0.5625rem]">vault</span>
+              <span className="t-label block text-[0.75rem]">vault</span>
               <span
                 className="t-chain text-[1.75rem] leading-none"
                 style={{

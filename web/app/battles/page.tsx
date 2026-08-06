@@ -161,7 +161,7 @@ function Row({
             className="grid h-16 w-16 shrink-0 place-items-center rounded-[var(--radius-control)] border border-dashed border-[var(--edge-strong)]"
             title="open seat"
           >
-            <span className="t-label text-[0.5625rem]">open</span>
+            <span className="t-label text-[0.75rem]">open</span>
           </div>
         )}
       </div>
@@ -200,7 +200,7 @@ function Status({ battle }: { battle: Battle }) {
   return (
     <div className="w-20 shrink-0">
       <span
-        className="t-inscription text-[0.625rem]"
+        className="t-inscription text-[0.75rem]"
         style={{
           color: ink,
           animation: battle.joined && !battle.resolved ? "marker-live 1.8s ease-in-out infinite" : undefined,

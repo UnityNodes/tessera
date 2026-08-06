@@ -65,7 +65,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
           <span className="t-chain block text-[1.5rem] leading-none text-[var(--color-ink-dim)]">
             {emptySince}
           </span>
-          <span className="t-label mt-1 block whitespace-nowrap text-[0.5625rem]">
+          <span className="t-label mt-1 block whitespace-nowrap text-[0.75rem]">
             empty since{riskedSince > 0 ? ` · ${riskedSince} risked` : ""}
           </span>
         </div>
@@ -117,7 +117,7 @@ function Prize({ item, index, mine }: { item: FeedItem; index: number; mine: boo
 
       {item.risk && (
         <div
-          className="t-inscription absolute left-2.5 top-2.5 text-[0.5625rem] leading-none"
+          className="t-inscription absolute left-2.5 top-2.5 text-[0.75rem] leading-none"
           style={{ color: "var(--color-tier-vault)" }}
         >
           risked
@@ -125,11 +125,11 @@ function Prize({ item, index, mine }: { item: FeedItem; index: number; mine: boo
       )}
 
       <div className="absolute inset-x-0 bottom-0 px-2.5 pb-2">
-        <div className="t-inscription text-center text-[0.6875rem]" style={{ color: ink }}>
+        <div className="t-inscription text-center text-[0.8125rem]" style={{ color: ink }}>
           {item.spec.name}
         </div>
         <div
-          className="t-chain mt-0.5 truncate text-center text-[0.625rem]"
+          className="t-chain mt-0.5 truncate text-center text-[0.75rem]"
           style={{ color: mine ? "var(--color-accent-bright)" : "var(--color-ink-faint)" }}
         >
           {mine ? "you" : short(item.player)}

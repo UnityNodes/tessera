@@ -185,7 +185,7 @@ function Side({
       <div className="relative flex items-center justify-between border-b border-[var(--edge)] px-5 py-3">
         <span className="t-chain text-[0.8125rem] text-[var(--color-ink-dim)]">{title}</span>
         <span
-          className="t-inscription text-[0.6875rem]"
+          className="t-inscription text-[0.8125rem]"
           style={{ color: spec ? spec.ink : "var(--color-ink-faint)" }}
         >
           {spec ? (spec.tickets > 0 ? `+${spec.tickets} · ${spec.name}` : spec.name) : "sealed"}

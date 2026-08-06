@@ -82,7 +82,7 @@ export function Contents({ deck, pool }: { deck: DeckShape; pool?: PoolState }) 
                 <Crate rarity={t.spec.rarity} size={112} className="relative" />
               </div>
               <div className="px-3 pb-4 text-center">
-                <div className="t-inscription text-[0.625rem]" style={{ color: t.spec.ink }}>
+                <div className="t-inscription text-[0.75rem]" style={{ color: t.spec.ink }}>
                   {t.spec.name}
                 </div>
                 <div className="mt-2 flex items-center justify-center gap-2">

@@ -152,7 +152,7 @@ body::before {
 
 .t-label {
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.09em;
   color: var(--color-ink-faint);

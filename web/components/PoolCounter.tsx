@@ -38,7 +38,7 @@ export function PoolCounter({ deck, drawn, pool }: { deck: DeckShape; drawn: num
             />
             <span className="min-w-0 flex-1">
               <span
-                className="t-inscription block text-[0.6875rem]"
+                className="t-inscription block text-[0.8125rem]"
                 style={{ color: t.left > 0 ? t.spec.ink : "var(--color-ink-faint)" }}
               >
                 {t.spec.name}

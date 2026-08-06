@@ -47,7 +47,7 @@ function Heading({ title, note }: { title: string; note: string }) {
           style={{ background: "linear-gradient(90deg, transparent, var(--color-accent))" }}
           aria-hidden
         />
-        <span className="t-inscription text-[0.6875rem]">{note}</span>
+        <span className="t-inscription text-[0.8125rem]">{note}</span>
         <span
           className="h-px w-10"
           style={{ background: "linear-gradient(90deg, var(--color-accent), transparent)" }}

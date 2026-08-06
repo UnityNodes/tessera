@@ -176,7 +176,7 @@ function Item({ spec }: { spec: TierSpec }) {
         <CrateTile rarity={spec.rarity} size={ITEM - 62} />
       </div>
       <div className="absolute inset-x-0 bottom-0 px-2 pb-2 text-center">
-        <div className="t-inscription text-[0.625rem]" style={{ color: spec.ink }}>
+        <div className="t-inscription text-[0.75rem]" style={{ color: spec.ink }}>
           {spec.name}
         </div>
         {spec.tickets > 0 && (

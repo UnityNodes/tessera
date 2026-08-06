@@ -377,7 +377,7 @@ function VaultStatus({
             animation: taken && !mine ? undefined : "marker-live 2s ease-in-out infinite",
           }}
         />
-        <span className="t-inscription text-[0.6875rem]" style={{ color: ink }}>
+        <span className="t-inscription text-[0.8125rem]" style={{ color: ink }}>
           {label}
         </span>
       </span>

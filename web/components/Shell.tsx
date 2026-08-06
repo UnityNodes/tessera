@@ -84,7 +84,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
       <div className="relative z-[var(--z-feed)] border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-surface)_38%,transparent)] backdrop-blur-md">
         <div className="mx-auto flex max-w-[1800px] items-center gap-5 px-5 sm:px-8 2xl:px-12">
-          <span className="t-label flex shrink-0 items-center gap-1.5 text-[0.625rem]">
+          <span className="t-label flex shrink-0 items-center gap-1.5 text-[0.75rem]">
             <span
               aria-hidden
               className="h-1.5 w-1.5 rounded-full"
@@ -138,7 +138,7 @@ function Chip({
   return (
     <span className="hidden items-center gap-2 rounded-[var(--radius-panel)] border border-[var(--edge)] px-3 py-1.5 lg:flex">
       {icon}
-      <span className="t-label text-[0.5625rem] leading-none">{label}</span>
+      <span className="t-label text-[0.75rem] leading-none">{label}</span>
       <Counter
         value={value}
         decimals={2}
@@ -189,7 +189,7 @@ function TicketsStat({ tickets, caseHref }: { tickets: number; caseHref: string 
   return (
     <details className="group/t relative">
       <summary className="cursor-pointer list-none py-3 [&::-webkit-details-marker]:hidden">
-        <span className="t-label flex items-center gap-1.5 text-[0.625rem]">
+        <span className="t-label flex items-center gap-1.5 text-[0.75rem]">
           your tickets
           <IconChevron />
         </span>
@@ -241,7 +241,7 @@ function Stat({
   const lit = Boolean(ink);
   return (
     <div className="relative py-3">
-      <span className="t-label block text-[0.625rem]">{label}</span>
+      <span className="t-label block text-[0.75rem]">{label}</span>
       <Counter
         value={value}
         suffix={suffix}

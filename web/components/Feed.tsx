@@ -51,7 +51,7 @@ export function Feed({ items }: { items: FeedItem[] }) {
                 </span>
               </span>
               <span
-                className="t-inscription shrink-0 text-[0.625rem]"
+                className="t-inscription shrink-0 text-[0.75rem]"
                 style={{ color: prize ? it.spec.ink : "var(--color-ink-faint)" }}
               >
                 {it.value === undefined ? "…" : it.spec.name}
