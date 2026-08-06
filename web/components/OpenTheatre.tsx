@@ -80,6 +80,7 @@ export function OpenTheatre({
             }}
           />
 
+
           <AnimatePresence>
             {opened && won && (
               <motion.div
@@ -91,6 +92,10 @@ export function OpenTheatre({
                 style={{
                   background: `linear-gradient(to top, transparent, color-mix(in oklab, ${spec!.ink} 42%, transparent) 34%, transparent 92%)`,
                   filter: "blur(26px)",
+                  maskImage:
+                    "linear-gradient(to right, transparent, #000 32%, #000 68%, transparent)",
+                  WebkitMaskImage:
+                    "linear-gradient(to right, transparent, #000 32%, #000 68%, transparent)",
                 }}
               />
             )}

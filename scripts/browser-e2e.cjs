@@ -1,6 +1,7 @@
 //
 //
-//   node browser-e2e.cjs <url> <privateKey>
+//
+//   set -a; . .env; set +a; node browser-e2e.cjs <url>
 
 const { chromium } = require("playwright-core");
 const { createWalletClient, createPublicClient, http, defineChain, parseGwei } = require("viem");
@@ -8,12 +9,16 @@ const { privateKeyToAccount } = require("viem/accounts");
 const { baseSepolia } = require("viem/chains");
 
 const URL = process.argv[2] || "https://tessera.unitynodes.com/";
-const PK = process.argv[3];
+const PK = process.argv[3] || process.env.DEPLOYER_PRIVATE_KEY;
 const RPC = process.env.BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org";
 const CHROME = process.env.CHROME_BIN;
 const SHOTS = process.env.SHOT_DIR || "/tmp";
 
-const account = privateKeyToAccount(PK);
+if (!PK) {
+  console.error(": DEPLOYER_PRIVATE_KEY ");
+  process.exit(2);
+}
+const account = privateKeyToAccount(PK.startsWith("0x") ? PK : `0x${PK}`);
 const chain = defineChain({ ...baseSepolia, fees: { maxPriorityFeePerGas: parseGwei("2") } });
 const wallet = createWalletClient({ chain, transport: http(RPC), account });
 const pub = createPublicClient({ chain, transport: http(RPC) });
@@ -82,23 +87,24 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
  *
  */
 async function ensureConnected(page) {
-  const connected = page.getByRole("button", { name: /Disconnect/ });
-  const connect = page.getByRole("button", { name: /Test Wallet|Injected/ }).first();
+  const connected = page.locator("summary", { hasText: /^0x[a-fA-F0-9]{4}/ });
+  const opener = page.locator("summary", { hasText: /Connect wallet/ });
 
   const auto = await connected.waitFor({ timeout: 8000 }).then(() => true).catch(() => false);
   if (auto) return "already";
+
   try {
-    await connect.click({ timeout: 25000 });
+    await opener.click({ timeout: 20000 });
+    await page.getByRole("button", { name: /Test Wallet|Injected|MetaMask/ }).first().click({ timeout: 20000 });
+    await connected.waitFor({ timeout: 25000 });
   } catch (e) {
     console.error(`  : ${JSON.stringify(await page.getByRole("button").allTextContents())}`);
     console.error(`  : ${await page.evaluate(() => typeof window.ethereum)}`);
     await page.screenshot({ path: `${SHOTS}/e2e-connect-failed.png` });
     throw e;
   }
-  await connected.waitFor({ timeout: 25000 });
   return "connected";
 }
-
 
 (async () => {
   const browser = await chromium.launch({ executablePath: CHROME });
@@ -124,32 +130,78 @@ async function ensureConnected(page) {
 
   console.log(`✓ ${await ensureConnected(page)}`);
 
-  const dollars = await page.getByText(/^\$\d/).first().textContent();
-  if (dollars === "$0" || dollars === "$0.0") {
-    await page.getByRole("button", { name: /Get \$20 test/ }).click();
-    await page.getByRole("button", { name: /Minting/ }).waitFor({ state: "detached", timeout: 60000 });
+  const pill = page.locator("span", { hasText: /^TEST\s*\$/ }).first();
+  const dollars = Number((await pill.innerText()).replace(/[^\d.]/g, "")) || 0;
+  console.log(`  $${dollars.toFixed(2)}`);
+  if (dollars < 1) {
+    await page.locator("button[title='Get $20 in test dollars']").click();
+    await page.waitForFunction(
+      () => !document.querySelector("button[title='Get $20 in test dollars'][disabled]"),
+      { timeout: 90000 },
+    );
     console.log("✓ ");
   }
 
-  const openBtn = page.getByRole("button", { name: /Open a case|Approve once/ });
-  await openBtn.waitFor({ timeout: 20000 });
-  const label = await openBtn.textContent();
-  console.log(`▶ ${label.trim()}`);
+  const firstCase = await page.locator("a[href^='/case/']").first().getAttribute("href");
+  await page.goto(URL.replace(/\/+$/, "") + firstCase, { waitUntil: "domcontentloaded" });
+  console.log(`  ${firstCase}`);
 
-  const t0 = Date.now();
-  await openBtn.click();
+  const ROUNDS = Number(process.env.OPENS || 1);
+  let gotPrize = false;
 
-  await page.getByText(/covalidators decrypt/).waitFor({ timeout: 90000 });
-  const tWait = Date.now() - t0;
-  console.log(`  , : ${tWait} ms`);
-  await shot(page, "e2e-waiting");
+  for (let round = 1; round <= ROUNDS && !gotPrize; round++) {
+    const openBtn = page.getByRole("button", { name: /Open a case|Open another|Approve once/ });
+    await openBtn.waitFor({ timeout: 20000 });
+    const label = (await openBtn.textContent()).trim();
+    console.log(`▶ ${round}/${ROUNDS}  ${label}`);
 
-  await page.getByRole("button", { name: /Open another/ }).waitFor({ timeout: 120000 });
-  console.log(`⏱ : ${Date.now() - t0} ms`);
+    const t0 = Date.now();
+    await openBtn.click();
 
-  const prize = await page.locator("main").getByText(/You own|found the vault/).first().textContent();
-  console.log(`  ${prize.trim()}`);
-  await shot(page, "e2e-revealed");
+    const failed = page.getByText(/RPC Request failed|Try again/);
+    try {
+      await Promise.race([
+        page.getByText(/covalidators/).first().waitFor({ timeout: 90000 }),
+        failed.first().waitFor({ timeout: 90000 }).then(() => {
+          throw new Error("RPC ");
+        }),
+      ]);
+    } catch (e) {
+      if (String(e.message).includes("RPC ")) {
+        console.log("  ⟳ RPC , 20 ");
+        await page.waitForTimeout(20000);
+        round--;
+        continue;
+      }
+      await shot(page, `e2e-stuck-${round}`);
+      const seen = await page.locator("main").innerText();
+      console.error(`  . :\n${seen.slice(0, 500)}`);
+      throw e;
+    }
+    console.log(`  , : ${Date.now() - t0} ms`);
+
+    await page.getByText(/click anywhere to continue/).waitFor({ timeout: 150000 });
+    const ms = Date.now() - t0;
+
+    const scene = (
+      await page
+        .getByRole("dialog", { name: /Opening a case/ })
+        .getByText(/^(Grout|Denarius|Aureus|Porphyry|The Vault|empty)$/)
+        .first()
+        .textContent()
+    ).trim();
+    gotPrize = scene !== "empty" && scene !== "Grout";
+    console.log(`⏱ ${ms} ms  →  ${scene}${gotPrize ? "  ★" : ""}`);
+    await page.waitForTimeout(2200);
+    await shot(page, gotPrize ? "e2e-prize" : `e2e-empty-${round}`);
+
+    const onPage = await page.getByText(/You own|found the vault|No ticket/).first().textContent();
+    console.log(`  : ${onPage.trim()}`);
+
+    await page.getByRole("dialog", { name: /Opening a case/ }).click({ position: { x: 8, y: 8 } });
+    await page.getByRole("button", { name: /Open a case/ }).waitFor({ timeout: 30000 });
+  }
+  if (!gotPrize) console.log(`  ${ROUNDS} `);
 
   if (process.env.TEST_RESUME) {
     const second = await ctx.newPage();
@@ -167,8 +219,8 @@ async function ensureConnected(page) {
     await ensureConnected(back);
     await back.getByText(/Welcome back/).waitFor({ timeout: 30000 });
     console.log("✓ '");
-    await back.getByText(/slot \d+ of \d+/).waitFor({ timeout: 90000 });
-    const got = await back.getByText(/slot \d+ of \d+/).first().textContent();
+    await back.getByText(/You own|found the vault|No ticket/).waitFor({ timeout: 120000 });
+    const got = await back.getByText(/You own|found the vault|No ticket/).first().textContent();
     console.log(`✓ : ${got.trim()}`);
     await back.screenshot({ path: `${SHOTS}/e2e-resumed.png` });
     await back.close();
