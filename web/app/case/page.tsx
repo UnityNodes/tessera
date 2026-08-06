@@ -40,7 +40,7 @@ export default function CasesPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start rounded-[var(--radius-control)] border border-slate-800 bg-slate-900 p-1.5 md:self-auto">
+          <div className="scrollbar-none flex max-w-full items-center gap-2 self-start overflow-x-auto rounded-[var(--radius-control)] border border-slate-800 bg-slate-900 p-1.5 md:self-auto">
             <Pill on={filter === "all"} onClick={() => setFilter("all")}>
               all decks
             </Pill>

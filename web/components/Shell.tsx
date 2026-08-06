@@ -34,13 +34,13 @@ export function Shell({ children }: { children: React.ReactNode }) {
     <div className="relative z-[1] flex min-h-screen flex-col">
       <header className="sticky top-0 z-[var(--z-sticky)] border-b border-slate-800/80 bg-[rgb(10_14_23_/_0.9)] px-4 py-3 backdrop-blur-md lg:px-8 2xl:px-14">
         <div className="mx-auto flex flex-col items-center justify-between gap-3 md:flex-row">
-          <div className="flex w-full items-center justify-between gap-8 md:w-auto">
-            <Link href="/" className="group flex items-center gap-2">
+          <div className="flex w-full min-w-0 items-center justify-between gap-3 md:w-auto md:gap-8">
+            <Link href="/" className="group flex shrink-0 items-center gap-2">
               <Mark />
-              <span className="t-black text-2xl tracking-wide text-white">Tessera</span>
+              <span className="t-black text-xl tracking-wide text-white sm:text-2xl">Tessera</span>
             </Link>
 
-            <nav className="flex items-center gap-1 rounded-[var(--radius-control)] border border-slate-800 bg-slate-900/60 p-1">
+            <nav className="scrollbar-none flex min-w-0 items-center gap-1 overflow-x-auto rounded-[var(--radius-control)] border border-slate-800 bg-slate-900/60 p-1">
               <Tab href="/">home</Tab>
               <Tab href="/case">cases</Tab>
               <Tab href="/battles">battles</Tab>
@@ -168,7 +168,7 @@ function Tab({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <Link
       href={href}
-      className={`rounded-[var(--radius-chip)] px-3 py-1.5 text-sm font-semibold capitalize transition-all sm:px-4 ${
+      className={`shrink-0 rounded-[var(--radius-chip)] px-2.5 py-1.5 text-xs font-semibold capitalize transition-all sm:px-4 sm:text-sm ${
         active
           ? "border border-[rgb(6_182_212_/_0.3)] bg-[rgb(6_182_212_/_0.2)] text-[var(--color-accent-hover)] shadow-[0_0_10px_rgba(6,182,212,0.2)]"
           : "border border-transparent text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"

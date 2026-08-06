@@ -47,7 +47,10 @@ export function Case({ phase, value, deck, size = 340, onClick, risk = false, va
 
   if (phase === "waiting") {
     return (
-      <div className="grid place-items-center" style={{ width: size, height: size }}>
+      <div
+        className="grid w-full place-items-center"
+        style={{ maxWidth: size, aspectRatio: "1 / 1" }}
+      >
         <ChestWaiting size={size * 0.82} />
       </div>
     );
@@ -55,8 +58,8 @@ export function Case({ phase, value, deck, size = 340, onClick, risk = false, va
 
   return (
     <div
-      className="relative grid place-items-center"
-      style={{ width: size, height: size }}
+      className="relative grid w-full place-items-center"
+      style={{ maxWidth: size, aspectRatio: "1 / 1" }}
       role="img"
       aria-label={spec ? `Opened: ${spec.name}, ${spec.note}` : "A sealed case"}
     >
