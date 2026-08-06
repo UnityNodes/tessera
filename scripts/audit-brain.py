@@ -68,8 +68,15 @@ for d, group in by_dir.items():
     group = [f for f in group if not is_log(f)]
     for i, a in enumerate(group):
         for b in group[i + 1 :]:
-            r = SequenceMatcher(None, slug(a), slug(b)).ratio()
-            if r >= 0.72:
+            if SequenceMatcher(None, slug(a), slug(b)).ratio() < 0.72:
+                continue
+            # . :
+            # ,
+            # .
+            ta = open(a, encoding="utf-8", errors="replace").read()
+            tb = open(b, encoding="utf-8", errors="replace").read()
+            r = SequenceMatcher(None, ta, tb).ratio()
+            if r >= 0.6:
                 pairs.append((round(r, 2), os.path.relpath(a, BRAIN), os.path.relpath(b, BRAIN)))
 pairs.sort(reverse=True)
 check("", len(pairs) == 0, f"{len(pairs)} ")
@@ -86,9 +93,13 @@ for f in all_md:
     for m in re.findall(r"\[\[([^\]]+)\]\]", body):
         if m not in names:
             broken_wiki.append(f"{os.path.relpath(f, BRAIN)} → [[{m}]]")
-    for m in re.findall(r"~/brain/([A-Za-z0-9\-_/]+\.md)", body):
-        if m not in paths:
-            broken_path.append(f"{os.path.relpath(f, BRAIN)} → ~/brain/{m}")
+    # , , , :
+    # .
+    for m in re.finditer(r"~/brain/([A-Za-z0-9\-_/]+\.md)`?(?P<tail>[^\n]{0,20})", body):
+        target = m.group(1)
+        if target in paths or "" in m.group("tail"):
+            continue
+        broken_path.append(f"{os.path.relpath(f, BRAIN)} → ~/brain/{target}")
 #
 # , . [[/]] :
 # .

@@ -18,3 +18,13 @@ This version has breaking changes, APIs, conventions, and file structure may all
 - , , `app/api/opens`:
   . ,
   , 429 RPC .
+
+#
+
+`scripts/audit.sh` : , → , →
+, , . `OPENS=3 ./audit.sh`
+().
+
+audit-chain: ,
+. , , ,
+-.

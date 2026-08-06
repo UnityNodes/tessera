@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { createPublicClient, http, parseAbiItem } from "viem";
 import { CHAIN, RPC_URL, DECK_ADDRESS, DECK_FROM_BLOCK } from "@/lib/chain";
 
@@ -113,9 +115,49 @@ async function revealSome() {
         }
       }
     }
+    save();
   } catch {
   } finally {
     revealing = false;
+  }
+}
+
+/**
+ *
+ *
+ */
+const STORE = path.join(process.cwd(), ".data", "opens.json");
+let restored = false;
+
+function restore() {
+  restored = true;
+  try {
+    const raw = JSON.parse(fs.readFileSync(STORE, "utf8"));
+    if (raw.deck !== DECK_ADDRESS || raw.from !== String(DECK_FROM_BLOCK)) return;
+    scanned = BigInt(raw.scanned);
+    events.push(...raw.events);
+    for (const r of raw.revealed ?? []) revealed.set(r.handle.toLowerCase(), r);
+  } catch {
+  }
+}
+
+let saveAt = 0;
+function save() {
+  if (Date.now() - saveAt < 5_000) return;
+  saveAt = Date.now();
+  try {
+    fs.mkdirSync(path.dirname(STORE), { recursive: true });
+    fs.writeFileSync(
+      STORE,
+      JSON.stringify({
+        deck: DECK_ADDRESS,
+        from: String(DECK_FROM_BLOCK),
+        scanned: String(scanned),
+        events,
+        revealed: [...revealed.values()],
+      }),
+    );
+  } catch {
   }
 }
 
@@ -155,9 +197,11 @@ async function catchUp() {
     scanned = to;
     from = to + 1n;
   }
+  save();
 }
 
 export async function GET() {
+  if (!restored) restore();
   try {
     inflight ??= catchUp().finally(() => {
       inflight = null;
