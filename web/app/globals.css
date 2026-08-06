@@ -266,6 +266,12 @@ body::before {
 
 
 
+@keyframes empty-sigh {
+  0%, 62% { opacity: 1; }
+  81% { opacity: 0.55; }
+  100% { opacity: 1; }
+}
+
 @keyframes crate-hover {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-2.5%); }

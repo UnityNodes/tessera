@@ -97,7 +97,7 @@ export default function CasePage() {
 
   return (
     <>
-      <OpenTheatre open={open.state} deck={shape} pool={pool.data} onClose={open.reset} />
+      <OpenTheatre open={open.state} deck={shape} pool={pool.data} vault={deck?.vault} onClose={open.reset} />
 
       <div className="mb-5 flex flex-wrap items-baseline justify-between gap-3">
         <div>

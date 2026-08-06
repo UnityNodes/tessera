@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Crate } from "./Crate";
 import { Roll } from "./Roll";
+import { formatUnits } from "viem";
 import { specOf, isVault, type DeckShape } from "@/lib/deck";
 import type { OpenState } from "@/hooks/useOpenCase";
 import type { PoolState } from "@/hooks/usePool";
@@ -23,10 +24,12 @@ export function OpenTheatre({
   open,
   deck,
   pool,
+  vault,
   onClose,
 }: {
   open: OpenState;
   deck: DeckShape;
+  vault?: bigint;
   pool?: PoolState;
   onClose: () => void;
 }) {
@@ -111,7 +114,14 @@ export function OpenTheatre({
                 animate={{ scale: 1, y: 0, opacity: 1 }}
                 transition={{ duration: 0.65, ease: [0.16, 0.84, 0.28, 1] }}
               >
-                <Crate rarity={spec?.rarity ?? "sealed"} size={560} open />
+                <div
+                  style={{
+                    animation:
+                      opened && !won && !still ? "empty-sigh 1.9s ease-in-out 300ms both" : undefined,
+                  }}
+                >
+                  <Crate rarity={spec?.rarity ?? "sealed"} size={560} open />
+                </div>
               </motion.div>
             )}
 
@@ -131,9 +141,12 @@ export function OpenTheatre({
               >
                 <span
                   className="t-chain font-bold leading-none"
-                  style={{ fontSize: isVault(spec!) ? 52 : 40, color: "oklch(18% 0.02 260)" }}
+                  style={{
+                    fontSize: isVault(spec!) ? 30 : 40,
+                    color: "oklch(18% 0.02 260)",
+                  }}
                 >
-                  {isVault(spec!) ? "◆" : `+${paid}`}
+                  {isVault(spec!) ? `$${Number(formatUnits(vault ?? 0n, 6)).toFixed(2)}` : `+${paid}`}
                 </span>
               </span>
             )}
