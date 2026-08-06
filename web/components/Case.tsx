@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "motion/react";
 import { Chest, ChestWaiting } from "./Chest";
+import { Prize } from "./Prize";
 import { specOf, isVault, type DeckShape } from "@/lib/deck";
 
 export type CasePhase = "idle" | "waiting" | "opened";
@@ -13,6 +14,7 @@ interface Props {
   size?: number;
   onClick?: () => void;
   risk?: boolean;
+  vault?: bigint;
 }
 
 /**
@@ -36,7 +38,7 @@ const SHARDS = [
  *
  *
  */
-export function Case({ phase, value, deck, size = 340, onClick, risk = false }: Props) {
+export function Case({ phase, value, deck, size = 340, onClick, risk = false, vault }: Props) {
   const still = useReducedMotion();
   const spec = phase === "opened" && value != null ? specOf(value, deck) : null;
   const clickable = Boolean(onClick) && phase === "idle";
@@ -119,32 +121,16 @@ export function Case({ phase, value, deck, size = 340, onClick, risk = false }: 
           />
 
 
-          {spec && !still && (
-            <span
-              aria-hidden
-              className="pointer-events-none absolute left-1/2 top-1/2 grid place-items-center rounded-full"
-              style={{
-                width: size * 0.3,
-                height: size * 0.3,
-                background: won
-                  ? `radial-gradient(circle at 38% 32%, ${spec.ink}, color-mix(in oklab, ${spec.ink} 55%, black) 78%)`
-                  : "radial-gradient(circle at 38% 32%, oklch(46% 0.02 252), oklch(28% 0.015 252) 78%)",
-                boxShadow: won
-                  ? `0 0 ${size * 0.22}px color-mix(in oklab, ${spec.ink} 80%, transparent), inset 0 2px 0 oklch(100% 0 0 / 0.4)`
-                  : "inset 0 2px 0 oklch(100% 0 0 / 0.18)",
-                color: won ? "oklch(99% 0.01 100)" : "var(--color-ink-faint)",
-                animation: "prize-rise 1.1s var(--ease-out-expo) 380ms both",
-              }}
-            >
-              <span
-                className="t-chain font-bold leading-none"
-                style={{
-                  fontSize: size * (isVault(spec) ? 0.14 : paid > 0 ? 0.11 : 0.055),
-                }}
-              >
-                {isVault(spec) ? "◆" : paid > 0 ? `+${paid}` : ", "}
-              </span>
-            </span>
+
+          {spec && won && !still && (
+            <Prize
+              spec={spec}
+              paid={paid}
+              vault={vault}
+              size={size * 0.62}
+              className="absolute left-1/2 top-1/2"
+              style={{ animation: "prize-rise 1.1s var(--ease-out-expo) 380ms both" }}
+            />
           )}
         </motion.div>
       </motion.button>

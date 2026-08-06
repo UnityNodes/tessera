@@ -178,6 +178,7 @@ export default function CasePage() {
               value={open.state.value}
               deck={shape}
               risk={open.state.risk}
+              vault={deck.vault}
               size={380}
               onClick={
                 canOpen ? () => open.open({ deckId, needsApproval: game.needsApproval }) : undefined

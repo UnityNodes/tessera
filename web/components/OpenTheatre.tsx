@@ -3,8 +3,8 @@
 import { useEffect } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Chest } from "./Chest";
+import { Prize } from "./Prize";
 import { Roll } from "./Roll";
-import { formatUnits } from "viem";
 import { specOf, isVault, type DeckShape } from "@/lib/deck";
 import type { OpenState } from "@/hooks/useOpenCase";
 import type { PoolState } from "@/hooks/usePool";
@@ -125,29 +125,14 @@ export function OpenTheatre({
                 </div>
 
                 {won && (
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute left-1/2 top-[52%] grid -translate-x-1/2 place-items-center rounded-full"
-                    style={{
-                      width: 132,
-                      height: 132,
-                      background: `radial-gradient(circle at 38% 30%, color-mix(in oklab, ${spec!.ink} 80%, white), ${spec!.ink} 68%)`,
-                      boxShadow: `0 0 90px -10px ${spec!.ink}, inset 0 -8px 20px oklch(0% 0 0 / 0.35)`,
-                      animation: "prize-rise 1.15s var(--ease-out-expo) 620ms both",
-                    }}
-                  >
-                    <span
-                      className="t-chain font-bold leading-none"
-                      style={{
-                        fontSize: isVault(spec!) ? 30 : 40,
-                        color: "oklch(18% 0.02 260)",
-                      }}
-                    >
-                      {isVault(spec!)
-                        ? `$${Number(formatUnits(vault ?? 0n, 6)).toFixed(2)}`
-                        : `+${paid}`}
-                    </span>
-                  </span>
+                  <Prize
+                    spec={spec!}
+                    paid={paid}
+                    vault={vault}
+                    size={340}
+                    className="absolute left-1/2 top-1/2"
+                    style={{ animation: "prize-rise 1.15s var(--ease-out-expo) 620ms both" }}
+                  />
                 )}
               </motion.div>
             )}
