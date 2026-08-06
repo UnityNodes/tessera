@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { seedRevealed, type Revealed } from "@/lib/inco";
 
 export interface OpenEvent {
   player: `0x${string}`;
@@ -26,7 +27,9 @@ export function useOpens() {
       if (!res.ok) throw new Error(`opens: ${res.status}`);
       const body = (await res.json()) as {
         events: (Omit<OpenEvent, "block"> & { block: string })[];
+        revealed?: Revealed[];
       };
+      if (body.revealed?.length) seedRevealed(body.revealed);
       return body.events.map((e) => ({ ...e, block: BigInt(e.block) }));
     },
   });

@@ -97,6 +97,16 @@ const REVEAL_CHUNK = 6;
 
 const REVEAL_LANES = 3;
 
+/**
+ *
+ */
+export function seedRevealed(rows: Revealed[]) {
+  const fresh = rows.filter(
+    (r) => r.handle && r.signatures?.length && !cache.has(r.handle.toLowerCase()),
+  );
+  if (fresh.length) remember(fresh);
+}
+
 export async function revealHandles(
   handles: string[],
   opts: {
