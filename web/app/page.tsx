@@ -1,186 +1,347 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { formatUnits } from "viem";
+import { Sparkles, Swords, Ticket, Lock, ShieldCheck, Award } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Crate } from "@/components/Crate";
-import { PoolGrid } from "@/components/PoolGrid";
+import { Chest } from "@/components/Chest";
 import { Counter } from "@/components/ui/Counter";
 import { useDeck, type DeckInfo } from "@/hooks/useDeck";
 import { useBattleList } from "@/hooks/useBattles";
-import { slotsPerTier } from "@/lib/deck";
+import { useFeed } from "@/hooks/useFeed";
+import { slotsPerTier, bestTier, isVault } from "@/lib/deck";
 
 /**
- *
  *
  *
  */
 export default function Home() {
   const game = useDeck();
   const battles = useBattleList();
+  const shapes = useMemo(() => game.decks.map((d) => d), [game.decks]);
+  const feed = useFeed(shapes);
   const first = game.decks.find((d) => !d.empty) ?? game.decks[0];
+  const total = game.decks.reduce((n, d) => n + d.size, 0);
 
   return (
-    <>
-      <section className="relative -mx-5 -mt-8 overflow-hidden border-b border-[var(--edge)] sm:-mx-8 2xl:-mx-12">
-        <div className="relative mx-auto max-w-[1800px] px-5 pb-14 pt-16 sm:px-8 sm:pt-20 2xl:px-12">
-          <div className="grid items-end gap-10 lg:grid-cols-[minmax(0,1fr)_auto]">
-            <h1 className="t-display max-w-[16ch] text-balance text-[clamp(2.8rem,7vw,5.2rem)] leading-[0.94]">
-              A finite pool,
+    <div className="flex w-full flex-col">
+      <section className="relative w-full overflow-hidden border-b border-slate-800/60 bg-gradient-to-b from-[#090d16] via-[#0b101c] to-[#070a11] px-4 py-12 lg:px-8 lg:py-20">
+        <div className="pointer-events-none absolute right-1/4 top-0 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-1/4 h-96 w-96 rounded-full bg-blue-600/10 blur-3xl" />
+
+        <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 lg:grid-cols-12">
+          <div className="flex flex-col items-start space-y-6 lg:col-span-7">
+            <h1 className="t-black text-4xl text-white sm:text-5xl lg:text-6xl">
+              A finite pool, drawn
               <br />
-              drawn without
-              <br />
-              <span className="text-[var(--color-accent-bright)]">replacement.</span>
+              without{" "}
+              <span className="text-[var(--color-accent-hover)] drop-shadow-[0_0_20px_rgba(56,189,248,0.4)]">
+                replacement.
+              </span>
             </h1>
 
-            <div className="lg:text-right">
-              <span className="t-label block text-[0.75rem]">still sealed, all decks</span>
-              <span className="mt-2 flex items-baseline gap-2 lg:justify-end">
-                <Counter
-                  value={game.remaining}
-                  className="t-chain text-[clamp(3rem,7vw,4.75rem)] font-medium leading-[0.9]"
-                  style={{
-                    color: "var(--color-ink)",
-                    textShadow: "0 0 44px color-mix(in oklab, var(--color-accent) 45%, transparent)",
-                  }}
-                />
-                <span className="t-chain text-[1.25rem] text-[var(--color-ink-faint)]">
-                  / {game.decks.reduce((n, d) => n + d.size, 0) || ", "}
-                </span>
-              </span>
-            </div>
-          </div>
-
-          <div className="mt-10 max-w-[46ch]">
-            <p className="max-w-[46ch] text-[1.0625rem] leading-relaxed text-[var(--color-ink-dim)]">
+            <p className="max-w-xl text-lg leading-relaxed text-slate-400 lg:text-xl">
               A case costs $1 and buys you a real Megapot lottery ticket, the same one sold on
-              megapot.io, bought in the transaction that opens the case. What is inside the case
-              was shuffled once, before anyone opened one, and is drawn in order. A prize someone
-              else takes is gone for everybody.
+              megapot.io, bought in the transaction that opens the case. What is inside was
+              shuffled once, before anyone opened one, and is drawn in order. A prize someone else
+              takes is gone for everybody.
             </p>
 
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-4 pt-2">
               <Link href={`/case/${first?.id ?? 0}`}>
-                <Button>Open a case · $1</Button>
+                <Button className="px-8 py-4 text-base">
+                  <Sparkles className="h-5 w-5 fill-slate-950" />
+                  Open a case • $1
+                </Button>
               </Link>
               <Link href="/battles">
-                <Button variant="quiet">
-                  Battles{battles.open.length > 0 ? ` · ${battles.open.length} waiting` : ""}
+                <Button variant="quiet" className="px-8 py-4 text-base">
+                  <Swords className="h-5 w-5 text-[var(--color-accent-hover)]" />
+                  Battles
+                  {battles.open.length > 0 ? ` • ${battles.open.length} waiting` : ""}
                 </Button>
               </Link>
             </div>
+
+            <div className="flex items-baseline gap-3 pt-2">
+              <Counter
+                value={game.remaining}
+                className="t-chain text-4xl font-extrabold leading-none text-white"
+                style={{ textShadow: "0 0 40px rgb(34 211 238 / 0.45)" }}
+              />
+              <span className="t-chain text-lg text-slate-500">/ {total || ", "}</span>
+              <span className="t-label">still sealed, all decks</span>
+            </div>
+          </div>
+
+          <div className="relative flex items-center justify-center lg:col-span-5">
+            <div className="pointer-events-none absolute -top-20 left-1/2 h-[350px] w-72 -translate-x-1/2 -skew-x-12 bg-gradient-to-b from-cyan-400/25 via-cyan-500/5 to-transparent blur-xl" />
+
+            <Link href={`/case/${first?.id ?? 0}`} className="group relative">
+              <div className="absolute bottom-6 left-1/2 h-16 w-64 -translate-x-1/2 rounded-full bg-cyan-500/30 blur-2xl transition-all group-hover:bg-cyan-400/50" />
+              <Chest
+                rarity="sealed"
+                size={384}
+                className="relative z-10 max-w-[min(100%,24rem)] transition-transform duration-500 group-hover:scale-105"
+              />
+            </Link>
           </div>
         </div>
       </section>
 
-      <section className="relative mt-14 -mx-5 rounded-[var(--radius-panel)] bg-[var(--color-sunk)] px-5 py-12 sm:-mx-8 sm:px-8 2xl:-mx-12 2xl:px-12">
-        <div className="mb-8 flex flex-wrap items-baseline justify-between gap-3 border-b border-[var(--edge)] pb-4">
-          <h2 className="t-display text-[clamp(1.5rem,3vw,2.1rem)]">the pools</h2>
-          <p className="t-label">
-            {game.decks.length > 0
-              ? `${game.decks.length} decks · ${game.remaining} of ${game.decks.reduce((n, d) => n + d.size, 0)} slots still sealed`
-              : "reading the chain…"}
-          </p>
-        </div>
+      <section className="w-full border-b border-slate-800/60 bg-[var(--color-section)] px-4 py-16 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col items-center">
+          <h2 className="t-inscription mb-10 text-center text-2xl font-extrabold text-white lg:text-3xl">
+            deck progress
+          </h2>
 
-        <div className="flex flex-col gap-4">
-          {game.decks.map((d) => (
-            <PoolRow key={d.id} deck={d} />
-          ))}
+          {game.decks.length === 0 ? (
+            <p className="py-10 text-center text-slate-400">Reading the chain…</p>
+          ) : (
+            <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-3">
+              {game.decks.map((d) => (
+                <DeckCard key={d.id} deck={d} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
-    </>
+
+      <section className="w-full border-b border-slate-800/60 bg-[var(--color-section-alt)] px-4 py-16 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col items-center">
+          <div className="mb-12 max-w-2xl text-center">
+            <span className="t-label mb-2 block text-[var(--color-accent-hover)]">
+              mechanics &amp; probabilities
+            </span>
+            <h2 className="t-display text-3xl text-white">
+              How the ticket, the pool and the vault fit together
+            </h2>
+          </div>
+
+          <div className="grid w-full grid-cols-1 gap-8 md:grid-cols-3">
+            <Step
+              icon={<Ticket className="h-6 w-6" />}
+              ink="var(--color-accent)"
+              title="1. Every case buys a real ticket"
+            >
+              The $1 does not go into a house balance. It buys a Megapot lottery ticket in the same
+              transaction that opens the case, recorded against your wallet in Megapot&apos;s own
+              contract. The case comes on top.
+            </Step>
+
+            <Step
+              icon={<Lock className="h-6 w-6" />}
+              ink="var(--color-tier-vault)"
+              title="2. The vault grows until someone draws it"
+            >
+              One slot in the deck opens the vault and takes everything in it. Until it is drawn,
+              every case that gives its ticket up feeds it. Nobody can pick which slot that is, the deck was shuffled before anyone opened anything.
+            </Step>
+
+            <Step
+              icon={<ShieldCheck className="h-6 w-6" />}
+              ink="var(--color-tier-denarius)"
+              title="3. Drawn without replacement, in public"
+            >
+              Contents are encrypted on Inco Lightning and committed before the first open. Every
+              opened slot is publicly revealed after the fact, so the count of what is left is
+              arithmetic anyone can repeat, not a percentage we assert.
+            </Step>
+          </div>
+        </div>
+      </section>
+
+      <section className="w-full bg-[var(--color-section-deep)] px-4 py-14 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col items-center">
+          <div className="mb-8 flex items-center gap-2">
+            <Award className="h-6 w-6" style={{ color: "var(--color-tier-aureus)" }} />
+            <h3 className="t-inscription text-xl font-extrabold text-white">
+              latest out of the pool
+            </h3>
+          </div>
+
+          <Latest feed={feed} />
+        </div>
+      </section>
+    </div>
   );
 }
 
 /**
  *
  */
-function PoolRow({ deck }: { deck: DeckInfo }) {
+function DeckCard({ deck }: { deck: DeckInfo }) {
   const tiers = slotsPerTier(deck);
-  const best = tiers
-    .filter((t) => t.weight > 0)
-    .reduce<(typeof tiers)[number] | undefined>(
-      (a, b) => (b.spec.tickets > (a?.spec.tickets ?? -1) ? b : a),
-      undefined,
-    )?.spec;
+  const best = bestTier(deck);
 
-  const ink = best?.ink ?? "var(--color-accent)";
   const top = tiers.reduce((n, t) => Math.max(n, t.spec.tickets), 0);
   const prizes = tiers.filter((t) => t.weight > 0).reduce((n, t) => n + t.count, 0);
   const paying = prizes + deck.vaultUpTo;
   const oneIn = paying > 0 ? Math.max(1, Math.round(deck.size / paying)) : 0;
 
+  const ink = deck.empty ? "var(--color-tier-grout)" : (best?.ink ?? "var(--color-accent)");
+  const sealedPercent = deck.size > 0 ? Math.max(1, (deck.remaining / deck.size) * 100) : 0;
+
   return (
     <Link
       href={`/case/${deck.id}`}
-      className="group block rounded-[var(--radius-panel)] border border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-surface)_45%,transparent)] p-5 transition-colors hover:border-[color-mix(in_oklab,var(--card-ink)_45%,transparent)] sm:p-6"
-      style={{ ["--card-ink" as string]: ink }}
+      className="group relative flex flex-col justify-between rounded-[var(--radius-panel)] border bg-slate-900/60 p-6 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-slate-900/90"
+      style={{
+        borderColor: `color-mix(in oklab, ${ink} 40%, transparent)`,
+        boxShadow: `0 0 25px color-mix(in oklab, ${ink} 22%, transparent)`,
+      }}
     >
-      <div className="grid items-center gap-6 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
-        <div className="flex items-center gap-4">
-          <Crate
-            rarity={deck.empty ? "grout" : (best?.rarity ?? "sealed")}
-            size={132}
-            className="shrink-0 transition-transform duration-500 group-hover:scale-105"
-          />
-          <div className="min-w-0">
-            <p className="t-display text-[1.5rem] leading-none" style={{ color: ink }}>
-              {deck.empty ? "Emptied" : (best?.name ?? "Sealed")}
-            </p>
-            <p className="mt-2 text-[0.875rem] leading-snug text-[var(--color-ink-dim)]">
-              {deck.empty
-                ? "every case opened"
-                : oneIn > 0
-                  ? `1 in ${oneIn} pays · best ${top > 0 ? `+${top}` : "the vault"}`
-                  : "no prizes left"}
-            </p>
-          </div>
-        </div>
-
-        <div className="min-w-0">
-          <PoolGrid size={deck.size} drawn={deck.drawn} ink={ink} />
-          <div className="mt-3 flex items-baseline justify-between gap-4">
-            <span className="t-label">
-              <Counter
-                value={deck.remaining}
-                className="t-chain text-[1.125rem] font-medium"
-                style={{ color: "var(--color-ink)" }}
-              />{" "}
-              of {deck.size} sealed
-            </span>
-            <span className="t-label">
-              {deck.drawn} drawn
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-6 lg:flex-col lg:items-end lg:gap-3">
-          {deck.vaultUpTo > 0 ? (
-            <div className="lg:text-right">
-              <span className="t-label block text-[0.75rem]">vault</span>
-              <span
-                className="t-chain text-[1.75rem] leading-none"
-                style={{
-                  color: "var(--color-tier-vault)",
-                  textShadow:
-                    "0 0 28px color-mix(in oklab, var(--color-tier-vault) 50%, transparent)",
-                }}
-              >
-                ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
-              </span>
-            </div>
-          ) : (
-            <span className="t-label">tickets only</span>
-          )}
+      <div className="flex flex-col items-center space-y-4 text-center">
+        <div className="relative flex h-40 w-40 items-center justify-center">
           <span
-            className="t-label whitespace-nowrap transition-colors group-hover:text-[var(--color-ink)]"
-            style={{ color: ink }}
+            aria-hidden
+            className="absolute inset-0 rounded-full opacity-30 blur-xl transition-opacity group-hover:opacity-60"
+            style={{ background: ink }}
+          />
+          <Chest
+            rarity={deck.empty ? "grout" : (best?.rarity ?? "sealed")}
+            size={144}
+            className="relative z-10 transition-transform duration-300 group-hover:scale-110"
+          />
+        </div>
+
+        <h3 className="t-black text-2xl tracking-wide" style={{ color: ink }}>
+          {deck.empty ? "Emptied" : (best?.name ?? "Sealed")}
+        </h3>
+
+        <p className="min-h-[72px] px-2 text-sm leading-relaxed text-slate-400">
+          {deck.empty ? (
+            "Every case in this deck has been opened."
+          ) : (
+            <>
+              {oneIn > 0 ? `1 in ${oneIn} cases pay something. ` : ""}
+              Best case{" "}
+              <span style={{ color: ink }}>{top > 0 ? `+${top} tickets` : "the vault"}</span>.{" "}
+              {deck.vaultUpTo > 0
+                ? "One case in the deck opens the vault and takes all of it."
+                : "No vault here, this deck pays in tickets only."}
+            </>
+          )}
+        </p>
+      </div>
+
+      <div className="mt-6 flex flex-col space-y-2 border-t border-slate-800/80 pt-4">
+        <div className="t-chain flex items-center justify-between text-xs font-semibold text-slate-300">
+          <span>
+            Still sealed: <strong className="text-white">{deck.remaining}</strong>
+          </span>
+          <span>
+            {deck.vaultUpTo > 0 ? (
+              <>
+                Vault:{" "}
+                <strong style={{ color: "var(--color-tier-vault)" }}>
+                  ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
+                </strong>
+              </>
+            ) : (
+              "No vault"
+            )}
+          </span>
+        </div>
+
+        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{
+              width: `${sealedPercent}%`,
+              backgroundColor: ink,
+              boxShadow: `0 0 10px ${ink}`,
+            }}
+          />
+        </div>
+
+        <div className="pt-2 text-center opacity-0 transition-opacity group-hover:opacity-100">
+          <span
+            className="t-label inline-block rounded-[var(--radius-chip)] px-3 py-1"
+            style={{ background: `color-mix(in oklab, ${ink} 18%, transparent)`, color: ink }}
           >
-            open · $1 →
+            {deck.empty ? "nothing left" : "open for $1"}
           </span>
         </div>
       </div>
     </Link>
   );
 }
+
+function Step({
+  icon,
+  ink,
+  title,
+  children,
+}: {
+  icon: React.ReactNode;
+  ink: string;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-start space-y-3 rounded-[var(--radius-panel)] border border-slate-800 bg-slate-900/50 p-6">
+      <span
+        className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-control)] border"
+        style={{
+          color: ink,
+          borderColor: `color-mix(in oklab, ${ink} 30%, transparent)`,
+          background: `color-mix(in oklab, ${ink} 10%, transparent)`,
+        }}
+      >
+        {icon}
+      </span>
+      <h3 className="text-lg font-bold text-white">{title}</h3>
+      <p className="text-sm leading-relaxed text-slate-400">{children}</p>
+    </div>
+  );
+}
+
+/**
+ *
+ */
+function Latest({ feed }: { feed: ReturnType<typeof useFeed> }) {
+  const worthy = feed
+    .filter((it) => it.value !== undefined && (it.weight > 0 || isVault(it.spec)))
+    .slice(0, 3);
+
+  if (worthy.length === 0) {
+    return (
+      <p className="text-center text-slate-400">
+        Nothing has come out of the pool yet, every slot is still sealed.
+      </p>
+    );
+  }
+
+  return (
+    <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-3">
+      {worthy.map((it) => {
+        const paid = it.risk ? it.spec.tickets * 2 : it.spec.tickets;
+        return (
+          <div
+            key={it.handle}
+            className="flex items-center justify-between rounded-[var(--radius-control)] border border-slate-800 bg-slate-900/60 p-4"
+          >
+            <div className="flex min-w-0 items-center gap-3">
+              <Chest rarity={it.spec.rarity} size={40} className="shrink-0" />
+              <div className="min-w-0">
+                <span className="t-chain block truncate text-xs text-slate-400">
+                  {short(it.player)}
+                </span>
+                <span className="t-chain block text-sm font-bold" style={{ color: it.spec.ink }}>
+                  {it.spec.name}
+                </span>
+              </div>
+            </div>
+            <span className="t-chain shrink-0 text-xs font-bold text-slate-300">
+              {isVault(it.spec) ? "the vault" : `+${paid} tickets`}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;

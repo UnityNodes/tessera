@@ -18,7 +18,13 @@ export function MegapotPanel({ mp }: { mp: ReturnType<typeof useMegapot> }) {
     <div>
       <div className="mb-5">
         <span className="t-label block">the jackpot your tickets are in</span>
-        <span className="t-chain mt-2 block text-3xl text-[var(--color-tier-aureus)]">
+        <span
+          className="t-chain mt-2 block text-3xl font-extrabold"
+          style={{
+            color: "var(--color-tier-aureus)",
+            textShadow: "0 0 30px rgb(251 191 36 / 0.35)",
+          }}
+        >
           {usd(mp.prizePool)}
         </span>
       </div>
@@ -26,38 +32,38 @@ export function MegapotPanel({ mp }: { mp: ReturnType<typeof useMegapot> }) {
       <DataRow
         name="your tickets"
         value={mp.tickets.toFixed(2)}
-        ink="var(--color-accent-bright)"
+        ink="var(--color-accent-hover)"
       />
       <DataRow name="liquidity behind it" value={usd(mp.liquidityPool)} />
       <DataRow
         name="draw"
         value={mp.stalled ? "stalled" : new Date(mp.endsAt).toUTCString().slice(5, 22)}
-        ink={mp.stalled ? "var(--color-accent-bright)" : "var(--color-ink)"}
+        ink={mp.stalled ? "var(--color-accent-hover)" : "var(--color-ink)"}
       />
 
       {mp.hasWinnings ? (
         <div className="mt-6">
-          <p className="mb-3 text-[1.0625rem] text-[var(--color-tier-aureus)]">
+          <p className="mb-3 text-lg" style={{ color: "var(--color-tier-aureus)" }}>
             You won {usd(mp.winnings)}.
           </p>
           <Button block disabled={busy} onClick={() => void mp.withdraw()}>
             {busy ? "Claiming…" : "Withdraw your winnings"}
           </Button>
           {mp.claim.error && (
-            <p className="mt-3 text-[0.9375rem] text-[var(--color-danger)]">
+            <p className="mt-3 text-sm text-[var(--color-danger)]">
               {mp.claim.error.title}
             </p>
           )}
         </div>
       ) : mp.stalled ? (
-        <p className="mt-5 border-t border-[var(--edge)] pt-4 text-[0.9375rem] text-[var(--color-ink-dim)]">
+        <p className="mt-5 border-t border-slate-800 pt-4 text-sm text-slate-400">
           Megapot&apos;s testnet draw is frozen, <span className="t-chain">runJackpot()</span>{" "}
           reverts even for its owner, so no winner is picked here. Your ticket is a real
           purchase against the real contract; it just has nothing to play in on Sepolia.
           On Base mainnet the same contract draws every day.
         </p>
       ) : (
-        <p className="mt-5 border-t border-[var(--edge)] pt-4 text-[0.9375rem] text-[var(--color-ink-dim)]">
+        <p className="mt-5 border-t border-slate-800 pt-4 text-sm text-slate-400">
           Nothing to withdraw yet. If your ticket wins, the button to claim it appears
           right here, you never have to leave.
         </p>

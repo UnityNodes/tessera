@@ -1,10 +1,10 @@
 "use client";
 
-import { useAccount, useConnect, useDisconnect, useSwitchChain, useConfig } from "wagmi";
-import { writeContract, waitForTransactionReceipt } from "wagmi/actions";
-import { useState } from "react";
+import { useAccount, useConnect, useDisconnect, useSwitchChain } from "wagmi";
+import { Wallet, ShieldCheck, ChevronDown } from "lucide-react";
 import { Button } from "./ui/Button";
-import { CHAIN, TICKET_TOKEN, TOKEN_ABI, addressUrl } from "@/lib/chain";
+import { useMint } from "@/hooks/useMint";
+import { CHAIN, addressUrl } from "@/lib/chain";
 
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
@@ -18,24 +18,25 @@ export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
   const { connect, connectors, isPending } = useConnect();
   const { disconnect } = useDisconnect();
   const { switchChain } = useSwitchChain();
-  const config = useConfig();
-  const [minting, setMinting] = useState(false);
+  const { mint, minting } = useMint(onMinted);
 
   if (!isConnected) {
     return (
       <details className="group/w relative">
-        <summary className="list-none [&::-webkit-details-marker]:hidden">
-          <Button variant="quiet" disabled={isPending} className="pointer-events-none">
+        <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+          <span className="flex items-center gap-2 rounded-[var(--radius-control)] bg-[var(--color-accent)] px-4 py-2 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all hover:bg-[var(--color-accent-hover)] hover:shadow-[0_0_25px_rgba(6,182,212,0.6)]">
+            <Wallet className="h-4 w-4" />
             {isPending ? "Connecting…" : "Connect wallet"}
-          </Button>
+          </span>
         </summary>
         <Panel>
-          <p className="t-label mb-3 text-[0.75rem]">choose a wallet</p>
+          <p className="t-label mb-2 px-1">choose a wallet</p>
           {connectors.map((c) => (
             <button
               key={c.uid}
+              type="button"
               onClick={() => connect({ connector: c })}
-              className="block w-full rounded-[var(--radius-control)] px-3 py-2.5 text-left text-[0.9375rem] text-[var(--color-ink)] transition-colors hover:bg-[color-mix(in_oklab,var(--color-accent)_16%,transparent)]"
+              className="block w-full cursor-pointer rounded-[var(--radius-control)] px-3 py-2.5 text-left text-sm font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)]"
             >
               {c.name}
             </button>
@@ -47,49 +48,28 @@ export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
 
   if (chainId !== CHAIN.id) {
     return (
-      <Button onClick={() => switchChain({ chainId: CHAIN.id })}>Switch to Base Sepolia</Button>
+      <Button size="sm" onClick={() => switchChain({ chainId: CHAIN.id })}>
+        Switch to Base Sepolia
+      </Button>
     );
   }
 
-  const mint = async () => {
-    if (!address) return;
-    setMinting(true);
-    try {
-      const hash = await writeContract(config, {
-        address: TICKET_TOKEN,
-        abi: TOKEN_ABI,
-        functionName: "mint",
-        args: [address, 20_000_000n],
-      });
-      await waitForTransactionReceipt(config, { hash });
-      onMinted?.();
-    } finally {
-      setMinting(false);
-    }
-  };
-
   return (
     <details className="group/w relative">
-      <summary className="list-none [&::-webkit-details-marker]:hidden">
-        <span className="t-chain flex cursor-pointer items-center gap-2 rounded-[var(--radius-panel)] border border-[var(--edge)] px-3.5 py-2 text-[0.875rem] text-[var(--color-ink)] transition-colors hover:border-[var(--edge-strong)]">
-          <span
-            aria-hidden
-            className="h-1.5 w-1.5 rounded-full"
-            style={{
-              background: "var(--color-tier-denarius)",
-              boxShadow: "0 0 8px var(--color-tier-denarius)",
-            }}
-          />
+      <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+        <span className="t-chain flex items-center gap-2 rounded-[var(--radius-control)] border border-[rgb(6_182_212_/_0.4)] bg-slate-800 px-4 py-2 text-xs font-bold text-[var(--color-accent-bright)] transition-colors hover:bg-slate-700">
+          <ShieldCheck className="h-4 w-4 text-[var(--color-accent-hover)]" />
           {short(address!)}
-          <IconChevron />
+          <ChevronDown className="h-3 w-3 opacity-60 transition-transform duration-200 group-open/w:rotate-180" />
         </span>
       </summary>
 
       <Panel>
         <button
-          onClick={mint}
+          type="button"
+          onClick={() => void mint()}
           disabled={minting}
-          className="block w-full rounded-[var(--radius-control)] px-3 py-2.5 text-left text-[0.9375rem] text-[var(--color-ink)] transition-colors hover:bg-[color-mix(in_oklab,var(--color-accent)_16%,transparent)] disabled:text-[var(--color-ink-faint)]"
+          className="block w-full cursor-pointer rounded-[var(--radius-control)] px-3 py-2.5 text-left text-sm font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)] disabled:text-slate-500"
         >
           {minting ? "Minting…" : "Get $20 in test dollars"}
         </button>
@@ -97,13 +77,14 @@ export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
           href={addressUrl(address!)}
           target="_blank"
           rel="noreferrer"
-          className="block rounded-[var(--radius-control)] px-3 py-2.5 text-[0.9375rem] text-[var(--color-ink)] transition-colors hover:bg-[color-mix(in_oklab,var(--color-accent)_16%,transparent)]"
+          className="block rounded-[var(--radius-control)] px-3 py-2.5 text-sm font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)]"
         >
           View on Basescan ↗
         </a>
         <button
+          type="button"
           onClick={() => disconnect()}
-          className="mt-1 block w-full rounded-[var(--radius-control)] border-t border-[var(--edge)] px-3 py-2.5 pt-3 text-left text-[0.9375rem] text-[var(--color-ink-dim)] transition-colors hover:text-[var(--color-danger)]"
+          className="mt-1 block w-full cursor-pointer rounded-[var(--radius-control)] border-t border-slate-800 px-3 py-2.5 pt-3 text-left text-sm font-bold text-slate-400 transition-colors hover:text-[var(--color-danger)]"
         >
           Disconnect
         </button>
@@ -114,25 +95,8 @@ export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
 
 function Panel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="surface absolute right-0 top-full z-[var(--z-sticky)] mt-1.5 w-[15rem] p-2">
+    <div className="absolute right-0 top-full z-[var(--z-sticky)] mt-2 w-[15rem] rounded-[var(--radius-panel)] border border-slate-800 bg-[var(--color-modal)] p-2 shadow-2xl">
       {children}
     </div>
   );
 }
-
-const IconChevron = () => (
-  <svg
-    width="11"
-    height="11"
-    viewBox="0 0 16 16"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.6"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="ml-0.5 opacity-60 transition-transform duration-200 group-open/w:rotate-180"
-    aria-hidden
-  >
-    <path d="M4 6.5 8 10.5l4-4" />
-  </svg>
-);

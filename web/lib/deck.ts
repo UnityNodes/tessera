@@ -100,6 +100,18 @@ export function ticketsFromWeight(weight: number): number {
 }
 
 /**
+ *
+ */
+export function bestTier(deck: DeckShape): TierSpec | undefined {
+  return slotsPerTier(deck)
+    .filter((t) => t.weight > 0)
+    .reduce<{ spec: TierSpec; count: number; weight: number } | undefined>(
+      (a, b) => (b.spec.tickets > (a?.spec.tickets ?? -1) ? b : a),
+      undefined,
+    )?.spec;
+}
+
+/**
  */
 export function slotsPerTier(deck: DeckShape): { spec: TierSpec; count: number; weight: number }[] {
   const out: { spec: TierSpec; count: number; weight: number }[] = [];

@@ -1,8 +1,10 @@
 "use client";
 
 import { useId } from "react";
+import { Chest } from "./Chest";
+import type { Rarity } from "@/lib/deck";
 
-export type Rarity = "vault" | "porphyry" | "aureus" | "denarius" | "grout" | "sealed";
+export type { Rarity };
 
 /**
  *
@@ -28,6 +30,10 @@ export function Crate({
   //
   const uid = useId().replace(/:/g, "");
   const g = (n: string) => `${uid}-${n}`;
+
+  if (!open) {
+    return <Chest rarity={rarity} size={size} drift={drift} className={className} />;
+  }
 
   const face = (l: string) => `oklch(from var(--metal) ${l} c h)`;
   const LINE = "var(--shell-line)";

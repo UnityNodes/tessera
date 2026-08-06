@@ -136,15 +136,28 @@ export function Roll({
           "linear-gradient(90deg, transparent 0%, black 11%, black 89%, transparent 100%)",
       }}
     >
+
       <div
         aria-hidden
-        className="absolute left-1/2 top-0 z-20 h-full w-[3px] -translate-x-1/2 transition-opacity duration-300"
-        style={{
-          background: "var(--color-accent-bright)",
-          boxShadow: landedValue != null ? "0 0 14px 1px var(--color-accent)" : "none",
-          opacity: landedValue != null ? 1 : running ? 0.7 : 0.28,
-        }}
-      />
+        className="pointer-events-none absolute inset-y-0 left-1/2 z-20 -translate-x-1/2 transition-opacity duration-300"
+        style={{ opacity: landedValue != null ? 1 : running ? 0.75 : 0.3 }}
+      >
+        <span
+          className="absolute inset-y-0 left-1/2 w-[3px] -translate-x-1/2"
+          style={{
+            background: "var(--color-accent-hover)",
+            boxShadow: landedValue != null ? "0 0 15px 1px var(--color-accent)" : "none",
+          }}
+        />
+        <span
+          className="absolute left-1/2 top-0 -translate-x-1/2 border-x-8 border-t-8 border-x-transparent"
+          style={{ borderTopColor: "var(--color-accent-hover)" }}
+        />
+        <span
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 border-x-8 border-b-8 border-x-transparent"
+          style={{ borderBottomColor: "var(--color-accent-hover)" }}
+        />
+      </div>
 
       <motion.div
         className="absolute top-[18px] flex"
@@ -167,12 +180,13 @@ function Item({ spec }: { spec: TierSpec }) {
   const prize = spec.tickets > 0 || spec.name === VAULT_SPEC.name;
   return (
     <div
-      className="relative shrink-0 overflow-hidden"
+      className="relative shrink-0 overflow-hidden rounded-[var(--radius-control)] bg-slate-900"
       style={{
         width: ITEM,
         height: ITEM,
-        background: prize ? spec.tint : "color-mix(in oklab, var(--color-surface) 55%, transparent)",
-        border: `1px solid color-mix(in oklab, ${spec.ink} ${prize ? 70 : 30}%, transparent)`,
+        borderWidth: 1,
+        borderStyle: "solid",
+        borderColor: `color-mix(in oklab, ${spec.ink} ${prize ? 70 : 30}%, transparent)`,
         boxShadow: prize
           ? `0 0 30px -8px color-mix(in oklab, ${spec.ink} 70%, transparent)`
           : undefined,
@@ -181,12 +195,12 @@ function Item({ spec }: { spec: TierSpec }) {
       <div className="pointer-events-none absolute inset-x-0 top-2 grid place-items-center">
         <CrateTile rarity={spec.rarity} size={ITEM - 62} />
       </div>
-      <div className="absolute inset-x-0 bottom-0 px-2 pb-2 text-center">
-        <div className="t-inscription text-[0.75rem]" style={{ color: spec.ink }}>
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 to-transparent px-2 pb-2 pt-4 text-center">
+        <div className="truncate text-[0.75rem] font-bold" style={{ color: spec.ink }}>
           {spec.name}
         </div>
         {spec.tickets > 0 && (
-          <div className="t-chain text-[0.8125rem] font-semibold" style={{ color: spec.ink }}>
+          <div className="t-chain text-[0.8125rem] font-bold" style={{ color: spec.ink }}>
             +{spec.tickets}
           </div>
         )}

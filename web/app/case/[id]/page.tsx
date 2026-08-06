@@ -6,11 +6,14 @@ import { useParams } from "next/navigation";
 import { useAccount } from "wagmi";
 import { formatUnits } from "viem";
 import { motion, AnimatePresence } from "motion/react";
+import { ChevronLeft, Sparkles, Lock, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Case } from "@/components/Case";
+import { Chest } from "@/components/Chest";
 import { OpenTheatre } from "@/components/OpenTheatre";
 import { Contents } from "@/components/Contents";
 import { PoolCounter } from "@/components/PoolCounter";
+import { PoolGrid } from "@/components/PoolGrid";
 import { MegapotPanel } from "@/components/MegapotPanel";
 import { StakePanel } from "@/components/StakePanel";
 import { useDeck } from "@/hooks/useDeck";
@@ -22,7 +25,14 @@ import { useStake } from "@/hooks/useStake";
 import { usePool } from "@/hooks/usePool";
 import { useMegapot } from "@/hooks/useMegapot";
 import { useVault } from "@/hooks/useVault";
-import { specOf, ticketsFromWeight, isVault, type DeckShape } from "@/lib/deck";
+import {
+  specOf,
+  slotsPerTier,
+  bestTier,
+  ticketsFromWeight,
+  isVault,
+  type DeckShape,
+} from "@/lib/deck";
 
 /**
  *
@@ -89,230 +99,288 @@ export default function CasePage() {
 
   if (!deck) {
     return (
-      <p className="py-20 text-center text-[1.0625rem] text-[var(--color-ink-dim)]">
-        {game.isLoading ? "Reading the chain…" : "No such case."}
-      </p>
+      <div className="min-h-screen w-full bg-[var(--color-section)] px-4 py-10 lg:px-8">
+        <p className="py-20 text-center text-slate-400">
+          {game.isLoading ? "Reading the chain…" : "No such case."}
+        </p>
+      </div>
     );
   }
 
+  const tiers = slotsPerTier(deck);
+  const best = bestTier(deck);
+  const ink = deck.empty ? "var(--color-tier-grout)" : (best?.ink ?? "var(--color-accent)");
+  const prizes = tiers.filter((t) => t.weight > 0).reduce((n, t) => n + t.count, 0);
+  const paying = prizes + deck.vaultUpTo;
+  const oneIn = paying > 0 ? Math.max(1, Math.round(deck.size / paying)) : 0;
+
   return (
-    <>
-      <OpenTheatre open={open.state} deck={shape} pool={pool.data} vault={deck?.vault} onClose={open.reset} />
+    <div className="min-h-screen w-full bg-[var(--color-section)] px-4 py-10 lg:px-8">
+      <OpenTheatre
+        open={open.state}
+        deck={shape}
+        pool={pool.data}
+        vault={deck?.vault}
+        onClose={open.reset}
+      />
 
-      <div className="mb-5 flex flex-wrap items-baseline justify-between gap-3">
-        <div>
-          <Link href="/" className="t-label hover:text-[var(--color-ink)]">
-            ← all cases
-          </Link>
-          <h1 className="t-inscription mt-2 text-xl">case #{deck.id}</h1>
-        </div>
-        <p className="t-label">
-          {deck.remaining} of {deck.size} unopened
-        </p>
-      </div>
-
-      <section className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-
-        <div className="frame relative grid w-full place-items-center p-6 sm:p-10">
-          <span className="frame__node left-0 top-0" aria-hidden />
-          <span className="frame__node right-0 top-0" aria-hidden />
-          <span className="frame__node bottom-0 left-0" aria-hidden />
-          <span className="frame__node bottom-0 right-0" aria-hidden />
-          <Case
-            phase={open.state.phase === "done" ? "opened" : "idle"}
-            value={open.state.value}
-            deck={shape}
-            risk={open.state.risk}
-            size={380}
-            onClick={
-              canOpen ? () => open.open({ deckId, needsApproval: game.needsApproval }) : undefined
-            }
-          />
-        </div>
-
-        <div className="flex flex-col gap-4">
-          <div className="slab p-5">
-            <PoolCounter deck={shape} drawn={deck.drawn} pool={pool.data} />
+      <div className="mx-auto flex max-w-7xl flex-col space-y-6">
+        <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-5 md:flex-row md:items-center">
+          <div className="flex items-center gap-4">
+            <Chest
+              rarity={deck.empty ? "grout" : (best?.rarity ?? "sealed")}
+              size={56}
+              className="shrink-0"
+            />
+            <div>
+              <Link
+                href="/case"
+                className="t-label inline-flex items-center gap-1 hover:text-[var(--color-accent-hover)]"
+              >
+                <ChevronLeft className="h-3 w-3" />
+                all cases
+              </Link>
+              <h1 className="t-black mt-1 flex flex-wrap items-center gap-2 text-2xl text-white">
+                <span>{deck.empty ? "Emptied" : (best?.name ?? "Sealed")} case</span>
+                <span
+                  className="t-chain rounded-[var(--radius-chip)] border px-2 py-0.5 text-xs"
+                  style={{
+                    backgroundColor: `color-mix(in oklab, ${ink} 13%, transparent)`,
+                    borderColor: `color-mix(in oklab, ${ink} 26%, transparent)`,
+                    color: ink,
+                  }}
+                >
+                  $1.00
+                </span>
+              </h1>
+              <p className="t-chain mt-0.5 text-xs text-slate-400">
+                deck #{deck.id} · drawn without replacement
+                {oneIn > 0 ? ` · 1 in ${oneIn} pays` : ""}
+              </p>
+            </div>
           </div>
 
-          {deck.vaultUpTo > 0 && (
-            <div
-              className="slab p-5"
-              style={{
-                borderColor: "color-mix(in oklab, var(--color-tier-vault) 35%, transparent)",
-              }}
-            >
-              <span className="t-label block" style={{ color: "var(--color-tier-vault)" }}>
-                the vault
-              </span>
-              <span
-                className="t-chain mt-2 block text-[clamp(1.75rem,4vw,2.5rem)] leading-none"
+          <p className="t-chain text-sm text-slate-400">
+            <span className="text-2xl font-extrabold text-white">{deck.remaining}</span> of{" "}
+            {deck.size} still sealed
+          </p>
+        </div>
+
+        <section className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+          <div className="frame relative grid w-full place-items-center p-6 sm:p-10">
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-12 inset-y-10 rounded-full opacity-20 blur-3xl"
+              style={{ background: ink }}
+            />
+            <Case
+              phase={open.state.phase === "done" ? "opened" : "idle"}
+              value={open.state.value}
+              deck={shape}
+              risk={open.state.risk}
+              size={380}
+              onClick={
+                canOpen ? () => open.open({ deckId, needsApproval: game.needsApproval }) : undefined
+              }
+            />
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <div className="slab p-5">
+              <PoolCounter deck={shape} drawn={deck.drawn} pool={pool.data} />
+            </div>
+
+            {deck.vaultUpTo > 0 && (
+              <div
+                className="slab p-5"
                 style={{
-                  color: "var(--color-tier-vault)",
-                  textShadow:
-                    "0 0 34px color-mix(in oklab, var(--color-tier-vault) 55%, transparent)",
+                  borderColor: "rgb(236 72 153 / 0.35)",
+                  boxShadow: "0 0 25px rgb(236 72 153 / 0.12)",
                 }}
               >
-                ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
-              </span>
-              <VaultStatus
-                taken={Boolean(pool.data?.vaultTaken)}
-                mine={Boolean(vaultSlot)}
-                remaining={deck.remaining}
-              />
-            </div>
-          )}
-
-          <div className="slab flex flex-col justify-center p-5">
-          <div className="min-h-[6rem]">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={open.state.phase + (open.state.value ?? "")}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Result open={open.state} deck={shape} />
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          <div className="mt-2">
-            {!isConnected ? (
-              <p className="text-[1.0625rem] text-[var(--color-ink-dim)]">
-                Connect a wallet to open a case.
-              </p>
-            ) : deck.empty ? (
-              <p className="text-[1.0625rem] text-[var(--color-ink-dim)]">
-                Every case in this season has been opened.
-              </p>
-            ) : !game.canAfford ? (
-              <p className="text-[1.0625rem] text-[var(--color-ink-dim)]">
-                You need $1 in test dollars, mint some from the header, they are free.
-              </p>
-            ) : (
-              <>
-                <Button
-                  block
-                  disabled={busy}
-                  onClick={() =>
-                    open.state.phase === "done" || open.state.phase === "failed"
-                      ? open.reset()
-                      : open.open({ deckId, needsApproval: game.needsApproval })
-                  }
+                <span className="t-label flex items-center gap-2" style={{ color: "var(--color-tier-vault)" }}>
+                  <Lock className="h-3.5 w-3.5" />
+                  the vault
+                </span>
+                <span
+                  className="t-chain mt-2 block text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold leading-none"
+                  style={{
+                    color: "var(--color-tier-vault)",
+                    textShadow: "0 0 34px rgb(236 72 153 / 0.5)",
+                  }}
                 >
-                  {busy
-                    ? "…"
-                    : open.state.phase === "done" || open.state.phase === "failed"
-                      ? "Open another · $1"
-                      : game.needsApproval
-                        ? "Approve once, then open · $1"
-                        : "Open a case · $1"}
-                </Button>
+                  ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
+                </span>
+                <VaultStatus
+                  taken={Boolean(pool.data?.vaultTaken)}
+                  mine={Boolean(vaultSlot)}
+                  remaining={deck.remaining}
+                />
+              </div>
+            )}
 
-                {deck.vaultUpTo > 0 && open.state.phase !== "done" && (
-                  <ForfeitAction
-                    disabled={busy}
-                    vault={deck.vault}
-                    onClick={() =>
-                      open.open({ deckId, needsApproval: game.needsApproval, risk: true })
-                    }
-                  />
+            <div className="slab flex flex-col justify-center p-5">
+              <div className="min-h-[6rem]">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={open.state.phase + (open.state.value ?? "")}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Result open={open.state} deck={shape} />
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              <div className="mt-2">
+                {!isConnected ? (
+                  <p className="text-slate-400">Connect a wallet to open a case.</p>
+                ) : deck.empty ? (
+                  <p className="text-slate-400">Every case in this season has been opened.</p>
+                ) : !game.canAfford ? (
+                  <p className="text-slate-400">
+                    You need $1 in test dollars, mint some with the{" "}
+                    <span className="text-[var(--color-accent-hover)]">+</span> in the header, they
+                    are free.
+                  </p>
+                ) : (
+                  <>
+                    <Button
+                      block
+                      disabled={busy}
+                      className="py-4 text-base"
+                      onClick={() =>
+                        open.state.phase === "done" || open.state.phase === "failed"
+                          ? open.reset()
+                          : open.open({ deckId, needsApproval: game.needsApproval })
+                      }
+                    >
+                      <Sparkles className="h-5 w-5 fill-slate-950" />
+                      {busy
+                        ? "…"
+                        : open.state.phase === "done" || open.state.phase === "failed"
+                          ? "Open another • $1"
+                          : game.needsApproval
+                            ? "Approve once, then open • $1"
+                            : "Open a case • $1"}
+                    </Button>
+
+                    {deck.vaultUpTo > 0 && open.state.phase !== "done" && (
+                      <ForfeitAction
+                        disabled={busy}
+                        vault={deck.vault}
+                        onClick={() =>
+                          open.open({ deckId, needsApproval: game.needsApproval, risk: true })
+                        }
+                      />
+                    )}
+                  </>
                 )}
-              </>
-            )}
 
-            {open.state.txUrl && !busy && (
-              <a
-                href={open.state.txUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="t-label mt-3 block hover:text-[var(--color-ink)]"
-              >
-                view transaction
-              </a>
-            )}
-          </div>
+                {open.state.txUrl && !busy && (
+                  <a
+                    href={open.state.txUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="t-label mt-3 block hover:text-[var(--color-accent-hover)]"
+                  >
+                    view transaction ↗
+                  </a>
+                )}
+              </div>
 
-          {vaultSlot && vault.state.phase !== "done" && (
-            <div className="mt-4">
-              <Button
-                block
-                disabled={vault.state.phase === "signing" || vault.state.phase === "confirming"}
-                onClick={() =>
-                  vault.claim(vaultSlot.index, vaultSlot.value!, vaultSlot.signatures!)
-                }
-              >
-                {vault.state.phase === "signing" || vault.state.phase === "confirming"
-                  ? "Opening the vault…"
-                  : `Take the vault · $${Number(formatUnits(deck.vault, 6)).toFixed(2)}`}
-              </Button>
-              {vault.state.error && (
-                <p className="mt-3 text-[0.9375rem] text-[var(--color-danger)]">
-                  {vault.state.error.title}
+              {vaultSlot && vault.state.phase !== "done" && (
+                <div className="mt-4">
+                  <Button
+                    block
+                    className="py-4"
+                    disabled={vault.state.phase === "signing" || vault.state.phase === "confirming"}
+                    onClick={() =>
+                      vault.claim(vaultSlot.index, vaultSlot.value!, vaultSlot.signatures!)
+                    }
+                  >
+                    <Lock className="h-4 w-4" />
+                    {vault.state.phase === "signing" || vault.state.phase === "confirming"
+                      ? "Opening the vault…"
+                      : `Take the vault • $${Number(formatUnits(deck.vault, 6)).toFixed(2)}`}
+                  </Button>
+                  {vault.state.error && (
+                    <p className="mt-3 text-sm text-[var(--color-danger)]">
+                      {vault.state.error.title}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {vault.state.phase === "done" && (
+                <p className="mt-4 text-lg" style={{ color: "var(--color-tier-vault)" }}>
+                  The vault paid you ${Number(formatUnits(vault.state.paid ?? 0n, 6)).toFixed(2)}.
                 </p>
               )}
             </div>
-          )}
-
-          {vault.state.phase === "done" && (
-            <p className="mt-4 text-[1.0625rem]" style={{ color: "var(--color-tier-vault)" }}>
-              The vault paid you ${Number(formatUnits(vault.state.paid ?? 0n, 6)).toFixed(2)}.
-            </p>
-          )}
-
           </div>
-        </div>
-      </section>
-
-      {(bonusTickets > 0 || stake.open || stake.bankedWeight > 0) && (
-        <section className="slab mt-6 p-6 sm:p-10">
-          <p className="t-label">your bonus</p>
-          <StakePanel
-            stake={stake}
-            toRedeem={toRedeem}
-            weight={weight}
-            decided={
-              decidingSlot?.value != null && decidingSlot.signatures
-                ? { value: decidingSlot.value, signatures: decidingSlot.signatures }
-                : undefined
-            }
-            onRedeem={() => redeem.redeem(toRedeem)}
-            redeeming={redeem.state.phase === "signing" || redeem.state.phase === "confirming"}
-            treasury={game.treasury}
-            ticketPrice={game.ticketPrice}
-          />
-
-          {redeem.state.phase === "done" && (
-            <p className="mt-4 text-[0.9375rem] text-[var(--color-accent-bright)]">
-              Claimed. The game bought you {redeem.state.tickets ?? 1} more real ticket
-              {(redeem.state.tickets ?? 1) > 1 ? "s" : ""}.
-            </p>
-          )}
-          {redeem.state.error && (
-            <p className="mt-4 text-[0.9375rem] text-[var(--color-danger)]">
-              {redeem.state.error.title}
-            </p>
-          )}
         </section>
-      )}
 
-      <section className="slab mt-6 p-6 sm:p-10">
-        <p className="t-label mb-6">what is in this case</p>
-        <Contents deck={shape} pool={pool.data} />
-      </section>
+        <section className="slab p-6 sm:p-8">
+          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
+            <span className="t-label">the deck, one cell per case</span>
+            <span className="t-chain text-xs text-slate-500">
+              {deck.drawn} drawn · {deck.remaining} sealed
+            </span>
+          </div>
+          <PoolGrid size={deck.size} drawn={deck.drawn} ink={ink} />
+        </section>
 
-      <section id="megapot" className="slab mt-6 scroll-mt-24 p-6 sm:p-10">
-        <p className="t-label mb-4">your Megapot, from here</p>
-        <MegapotPanel mp={megapot} />
-      </section>
-    </>
+        {(bonusTickets > 0 || stake.open || stake.bankedWeight > 0) && (
+          <section className="slab p-6 sm:p-8">
+            <p className="t-label mb-4">your bonus</p>
+            <StakePanel
+              stake={stake}
+              toRedeem={toRedeem}
+              weight={weight}
+              decided={
+                decidingSlot?.value != null && decidingSlot.signatures
+                  ? { value: decidingSlot.value, signatures: decidingSlot.signatures }
+                  : undefined
+              }
+              onRedeem={() => redeem.redeem(toRedeem)}
+              redeeming={redeem.state.phase === "signing" || redeem.state.phase === "confirming"}
+              treasury={game.treasury}
+              ticketPrice={game.ticketPrice}
+            />
+
+            {redeem.state.phase === "done" && (
+              <p className="mt-4 text-sm text-[var(--color-accent-hover)]">
+                Claimed. The game bought you {redeem.state.tickets ?? 1} more real ticket
+                {(redeem.state.tickets ?? 1) > 1 ? "s" : ""}.
+              </p>
+            )}
+            {redeem.state.error && (
+              <p className="mt-4 text-sm text-[var(--color-danger)]">{redeem.state.error.title}</p>
+            )}
+          </section>
+        )}
+
+        <section className="slab p-6 sm:p-8">
+          <p className="t-label mb-6 flex items-center gap-2">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            case drops &amp; what is left of them
+          </p>
+          <Contents deck={shape} pool={pool.data} />
+        </section>
+
+        <section id="megapot" className="slab scroll-mt-24 p-6 sm:p-8">
+          <p className="t-label mb-4">your Megapot, from here</p>
+          <MegapotPanel mp={megapot} />
+        </section>
+      </div>
+    </div>
   );
 }
 
 /**
- *
  *
  */
 function ForfeitAction({
@@ -332,16 +400,17 @@ function ForfeitAction({
         variant="quiet"
         disabled={disabled}
         onClick={onClick}
-        className="!border-[color-mix(in_oklab,var(--color-tier-vault)_45%,transparent)] hover:!border-[var(--color-tier-vault)] hover:!bg-[color-mix(in_oklab,var(--color-tier-vault)_12%,transparent)]"
+        className="!border-[rgb(236_72_153_/_0.45)] hover:!border-[var(--color-tier-vault)] hover:!bg-[rgb(236_72_153_/_0.12)] hover:!text-[var(--color-tier-vault)]"
         style={{ color: ink }}
       >
         Risk it · give the ticket up
       </Button>
-      <p className="mt-2.5 text-[0.875rem] leading-snug text-[var(--color-ink-faint)]">
-        Same $1, but no Megapot ticket for you, it goes into the vault instead, which is now
-        at <span style={{ color: ink }}>${Number(formatUnits(vault, 6)).toFixed(2)}</span>. In
-        exchange whatever you draw is <span className="text-[var(--color-ink)]">worth double</span>.
-        Most cases are still empty, and double nothing is nothing.
+      <p className="mt-2.5 text-sm leading-snug text-slate-500">
+        Same $1, but no Megapot ticket for you, it goes into the vault instead, which is now at{" "}
+        <span style={{ color: ink }}>${Number(formatUnits(vault, 6)).toFixed(2)}</span>. In
+        exchange whatever you draw is{" "}
+        <span className="text-slate-200">worth double</span>. Most cases are still empty, and
+        double nothing is nothing.
       </p>
     </div>
   );
@@ -377,11 +446,11 @@ function VaultStatus({
             animation: taken && !mine ? undefined : "marker-live 2s ease-in-out infinite",
           }}
         />
-        <span className="t-inscription text-[0.8125rem]" style={{ color: ink }}>
+        <span className="t-label" style={{ color: ink }}>
           {label}
         </span>
       </span>
-      <p className="mt-2 text-[0.875rem] text-[var(--color-ink-faint)]">{note}</p>
+      <p className="mt-2 text-sm text-slate-500">{note}</p>
     </>
   );
 }
@@ -396,7 +465,7 @@ function Result({
   open: ReturnType<typeof useOpenCase>["state"];
   deck: DeckShape;
 }) {
-  const dim = "text-[1.0625rem] text-[var(--color-ink-dim)]";
+  const dim = "text-slate-400";
 
   switch (open.phase) {
     case "approving":
@@ -404,7 +473,11 @@ function Result({
     case "signing":
       return <p className={dim}>Confirm in your wallet.</p>;
     case "confirming":
-      return <p className={dim}>{open.risk ? "Putting your dollar in the vault…" : "Buying your ticket…"}</p>;
+      return (
+        <p className={dim}>
+          {open.risk ? "Putting your dollar in the vault…" : "Buying your ticket…"}
+        </p>
+      );
     case "landing":
       return <p className={dim}>&nbsp;</p>;
     case "revealing":
@@ -417,8 +490,7 @@ function Result({
         </p>
       ) : (
         <p className={dim}>
-          Ticket bought. Now the covalidators decrypt your case, a few seconds we do not
-          control.
+          Ticket bought. Now the covalidators decrypt your case, a few seconds we do not control.
         </p>
       );
     case "done": {
@@ -429,16 +501,14 @@ function Result({
             <p className="t-inscription text-2xl" style={{ color: "var(--color-tier-vault)" }}>
               you found the vault
             </p>
-            <p className="mt-3 text-[1.0625rem] text-[var(--color-ink-dim)]">
-              Everything it holds is yours. Claim it below.
-            </p>
+            <p className="mt-3 text-slate-400">Everything it holds is yours. Claim it below.</p>
           </div>
         );
       }
       if (open.risk) {
         return (
           <div>
-            <p className="text-[1.25rem] text-[var(--color-ink)]">
+            <p className="text-xl text-slate-100">
               No ticket, your dollar went{" "}
               <span style={{ color: "var(--color-tier-vault)" }}>into the vault</span>.
             </p>
@@ -447,7 +517,7 @@ function Result({
                 and the case paid {spec.tickets * 2}, doubled
               </p>
             ) : (
-              <p className="mt-3 text-[1.0625rem] text-[var(--color-ink-faint)]">
+              <p className="mt-3 text-slate-500">
                 The case was empty, and double nothing is nothing. That was the bet.
               </p>
             )}
@@ -456,17 +526,16 @@ function Result({
       }
       return (
         <div>
-          <p className="text-[1.25rem] text-[var(--color-ink)]">
-            You own <span className="text-[var(--color-accent-bright)]">1 more real ticket</span>.
+          <p className="text-xl text-slate-100">
+            You own{" "}
+            <span className="text-[var(--color-accent-hover)]">1 more real ticket</span>.
           </p>
           {spec.tickets > 0 ? (
             <p className="t-inscription mt-3 text-2xl" style={{ color: spec.ink }}>
               and the case paid {spec.tickets} more
             </p>
           ) : (
-            <p className="mt-3 text-[1.0625rem] text-[var(--color-ink-faint)]">
-              The case was empty. Most of them are.
-            </p>
+            <p className="mt-3 text-slate-500">The case was empty. Most of them are.</p>
           )}
         </div>
       );
@@ -474,12 +543,8 @@ function Result({
     case "failed":
       return (
         <div>
-          <p className="text-[1.0625rem] text-[var(--color-danger)]">{open.error?.title}</p>
-          {open.error?.next && (
-            <p className="mt-1 text-[0.9375rem] text-[var(--color-ink-faint)]">
-              {open.error.next}
-            </p>
-          )}
+          <p className="text-[var(--color-danger)]">{open.error?.title}</p>
+          {open.error?.next && <p className="mt-1 text-sm text-slate-500">{open.error.next}</p>}
         </div>
       );
     default:

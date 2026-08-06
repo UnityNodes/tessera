@@ -5,9 +5,10 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useAccount } from "wagmi";
 import { motion } from "motion/react";
+import { ChevronLeft, Trophy, Swords } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Roll } from "@/components/Roll";
-import { Crate } from "@/components/Crate";
+import { Chest } from "@/components/Chest";
 import { useDeck } from "@/hooks/useDeck";
 import { usePool } from "@/hooks/usePool";
 import { useBattle } from "@/hooks/useBattles";
@@ -16,6 +17,7 @@ import { specOf, isVault, type DeckShape, type TierSpec } from "@/lib/deck";
 const TIMEOUT_MS = 15 * 60 * 1000;
 
 /**
+ *
  *
  *
  */
@@ -53,117 +55,141 @@ export default function BattlePage() {
   const specA = cards ? specOf(cards.a.value, shape) : undefined;
   const specB = cards ? specOf(cards.b.value, shape) : undefined;
 
+  const settledA = specA && specB ? power(specA) > power(specB) : undefined;
+  const settledB = specA && specB ? power(specB) > power(specA) : undefined;
+
   if (!battle) {
     return (
-      <p className="py-20 text-center text-[1.0625rem] text-[var(--color-ink-dim)]">
-        {id === undefined ? "No such battle." : "Reading the chain…"}
-      </p>
+      <div className="min-h-screen w-full bg-[var(--color-section)] px-4 py-10 lg:px-8">
+        <p className="py-20 text-center text-slate-400">
+          {id === undefined ? "No such battle." : "Reading the chain…"}
+        </p>
+      </div>
     );
   }
 
   return (
-    <>
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <Link href="/battles" className="t-label hover:text-[var(--color-ink)]">
-            ← all battles
-          </Link>
-          <h1 className="t-inscription mt-2 text-xl">
-            battle #{String(battle.id)} <span className="t-label">· case #{battle.deckId}</span>
-          </h1>
-        </div>
-        <p className="t-label max-w-md text-right">
-          {battle.resolved
-            ? "settled on chain"
-            : battle.joined
-              ? "both cards are on the table"
-              : "the creator's card is sealed until someone pays to face it"}
-        </p>
-      </div>
+    <div className="min-h-screen w-full bg-[var(--color-section)] px-4 py-10 lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col space-y-6">
+        <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-5 md:flex-row md:items-end">
+          <div>
+            <Link
+              href="/battles"
+              className="t-label inline-flex items-center gap-1 hover:text-[var(--color-accent-hover)]"
+            >
+              <ChevronLeft className="h-3 w-3" />
+              all battles
+            </Link>
+            <h1 className="t-black mt-1 flex flex-wrap items-center gap-3 text-2xl text-white">
+              <Swords className="h-6 w-6 text-[var(--color-accent-hover)]" />
+              Battle #{String(battle.id)}
+              <span className="t-chain rounded-[var(--radius-chip)] border border-[rgb(6_182_212_/_0.3)] bg-[rgb(6_182_212_/_0.1)] px-2.5 py-1 text-xs font-normal text-[var(--color-accent-hover)]">
+                deck #{battle.deckId}
+              </span>
+            </h1>
+          </div>
 
-      <section className="grid gap-5 lg:grid-cols-2">
-        <Side
-          title={who(battle.a)}
-          spec={specA}
-          value={cards?.a.value}
-          running={battle.joined}
-          sealed={!battle.joined}
-          deck={shape}
-          pool={pool.data}
-        />
-        {battle.joined ? (
+          <p className="t-label max-w-md md:text-right">
+            {battle.resolved
+              ? "settled on chain"
+              : battle.joined
+                ? "both cards are on the table"
+                : "the creator's card is sealed until someone pays to face it"}
+          </p>
+        </div>
+
+        <section className="grid gap-6 lg:grid-cols-2">
           <Side
-            title={who(battle.b)}
-            spec={specB}
-            value={cards?.b.value}
-            running
+            title={who(battle.a)}
+            spec={specA}
+            value={cards?.a.value}
+            running={battle.joined}
+            sealed={!battle.joined}
+            won={settledA}
             deck={shape}
             pool={pool.data}
           />
-        ) : (
-          <OpenSeat
-            canJoin={Boolean(address) && !iAmIn && game.canAfford && Boolean(deck) && !deck!.empty}
-            busy={fight.busy}
-            onJoin={() => void fight.join(game.needsApproval)}
-          />
-        )}
-      </section>
-
-      {fight.state.error && (
-        <p className="mt-4 text-center text-[0.9375rem] text-[var(--color-danger)]">
-          {fight.state.error.title}
-          {fight.state.error.next && (
-            <span className="block text-[var(--color-ink-faint)]">
-              {fight.state.error.next}
-            </span>
+          {battle.joined ? (
+            <Side
+              title={who(battle.b)}
+              spec={specB}
+              value={cards?.b.value}
+              running
+              won={settledB}
+              deck={shape}
+              pool={pool.data}
+            />
+          ) : (
+            <OpenSeat
+              canJoin={Boolean(address) && !iAmIn && game.canAfford && Boolean(deck) && !deck!.empty}
+              busy={fight.busy}
+              onJoin={() => void fight.join(game.needsApproval)}
+            />
           )}
-        </p>
-      )}
+        </section>
 
-      <section className="slab mt-5 p-6 sm:p-8">
-        {specA && specB ? (
-          <Verdict
-            specA={specA}
-            specB={specB}
-            iAmCreator={iAmCreator}
-            watching={!iAmIn}
-            settled={battle.resolved}
-          />
-        ) : battle.joined ? (
-          <p className="text-center text-[1.0625rem] text-[var(--color-ink-dim)]">
-            The covalidators are turning both cards over, a few seconds we do not control.
-          </p>
-        ) : (
-          <p className="text-center text-[1.0625rem] text-[var(--color-ink-dim)]">
-            Nobody can read either card yet. That is the point: there is no easy fight to pick.
+        {fight.state.error && (
+          <p className="text-center text-sm text-[var(--color-danger)]">
+            {fight.state.error.title}
+            {fight.state.error.next && (
+              <span className="block text-slate-500">{fight.state.error.next}</span>
+            )}
           </p>
         )}
 
-        {battle.joined && !battle.resolved && cards && (
-          <div className="mx-auto mt-5 max-w-md">
-            <Button block disabled={fight.busy} onClick={() => void fight.resolve()}>
-              {fight.busy ? "Settling…" : "Settle the battle"}
-            </Button>
-            <p className="mt-2 text-center text-[0.9375rem] text-[var(--color-ink-faint)]">
-              Anyone can settle it, the loser cannot freeze it by staying away.
+        <section className="slab p-6 sm:p-8">
+          {specA && specB ? (
+            <Verdict
+              specA={specA}
+              specB={specB}
+              iAmCreator={iAmCreator}
+              watching={!iAmIn}
+              settled={battle.resolved}
+            />
+          ) : battle.joined ? (
+            <p className="text-center text-slate-400">
+              The covalidators are turning both cards over, a few seconds we do not control.
             </p>
-          </div>
-        )}
+          ) : (
+            <p className="text-center text-slate-400">
+              Nobody can read either card yet. That is the point: there is no easy fight to pick.
+            </p>
+          )}
 
-        {battle.waiting && iAmCreator && (
-          <Abandon openedAt={battle.openedAt} busy={fight.busy} onAbandon={() => void fight.abandon()} />
-        )}
-      </section>
-    </>
+          {battle.joined && !battle.resolved && cards && (
+            <div className="mx-auto mt-5 max-w-md">
+              <Button block className="py-4" disabled={fight.busy} onClick={() => void fight.resolve()}>
+                {fight.busy ? "Settling…" : "Settle the battle"}
+              </Button>
+              <p className="mt-2 text-center text-sm text-slate-500">
+                Anyone can settle it, the loser cannot freeze it by staying away.
+              </p>
+            </div>
+          )}
+
+          {battle.waiting && iAmCreator && (
+            <Abandon
+              openedAt={battle.openedAt}
+              busy={fight.busy}
+              onAbandon={() => void fight.abandon()}
+            />
+          )}
+        </section>
+      </div>
+    </div>
   );
 }
 
+/**
+ *
+ */
 function Side({
   title,
   spec,
   value,
   running,
   sealed,
+  won,
   deck,
   pool,
 }: {
@@ -172,22 +198,28 @@ function Side({
   value?: number;
   running: boolean;
   sealed?: boolean;
+  won?: boolean;
   deck: DeckShape;
   pool?: ReturnType<typeof usePool>["data"];
 }) {
   return (
-    <div className="frame relative overflow-hidden">
-      <span className="frame__node left-0 top-0" aria-hidden />
-      <span className="frame__node right-0 top-0" aria-hidden />
-      <span className="frame__node bottom-0 left-0" aria-hidden />
-      <span className="frame__node bottom-0 right-0" aria-hidden />
+    <div
+      className={`relative flex flex-col overflow-hidden rounded-[var(--radius-window)] border transition-all ${
+        won
+          ? "border-amber-500 bg-gradient-to-b from-amber-950/60 to-slate-900 shadow-[0_0_30px_rgba(245,158,11,0.3)]"
+          : "border-slate-800 bg-slate-950/80"
+      }`}
+    >
+      {won && (
+        <span className="t-label absolute left-1/2 top-3 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full bg-amber-500 px-3 py-1 text-slate-950 shadow-lg">
+          <Trophy className="h-3.5 w-3.5" />
+          takes both
+        </span>
+      )}
 
-      <div className="relative flex items-center justify-between border-b border-[var(--edge)] px-5 py-3">
-        <span className="t-chain text-[0.8125rem] text-[var(--color-ink-dim)]">{title}</span>
-        <span
-          className="t-inscription text-[0.8125rem]"
-          style={{ color: spec ? spec.ink : "var(--color-ink-faint)" }}
-        >
+      <div className="relative flex items-center justify-between border-b border-slate-800 px-5 py-3">
+        <span className="t-chain text-sm text-slate-300">{title}</span>
+        <span className="t-label" style={{ color: spec ? spec.ink : "var(--color-ink-faint)" }}>
           {spec ? (spec.tickets > 0 ? `+${spec.tickets} · ${spec.name}` : spec.name) : "sealed"}
         </span>
       </div>
@@ -195,7 +227,7 @@ function Side({
       <div className="relative flex min-h-[13rem] items-center justify-center px-4 py-6">
         {sealed ? (
           <div className="flex flex-col items-center gap-3 py-6">
-            <Crate rarity="sealed" size={140} drift />
+            <Chest rarity="sealed" size={150} />
             <span className="t-label">sealed until someone pays</span>
           </div>
         ) : (
@@ -216,15 +248,15 @@ function OpenSeat({
   onJoin: () => void;
 }) {
   return (
-    <div className="slab grid place-items-center border-dashed p-8">
+    <div className="grid place-items-center rounded-[var(--radius-window)] border border-dashed border-slate-700 bg-slate-900/40 p-8">
       <div className="text-center">
         <p className="t-label">open seat</p>
-        <p className="mt-2 max-w-xs text-[1.0625rem] text-[var(--color-ink-dim)]">
+        <p className="mt-2 max-w-xs text-slate-400">
           Your dollar buys you a real ticket either way. Only the bonus is on the table.
         </p>
         <div className="mt-5">
           <Button disabled={!canJoin || busy} onClick={onJoin}>
-            {busy ? "…" : "Take the seat · $1"}
+            {busy ? "…" : "Take the seat • $1"}
           </Button>
         </div>
       </div>
@@ -256,32 +288,36 @@ function Verdict({
   const iWon = iAmCreator ? creatorWon : !creatorWon;
 
   return (
-    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="text-center"
+    >
       {draw ? (
-        <p className="text-[1.0625rem] text-[var(--color-ink-dim)]">
+        <p className="text-slate-400">
           {pot === 0
             ? "Both empty. Nobody owes anybody, and both players still hold the ticket."
             : "The same card. A draw, and each keeps their own."}
         </p>
       ) : watching ? (
-        <p className="t-inscription text-2xl" style={{ color: "var(--color-accent-bright)" }}>
+        <p className="t-inscription text-2xl" style={{ color: "var(--color-accent-hover)" }}>
           {pot > 0
             ? `${creatorWon ? "the creator" : "the challenger"} takes all ${pot}`
             : "won on the card, but the pot was empty"}
         </p>
       ) : iWon ? (
-        <p className="t-inscription text-2xl" style={{ color: "var(--color-accent-bright)" }}>
-          {pot > 0 ? `you take all ${pot} ticket${pot > 1 ? "s" : ""}` : "you win, but the pot was empty"}
+        <p className="t-inscription text-2xl" style={{ color: "var(--color-accent-hover)" }}>
+          {pot > 0
+            ? `you take all ${pot} ticket${pot > 1 ? "s" : ""}`
+            : "you win, but the pot was empty"}
         </p>
       ) : (
-        <p className="text-[1.0625rem] text-[var(--color-ink-dim)]">
-          {pot > 0 ? `Lost the ${pot}.` : "Lost, though there was nothing in the pot."} The
-          ticket you paid for is still yours.
+        <p className="text-slate-400">
+          {pot > 0 ? `Lost the ${pot}.` : "Lost, though there was nothing in the pot."} The ticket
+          you paid for is still yours.
         </p>
       )}
-      {!settled && (
-        <p className="t-label mt-2">the cards are turned · settle to bank it</p>
-      )}
+      {!settled && <p className="t-label mt-2">the cards are turned · settle to bank it</p>}
     </motion.div>
   );
 }
@@ -308,7 +344,7 @@ function Abandon({
   const left = openedAt * 1000 + TIMEOUT_MS - now;
   if (left > 0) {
     return (
-      <p className="mt-4 text-center text-[0.9375rem] text-[var(--color-ink-faint)]">
+      <p className="mt-4 text-center text-sm text-slate-500">
         If nobody comes, you can take the card back in {Math.ceil(left / 60_000)} min. Nothing to
         refund, the ticket was bought the moment you opened the battle.
       </p>

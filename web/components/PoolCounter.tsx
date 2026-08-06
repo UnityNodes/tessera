@@ -24,30 +24,33 @@ export function PoolCounter({ deck, drawn, pool }: { deck: DeckShape; drawn: num
     <div>
       <div className="mb-5 flex items-baseline justify-between gap-4">
         <span className="t-label">still in the pool</span>
-        <span className="t-chain text-[0.8125rem] text-[var(--color-ink-dim)]">
+        <span className="t-chain text-xs text-slate-400">
           {remaining} of {size} unopened
         </span>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         {tiers.map((t) => (
-          <div key={t.weight} className="flex items-center gap-3">
+          <div
+            key={t.weight}
+            className="flex items-center gap-3 rounded-[var(--radius-control)] border border-slate-800 bg-slate-950 p-2.5"
+          >
             <span
-              className="h-7 w-1.5 shrink-0 rounded-full"
+              className="h-8 w-1.5 shrink-0 rounded-full"
               style={{ background: t.spec.ink, opacity: t.left > 0 ? 1 : 0.2 }}
             />
             <span className="min-w-0 flex-1">
               <span
-                className="t-inscription block text-[0.8125rem]"
+                className="block text-sm font-bold"
                 style={{ color: t.left > 0 ? t.spec.ink : "var(--color-ink-faint)" }}
               >
                 {t.spec.name}
               </span>
-              <span className="block text-[0.8125rem] text-[var(--color-ink-faint)]">
+              <span className="t-chain block text-[11px] text-slate-500">
                 {t.spec.note}
               </span>
             </span>
-            <span className="t-chain shrink-0 text-right text-[1.0625rem]">
+            <span className="t-chain shrink-0 text-right text-base font-bold">
               <motion.span
                 key={t.left}
                 initial={{ opacity: 0, y: -6 }}
@@ -56,13 +59,13 @@ export function PoolCounter({ deck, drawn, pool }: { deck: DeckShape; drawn: num
               >
                 {t.left}
               </motion.span>
-              <span className="text-[var(--color-ink-faint)]"> / {t.total}</span>
+              <span className="text-slate-500"> / {t.total}</span>
             </span>
           </div>
         ))}
       </div>
 
-      <p className="mt-5 border-t border-[var(--edge)] pt-4 text-[0.9375rem] text-[var(--color-ink-dim)]">
+      <p className="mt-5 border-t border-slate-800 pt-4 text-sm text-slate-400">
         {counting ? (
           <>
             Counting what is still in the pool. Every opened slot is publicly
@@ -73,7 +76,7 @@ export function PoolCounter({ deck, drawn, pool }: { deck: DeckShape; drawn: num
           <>Every prize in this season has been drawn. What is left is grout.</>
         ) : (
           <>
-            <span className="t-chain text-[var(--color-ink)]">
+            <span className="t-chain font-bold text-slate-100">
               {(oddsNext * 100).toFixed(1)}%
             </span>{" "}
             of the unopened slots still carry something. Nobody set that number, it
@@ -81,7 +84,7 @@ export function PoolCounter({ deck, drawn, pool }: { deck: DeckShape; drawn: num
           </>
         )}
         {!counting && pool!.unknown > 0 && (
-          <span className="block mt-1 text-[var(--color-ink-faint)]">
+          <span className="mt-1 block text-slate-500">
             {pool!.unknown} opened slots not yet decrypted, so the count may still move.
           </span>
         )}

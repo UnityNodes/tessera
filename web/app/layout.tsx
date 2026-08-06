@@ -4,7 +4,6 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { Shell } from "@/components/Shell";
 import { Backdrop } from "@/components/Backdrop";
-import { HallShader } from "@/components/HallShader";
 
 //
 const archivo = Archivo({
@@ -32,9 +31,8 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${archivo.variable} ${plexMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
+      <body className="flex min-h-full flex-col bg-[var(--color-bg)] text-[var(--color-ink)]">
         <Backdrop />
-        <HallShader />
         <Providers>
           <Shell>{children}</Shell>
         </Providers>
