@@ -83,7 +83,7 @@ function Prize({ item, index, mine }: { item: FeedItem; index: number; mine: boo
 
   return (
     <div
-      className="relative overflow-hidden rounded-[3px]"
+      className="relative overflow-hidden rounded-[var(--radius-chip)]"
       style={{
         height: CARD * 0.82,
         background: `linear-gradient(158deg, color-mix(in oklab, ${ink} 20%, var(--color-surface)), var(--color-surface))`,

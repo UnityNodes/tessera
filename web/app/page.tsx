@@ -73,7 +73,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mt-14">
+      <section className="relative mt-14 -mx-5 rounded-[var(--radius-panel)] bg-[var(--color-sunk)] px-5 py-12 sm:-mx-8 sm:px-8 2xl:-mx-12 2xl:px-12">
         <div className="mb-8 flex flex-wrap items-baseline justify-between gap-3 border-b border-[var(--edge)] pb-4">
           <h2 className="t-display text-[clamp(1.5rem,3vw,2.1rem)]">the pools</h2>
           <p className="t-label">
@@ -114,7 +114,7 @@ function PoolRow({ deck }: { deck: DeckInfo }) {
   return (
     <Link
       href={`/case/${deck.id}`}
-      className="group block border border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-surface)_45%,transparent)] p-5 transition-colors hover:border-[color-mix(in_oklab,var(--card-ink)_45%,transparent)] sm:p-6"
+      className="group block rounded-[var(--radius-panel)] border border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-surface)_45%,transparent)] p-5 transition-colors hover:border-[color-mix(in_oklab,var(--card-ink)_45%,transparent)] sm:p-6"
       style={{ ["--card-ink" as string]: ink }}
     >
       <div className="grid items-center gap-6 lg:grid-cols-[auto_minmax(0,1fr)_auto]">

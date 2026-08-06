@@ -1,18 +1,19 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: oklch(13% 0.014 265);
-  --color-surface: oklch(18.5% 0.020 265);
-  --color-raised: oklch(24% 0.024 265);
+  --color-bg: oklch(10.5% 0.012 265);
+  --color-sunk: oklch(8.5% 0.010 265);
+  --color-surface: oklch(15% 0.016 265);
+  --color-raised: oklch(20% 0.020 265);
 
   --color-ink: oklch(97% 0.006 250);
   --color-ink-dim: oklch(80% 0.018 255);
   --color-ink-faint: oklch(65% 0.024 258);
 
-  --color-accent: oklch(62% 0.20 255);
-  --color-accent-hover: oklch(69% 0.20 253);
-  --color-accent-press: oklch(54% 0.18 256);
-  --color-accent-bright: oklch(78% 0.16 248);
+  --color-accent: oklch(71.5% 0.128 215);
+  --color-accent-hover: oklch(79% 0.126 205);
+  --color-accent-press: oklch(62% 0.11 222);
+  --color-accent-bright: oklch(86.5% 0.106 205);
 
   --color-tier-grout: oklch(50% 0.022 252);
   --color-tier-denarius: oklch(73% 0.16 158);
@@ -32,9 +33,9 @@
   --font-body: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 
-  --radius-chip: 3px;
-  --radius-control: 2px;
-  --radius-panel: 2px;
+  --radius-chip: 8px;
+  --radius-control: 10px;
+  --radius-panel: 14px;
 
   --ease-stone: cubic-bezier(0.16, 0.84, 0.28, 1);
   --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
@@ -183,6 +184,7 @@ body::before {
   position: relative;
   background: color-mix(in oklab, var(--color-surface) 45%, transparent);
   border: 1px solid var(--edge);
+  border-radius: var(--radius-panel);
 }
 
 .frame::before {
@@ -190,6 +192,7 @@ body::before {
   position: absolute;
   inset: 1rem;
   border: 1px solid color-mix(in oklab, var(--edge) 45%, transparent);
+  border-radius: calc(var(--radius-panel) - 6px);
   pointer-events: none;
 }
 
@@ -203,12 +206,14 @@ body::before {
 .slab {
   background: color-mix(in oklab, var(--color-surface) 55%, transparent);
   border: 1px solid var(--edge);
+  border-radius: var(--radius-panel);
   backdrop-filter: blur(8px);
 }
 
 .raised {
   background: var(--color-raised);
   border: 1px solid var(--edge);
+  border-radius: var(--radius-chip);
 }
 
 .glow {

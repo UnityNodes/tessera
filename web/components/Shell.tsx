@@ -300,7 +300,7 @@ const IconChevron = () => (
 
 const Mark = () => (
   <span
-    className="grid h-8 w-8 shrink-0 place-items-center rounded-[3px]"
+    className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px]"
     style={{
       background:
         "linear-gradient(150deg, var(--color-accent-bright), var(--color-accent) 55%, oklch(38% 0.14 262))",
