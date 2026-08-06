@@ -90,12 +90,23 @@ async function waitForQuiet(signal?: AbortSignal) {
   });
 }
 
+/**
+ *
+ */
+const REVEAL_CHUNK = 6;
+
+const REVEAL_LANES = 3;
+
 export async function revealHandles(
   handles: string[],
   opts: {
     signal?: AbortSignal;
     onAttempt?: (n: number, elapsedMs: number) => void;
     priority?: "foreground" | "background";
+    /**
+     *
+     */
+    onChunk?: (revealed: Revealed[]) => void;
   } = {},
 ): Promise<Revealed[]> {
   const missing = handles.filter((h) => !cache.has(h.toLowerCase()));
@@ -120,7 +131,11 @@ export async function revealHandles(
 async function pollUntilRevealed(
   missing: string[],
   handles: string[],
-  opts: { signal?: AbortSignal; onAttempt?: (n: number, elapsedMs: number) => void },
+  opts: {
+    signal?: AbortSignal;
+    onAttempt?: (n: number, elapsedMs: number) => void;
+    onChunk?: (revealed: Revealed[]) => void;
+  },
 ): Promise<Revealed[]> {
   const zap = await warmInco();
   const started = Date.now();
@@ -130,14 +145,38 @@ async function pollUntilRevealed(
     if (opts.signal?.aborted) throw new Error("aborted");
     attempt++;
     try {
-      const res = await zap.attestedReveal(missing);
-      remember(
-        res.map((r) => ({
-          handle: r.handle,
-          value: Number(r.plaintext.value),
-          signatures: r.covalidatorSignatures.map(signatureToHex),
-        })),
-      );
+      //
+      const chunks: string[][] = [];
+      for (let i = 0; i < missing.length; i += REVEAL_CHUNK) {
+        chunks.push(missing.slice(i, i + REVEAL_CHUNK));
+      }
+
+      let revealed = 0;
+      let lastErr: unknown;
+
+      for (let i = 0; i < chunks.length; i += REVEAL_LANES) {
+        if (opts.signal?.aborted) throw new Error("aborted");
+        const lane = chunks.slice(i, i + REVEAL_LANES);
+        const results = await Promise.allSettled(
+          lane.map((chunk) => zap.attestedReveal(chunk)),
+        );
+        for (const r of results) {
+          if (r.status === "rejected") {
+            lastErr = r.reason;
+            continue;
+          }
+          remember(
+            r.value.map((x) => ({
+              handle: x.handle,
+              value: Number(x.plaintext.value),
+              signatures: x.covalidatorSignatures.map(signatureToHex),
+            })),
+          );
+          revealed += r.value.length;
+        }
+        opts.onChunk?.(handles.map((h) => cache.get(h.toLowerCase())!).filter(Boolean));
+      }
+      if (revealed === 0 && lastErr) throw lastErr;
       return handles.map((h) => cache.get(h.toLowerCase())!).filter(Boolean);
     } catch (err) {
       const elapsed = Date.now() - started;

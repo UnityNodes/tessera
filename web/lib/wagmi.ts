@@ -11,7 +11,13 @@ export const wagmiConfig = createConfig({
     coinbaseWallet({ appName: "Tessera", preference: "all" }),
   ],
   transports: {
-    [CHAIN.id]: http(RPC_URL),
+    //
+    //
+    [CHAIN.id]: http(RPC_URL, {
+      batch: { wait: 16 },
+      retryCount: 3,
+      retryDelay: 400,
+    }),
   },
   ssr: true,
 });

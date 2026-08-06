@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { revealHandles } from "@/lib/inco";
 import { specOf, specFor, weightOf, type DeckShape } from "@/lib/deck";
@@ -23,15 +23,17 @@ export function useFeed(decks: DeckShape[], limit = 44) {
     [opens.data, limit],
   );
 
+  const [partial, setPartial] = useState<Map<string, number>>(new Map());
+
   const revealed = useQuery({
     queryKey: ["feed-values", recent.map((o) => o.handle).join(",")],
     enabled: recent.length > 0 && decks.length > 0,
     staleTime: Infinity,
     queryFn: async () => {
-      const out = await revealHandles(
-        recent.map((o) => o.handle),
-        { priority: "background" },
-      ).catch(() => []);
+      const out = await revealHandles(recent.map((o) => o.handle), {
+        priority: "background",
+        onChunk: (got) => setPartial(new Map(got.map((r) => [r.handle.toLowerCase(), r.value]))),
+      }).catch(() => []);
       return new Map(out.map((r) => [r.handle.toLowerCase(), r.value]));
     },
   });
@@ -40,7 +42,7 @@ export function useFeed(decks: DeckShape[], limit = 44) {
     () =>
       recent.map((o) => {
         const shape = decks[o.deckId];
-        const value = revealed.data?.get(o.handle.toLowerCase());
+        const value = revealed.data?.get(o.handle.toLowerCase()) ?? partial.get(o.handle.toLowerCase());
         const weight = value === undefined || !shape ? 0 : weightOf(value, shape);
         return {
           ...o,
@@ -49,6 +51,6 @@ export function useFeed(decks: DeckShape[], limit = 44) {
           spec: value === undefined || !shape ? specFor(0) : specOf(value, shape),
         };
       }),
-    [recent, revealed.data, decks],
+    [recent, revealed.data, partial, decks],
   );
 }
