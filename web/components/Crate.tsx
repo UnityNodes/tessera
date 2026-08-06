@@ -8,10 +8,9 @@ export type Rarity = "vault" | "porphyry" | "aureus" | "denarius" | "grout" | "s
  *
  *
  *
- *
  */
 
-const RATIO = 204 / 208;
+const RATIO = 150 / 220;
 
 export function Crate({
   rarity,
@@ -28,12 +27,15 @@ export function Crate({
 }) {
   //
   const uid = useId().replace(/:/g, "");
-  const g = (name: string) => `${uid}-${name}`;
+  const g = (n: string) => `${uid}-${n}`;
+
+  const face = (l: string) => `oklch(from var(--metal) ${l} c h)`;
+  const LINE = "var(--shell-line)";
 
   return (
     <svg
       data-tier={rarity}
-      viewBox="-8 -34 208 204"
+      viewBox="0 0 220 150"
       width={size}
       height={Math.round(size * RATIO)}
       className={className}
@@ -41,145 +43,206 @@ export function Crate({
         display: "block",
         maxWidth: "100%",
         height: "auto",
-        filter: "drop-shadow(0 0 calc(var(--glow, 0) * 16px) var(--metal))",
+        filter: "drop-shadow(0 0 calc(var(--glow, 0) * 22px) var(--metal))",
         animation: drift ? "crate-hover 4.4s ease-in-out infinite" : undefined,
       }}
       aria-hidden
     >
       <defs>
-        <linearGradient id={g("top")} x1="0" y1="1" x2="0.3" y2="0">
-          <stop offset="0" stopColor="color-mix(in oklch, var(--shell-top) 55%, var(--metal) 45%)" />
-          <stop offset="0.55" stopColor="color-mix(in oklch, var(--shell-top) 25%, var(--metal-l) 75%)" />
-          <stop offset="1" stopColor="color-mix(in oklch, var(--shell-top) 60%, var(--metal-l) 40%)" />
+        <linearGradient id={g("front")} x1="0" y1="0" x2="0.2" y2="1">
+          <stop offset="0" stopColor={face("var(--shell-top)")} />
+          <stop offset="1" stopColor={face("var(--shell-front)")} />
         </linearGradient>
-        <linearGradient id={g("fu")} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="color-mix(in oklch, var(--shell-front) 55%, var(--metal-l) 45%)" />
-          <stop offset="1" stopColor="color-mix(in oklch, var(--shell-front) 80%, var(--metal) 20%)" />
+        <linearGradient id={g("side")} x1="0" y1="0" x2="1" y2="0.4">
+          <stop offset="0" stopColor={face("var(--shell-front)")} />
+          <stop offset="1" stopColor={face("var(--shell-side)")} />
         </linearGradient>
-        <linearGradient id={g("fl")} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="color-mix(in oklch, var(--shell-front) 82%, var(--metal) 18%)" />
-          <stop offset="1" stopColor="color-mix(in oklch, var(--shell-front) 96%, var(--metal) 4%)" />
-        </linearGradient>
-        <linearGradient id={g("side")} x1="0" y1="0" x2="1" y2="0.15">
-          <stop offset="0" stopColor="color-mix(in oklch, var(--shell-side) 75%, var(--metal) 25%)" />
-          <stop offset="1" stopColor="color-mix(in oklch, var(--shell-side) 97%, var(--metal) 3%)" />
+        <linearGradient id={g("lid")} x1="0.1" y1="0" x2="0.4" y2="1">
+          <stop offset="0" stopColor={face("88%")} />
+          <stop offset="0.5" stopColor={face("var(--shell-top)")} />
+          <stop offset="1" stopColor={face("var(--shell-front)")} />
         </linearGradient>
         <linearGradient id={g("metal")} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="var(--metal-l)" />
-          <stop offset="0.4" stopColor="var(--metal)" />
+          <stop offset="0.45" stopColor="var(--metal)" />
           <stop offset="1" stopColor="var(--metal-d)" />
         </linearGradient>
-        <radialGradient id={g("cav")} cx="0.35" cy="0.15" r="0.9">
-          <stop offset="0" stopColor="color-mix(in oklch, var(--shell-side) 45%, black 55%)" />
-          <stop offset="1" stopColor="black" />
+        <radialGradient id={g("cavity")} cx="0.5" cy="0.1" r="0.9">
+          <stop offset="0" stopColor={face("28%")} />
+          <stop offset="1" stopColor="oklch(12% 0.02 280)" />
         </radialGradient>
-        <radialGradient id={g("spec")} cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor="var(--metal-l)" stopOpacity="0.95" />
-          <stop offset="1" stopColor="var(--metal-l)" stopOpacity="0" />
+        <linearGradient id={g("ticket")} x1="0" y1="0" x2="0.3" y2="1">
+          <stop offset="0" stopColor="oklch(97% 0.012 85)" />
+          <stop offset="1" stopColor="oklch(86% 0.03 80)" />
+        </linearGradient>
+        <radialGradient id={g("inner")} cx="0.5" cy="0.6" r="0.6">
+          <stop offset="0" stopColor="var(--metal-l)" stopOpacity="0.85" />
+          <stop offset="1" stopColor="var(--metal)" stopOpacity="0" />
         </radialGradient>
       </defs>
 
-      <ellipse cx="100" cy="153" rx="60" ry="6" fill="black" opacity="0.7" style={{ filter: "blur(3px)" }} />
+      <ellipse cx="110" cy="140" rx="76" ry="7" fill="black" opacity="0.55" style={{ filter: "blur(4px)" }} />
 
       {open ? (
         <>
-          <polygon
-            points="54,26 174,26 163,3 65,3"
-            fill={`url(#${g("top")})`}
-            stroke="color-mix(in oklch, var(--shell-top) 30%, black 70%)"
-            strokeWidth="1"
+          <g transform="translate(0 -6)">
+            <path
+              d="M40 40 A72 28 0 0 1 180 40 L180 28 A72 22 0 0 0 40 28 Z"
+              fill={`url(#${g("lid")})`}
+              stroke={LINE}
+              strokeWidth="4"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M70 22 A52 16 0 0 1 150 22"
+              fill="none"
+              stroke="var(--metal-l)"
+              strokeWidth="3"
+              opacity="0.7"
+            />
+          </g>
+
+          <ellipse
+            cx="110"
+            cy="66"
+            rx="82"
+            ry="24"
+            fill={`url(#${g("inner")})`}
+            style={{ mixBlendMode: "screen" }}
           />
-          <rect x="54" y="23.5" width="120" height="2.5" fill="var(--metal-l)" opacity="0.6" />
-          <rect x="50" y="21.5" width="128" height="5" rx="2" fill={`url(#${g("metal")})`} />
-          <polygon points="54,26 174,26 174,64 54,64" fill={`url(#${g("cav")})`} />
 
-          <polygon
-            points="150,78 174,64 174,136 150,150"
-            fill={`url(#${g("side")})`}
-            stroke="color-mix(in oklch, var(--shell-side) 20%, black 80%)"
-            strokeWidth="1"
+          <Tickets id={g("ticket")} line={LINE} />
+
+          <path
+            d="M24 78 L196 78 L190 128 A6 6 0 0 1 184 134 L36 134 A6 6 0 0 1 30 128 Z"
+            fill={`url(#${g("front")})`}
+            stroke={LINE}
+            strokeWidth="4"
+            strokeLinejoin="round"
           />
-          <rect x="30" y="78" width="120" height="36" fill={`url(#${g("fu")})`} />
-          <rect x="30" y="114" width="120" height="36" fill={`url(#${g("fl")})`} />
+          <ellipse
+            cx="110"
+            cy="78"
+            rx="86"
+            ry="11"
+            fill={`url(#${g("cavity")})`}
+            stroke={LINE}
+            strokeWidth="4"
+          />
 
-          <polygon points="30,78 150,78 174,64 54,64" fill={`url(#${g("cav")})`} />
-          <polygon points="46,84 134,84 152,74 64,74" fill="black" opacity="0.85" />
+          <rect x="26" y="96" width="168" height="10" rx="3" fill={`url(#${g("metal")})`} stroke={LINE} strokeWidth="2.5" />
+          <rect x="28" y="116" width="164" height="10" rx="3" fill={`url(#${g("metal")})`} stroke={LINE} strokeWidth="2.5" />
 
-          <rect x="30" y="150" width="8" height="6" rx="1" fill={`url(#${g("metal")})`} />
-          <rect x="142" y="150" width="8" height="6" rx="1" fill={`url(#${g("metal")})`} />
-          <rect x="26" y="139" width="128" height="9" rx="2" fill={`url(#${g("metal")})`} />
-          <rect x="22" y="142" width="17" height="17" rx="3" fill={`url(#${g("metal")})`} stroke="var(--metal-d)" strokeWidth="1" />
-          <rect x="138" y="142" width="17" height="17" rx="3" fill={`url(#${g("metal")})`} stroke="var(--metal-d)" strokeWidth="1" />
+          <Feet id={g("metal")} line={LINE} />
         </>
       ) : (
         <>
-          <rect x="30" y="150" width="8" height="6" rx="1" fill={`url(#${g("metal")})`} />
-          <rect x="142" y="150" width="8" height="6" rx="1" fill={`url(#${g("metal")})`} />
-
-          <polygon
-            points="150,78 174,64 174,136 150,150"
-            fill={`url(#${g("side")})`}
-            stroke="color-mix(in oklch, var(--shell-side) 20%, black 80%)"
-            strokeWidth="1"
+          <path
+            d="M24 78 L196 78 L190 128 A6 6 0 0 1 184 134 L36 134 A6 6 0 0 1 30 128 Z"
+            fill={`url(#${g("front")})`}
+            stroke={LINE}
+            strokeWidth="4"
+            strokeLinejoin="round"
           />
-          <rect x="30" y="78" width="120" height="36" fill={`url(#${g("fu")})`} />
-          <rect x="30" y="114" width="120" height="36" fill={`url(#${g("fl")})`} />
+          <path d="M196 78 L190 128 A6 6 0 0 1 184 134 L176 134 L182 78 Z" fill={`url(#${g("side")})`} />
 
-          <polygon
-            points="150,40 174,26 174,64 150,78"
-            fill={`url(#${g("side")})`}
-            stroke="color-mix(in oklch, var(--shell-side) 20%, black 80%)"
-            strokeWidth="1"
+          <rect x="26" y="94" width="168" height="11" rx="3" fill={`url(#${g("metal")})`} stroke={LINE} strokeWidth="2.5" />
+          <rect x="28" y="116" width="164" height="11" rx="3" fill={`url(#${g("metal")})`} stroke={LINE} strokeWidth="2.5" />
+
+          <path
+            d="M24 78 L24 56 A86 34 0 0 1 196 56 L196 78 Z"
+            fill={`url(#${g("lid")})`}
+            stroke={LINE}
+            strokeWidth="4"
+            strokeLinejoin="round"
           />
-          <rect x="30" y="40" width="120" height="38" fill={`url(#${g("fu")})`} />
-          <polygon
-            points="30,40 150,40 174,26 54,26"
-            fill={`url(#${g("top")})`}
-            stroke="color-mix(in oklch, var(--shell-top) 30%, black 70%)"
-            strokeWidth="1"
+          <path
+            d="M48 54 A66 24 0 0 1 148 34"
+            fill="none"
+            stroke="var(--metal-l)"
+            strokeWidth="5"
+            strokeLinecap="round"
+            opacity="0.5"
+            style={{ filter: "blur(2px)" }}
           />
+          <rect x="24" y="72" width="172" height="11" rx="3" fill={`url(#${g("metal")})`} stroke={LINE} strokeWidth="2.5" />
 
-          <ellipse
-            cx="80"
-            cy="33"
-            rx="55"
-            ry="15"
-            fill={`url(#${g("spec")})`}
-            opacity="0.8"
-            transform="rotate(-8 80 33)"
-            style={{ mixBlendMode: "screen", filter: "blur(2px)" }}
-          />
+          <g>
+            <rect
+              x="94"
+              y="82"
+              width="32"
+              height="30"
+              rx="7"
+              fill={`url(#${g("metal")})`}
+              stroke={LINE}
+              strokeWidth="2.5"
+            />
+            <circle cx="110" cy="93" r="4.5" fill={LINE} />
+            <path d="M110 93 L110 104" stroke={LINE} strokeWidth="3.5" strokeLinecap="round" />
+          </g>
 
-          <rect x="30" y="39" width="120" height="1.5" fill="var(--metal-l)" opacity="0.8" />
-          <rect x="26" y="42" width="128" height="9" rx="2" fill={`url(#${g("metal")})`} />
-          <rect x="26" y="73" width="128" height="13" rx="2" fill={`url(#${g("metal")})`} />
-          <ellipse
-            cx="65"
-            cy="77"
-            rx="34"
-            ry="7"
-            fill={`url(#${g("spec")})`}
-            opacity="0.7"
-            style={{ mixBlendMode: "screen" }}
-          />
-          <rect x="26" y="139" width="128" height="9" rx="2" fill={`url(#${g("metal")})`} />
-
-          <rect x="22" y="32" width="17" height="17" rx="3" fill={`url(#${g("metal")})`} stroke="var(--metal-d)" strokeWidth="1" />
-          <rect x="138" y="32" width="17" height="17" rx="3" fill={`url(#${g("metal")})`} stroke="var(--metal-d)" strokeWidth="1" />
-          <rect x="22" y="142" width="17" height="17" rx="3" fill={`url(#${g("metal")})`} stroke="var(--metal-d)" strokeWidth="1" />
-          <rect x="138" y="142" width="17" height="17" rx="3" fill={`url(#${g("metal")})`} stroke="var(--metal-d)" strokeWidth="1" />
-
-          <rect x="79" y="65" width="42" height="26" rx="5" fill={`url(#${g("metal")})`} stroke="var(--metal-d)" strokeWidth="1" />
-          <circle cx="100" cy="79" r="4.5" fill="var(--metal-d)" />
-          <circle cx="99" cy="77" r="1.4" fill="var(--metal-l)" opacity="0.8" />
+          <Feet id={g("metal")} line={LINE} />
         </>
       )}
     </svg>
   );
 }
 
+function Feet({ id, line }: { id: string; line: string }) {
+  return (
+    <>
+      <rect x="34" y="132" width="20" height="10" rx="3" fill={`url(#${id})`} stroke={line} strokeWidth="2.5" />
+      <rect x="166" y="132" width="20" height="10" rx="3" fill={`url(#${id})`} stroke={line} strokeWidth="2.5" />
+    </>
+  );
+}
+
 /**
  *
+ */
+const TICKETS = [
+  { x: 62, y: 46, r: -14, n: "9 16 19 28", b: "3" },
+  { x: 110, y: 38, r: 4, n: "4 11 23 31", b: "7" },
+  { x: 158, y: 48, r: 16, n: "2 15 22 29", b: "5" },
+] as const;
+
+function Tickets({ id, line }: { id: string; line: string }) {
+  return (
+    <>
+      {TICKETS.map((t, i) => (
+        <g key={i} transform={`translate(${t.x} ${t.y}) rotate(${t.r})`}>
+          <rect x="-26" y="-13" width="52" height="26" rx="4" fill={`url(#${id})`} stroke={line} strokeWidth="2.5" />
+          <path d="M8 -13 L8 13" stroke={line} strokeWidth="1.4" strokeDasharray="3 3" opacity="0.5" />
+          <text
+            x="-22"
+            y="3.5"
+            fontFamily="var(--font-mono)"
+            fontSize="7.5"
+            fontWeight="700"
+            fill="oklch(32% 0.03 275)"
+          >
+            {t.n}
+          </text>
+          <circle cx="17" cy="0" r="6.5" fill="none" stroke={line} strokeWidth="1.4" />
+          <text
+            x="17"
+            y="3"
+            textAnchor="middle"
+            fontFamily="var(--font-mono)"
+            fontSize="8.5"
+            fontWeight="700"
+            fill="oklch(32% 0.03 275)"
+          >
+            {t.b}
+          </text>
+        </g>
+      ))}
+    </>
+  );
+}
+
+/**
  */
 export function CrateTile({
   rarity,
