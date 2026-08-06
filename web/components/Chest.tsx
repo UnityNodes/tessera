@@ -5,15 +5,28 @@ import type { Rarity } from "@/lib/deck";
  *
  *
  *
+ *
  */
 
-const ART: Record<Rarity, { src: string; filter?: string }> = {
-  sealed: { src: "/chests/sealed.webp" },
-  denarius: { src: "/chests/denarius.webp" },
-  aureus: { src: "/chests/aureus.webp" },
-  porphyry: { src: "/chests/aureus.webp", filter: "hue-rotate(258deg) saturate(1.45)" },
-  vault: { src: "/chests/aureus.webp", filter: "hue-rotate(292deg) saturate(1.35) brightness(1.05)" },
-  grout: { src: "/chests/sealed.webp", filter: "saturate(0.12) brightness(0.82)" },
+const ART: Record<Rarity, { src: string; open: string; filter?: string }> = {
+  sealed: { src: "/chests/sealed.webp", open: "/chests/sealed-open.webp" },
+  denarius: { src: "/chests/denarius.webp", open: "/chests/denarius-open.webp" },
+  aureus: { src: "/chests/aureus.webp", open: "/chests/aureus-open.webp" },
+  porphyry: {
+    src: "/chests/aureus.webp",
+    open: "/chests/aureus-open.webp",
+    filter: "hue-rotate(258deg) saturate(1.45)",
+  },
+  vault: {
+    src: "/chests/aureus.webp",
+    open: "/chests/aureus-open.webp",
+    filter: "hue-rotate(292deg) saturate(1.35) brightness(1.05)",
+  },
+  grout: {
+    src: "/chests/sealed.webp",
+    open: "/chests/sealed-open.webp",
+    filter: "saturate(0.12) brightness(0.82)",
+  },
 };
 
 const MASK = "radial-gradient(closest-side, #000 56%, transparent 92%)";
@@ -22,11 +35,13 @@ export function Chest({
   rarity = "sealed",
   size = 160,
   drift = false,
+  open = false,
   className,
 }: {
   rarity?: Rarity;
   size?: number;
   drift?: boolean;
+  open?: boolean;
   className?: string;
 }) {
   const art = ART[rarity];
@@ -35,7 +50,7 @@ export function Chest({
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={art.src}
+      src={open ? art.open : art.src}
       alt=""
       aria-hidden
       data-tier={rarity}

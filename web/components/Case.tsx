@@ -113,8 +113,9 @@ export function Case({ phase, value, deck, size = 340, onClick, risk = false }: 
         >
           <Chest
             rarity={spec ? spec.rarity : "sealed"}
-            size={size * (spec ? 0.72 : 0.8)}
+            size={size * (spec ? 0.86 : 0.8)}
             drift={!spec}
+            open={Boolean(spec)}
           />
 
 

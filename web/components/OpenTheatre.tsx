@@ -120,7 +120,7 @@ export function OpenTheatre({
                       opened && !won && !still ? "empty-sigh 1.9s ease-in-out 300ms both" : undefined,
                   }}
                 >
-                  <Chest rarity={spec?.rarity ?? "sealed"} size={520} />
+                  <Chest rarity={spec?.rarity ?? "sealed"} size={520} open />
                 </div>
               </motion.div>
             )}
