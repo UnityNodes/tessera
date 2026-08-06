@@ -180,6 +180,34 @@ async function ensureConnected(page) {
     }
     console.log(`  , : ${Date.now() - t0} ms`);
 
+    if (process.env.WATCH) {
+      for (const at of [600, 1600, 3000, 5000, 7000, 9000]) {
+        await page.waitForTimeout(at === 600 ? 600 : 1000);
+        const items = await page.locator("[data-roll-item]").count();
+        const gone = await page.getByText(/click anywhere to continue/).count();
+        const geom = await page.evaluate(() => {
+          const all = [...document.querySelectorAll("[data-roll-item]")];
+          if (!all.length) return null;
+          const vw = window.innerWidth;
+          const onScreen = all.filter((el) => {
+            const r = el.getBoundingClientRect();
+            return r.right > 0 && r.left < vw;
+          }).length;
+          const t = getComputedStyle(all[0].parentElement).transform;
+          return {
+            onScreen,
+            x: Math.round(Number((t.match(/matrix\(1, 0, 0, 1, (-?[\d.]+)/) || [])[1] || 0)),
+          };
+        });
+        console.log(
+          `   +${at} : ${items}${gone ? "  ()" : ""}` +
+            (geom ? `  ${geom.onScreen}  x=${geom.x}` : ""),
+        );
+        await shot(page, `watch-${at}`);
+        if (gone) break;
+      }
+    }
+
     await page.getByText(/click anywhere to continue/).waitFor({ timeout: 150000 });
     const ms = Date.now() - t0;
 

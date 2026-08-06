@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { animate, useMotionValue, motion, useReducedMotion } from "motion/react";
+import { animate, useMotionValue, useTransform, motion, useReducedMotion } from "motion/react";
 import { slotsPerTier, specFor, specOf, VAULT_SPEC, type TierSpec, type DeckShape } from "@/lib/deck";
 import { Chest } from "./Chest";
 import type { PoolState } from "@/hooks/usePool";
@@ -84,6 +84,13 @@ export function Roll({
 
   const strip = frozen?.strip ?? built;
 
+  /**
+   *
+   *
+   */
+  const copyW = strip.length * STEP;
+  const wrapped = useTransform(x, (v) => (copyW > 0 ? (v % copyW) - copyW : v));
+
   //
   //
   useEffect(() => {
@@ -95,12 +102,22 @@ export function Roll({
   //
   useEffect(() => {
     if (still || !running || landedValue != null) return;
-    const drift = animate(x, x.get() - STEP * DRIFT_STEPS, {
+
+    //
+    //
+    const copy = strip.length * STEP;
+    const from = -(Math.abs(x.get()) % copy) - copy;
+    x.set(from);
+
+    //
+    const room = (COPIES - 2) * copy;
+    const drift = animate(x, from - Math.min(STEP * DRIFT_STEPS, room), {
       duration: DRIFT_S,
       ease: [0.06, 0.5, 0.28, 1],
     });
     return () => drift.stop();
-  }, [running, landedValue, x, still, strip.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running, landedValue, x, still]);
 
   //
   useEffect(() => {
@@ -172,7 +189,7 @@ export function Roll({
 
       <motion.div
         className="absolute top-[18px] flex"
-        style={{ x, gap: GAP, left: `calc(50% - ${ITEM / 2}px)` }}
+        style={{ x: wrapped, gap: GAP, left: `calc(50% - ${ITEM / 2}px)` }}
       >
         {Array.from({ length: COPIES }, () => strip)
           .flat()
@@ -191,6 +208,7 @@ function Item({ spec }: { spec: TierSpec }) {
   const prize = spec.tickets > 0 || spec.name === VAULT_SPEC.name;
   return (
     <div
+      data-roll-item
       className="relative shrink-0 overflow-hidden rounded-[var(--radius-control)] bg-slate-900"
       style={{
         width: ITEM,
