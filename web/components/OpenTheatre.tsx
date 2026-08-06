@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Crate } from "./Crate";
+import { Chest } from "./Chest";
 import { Roll } from "./Roll";
 import { formatUnits } from "viem";
 import { specOf, isVault, type DeckShape } from "@/lib/deck";
@@ -53,6 +53,7 @@ export function OpenTheatre({
   const won = Boolean(spec && (spec.tickets > 0 || isVault(spec)));
   const paid = spec ? (open.risk ? spec.tickets * 2 : spec.tickets) : 0;
 
+  //
   const tier =
     open.phase !== "revealing" || still ? 0 : open.waitedMs > 5200 ? 3 : open.waitedMs > 2400 ? 2 : 1;
 
@@ -98,14 +99,13 @@ export function OpenTheatre({
           <div className="relative flex w-full flex-col items-center px-6 pb-10">
 
             {!opened ? (
-              <div
-                className={`w-full max-w-[1200px] ${tier > 0 ? `theatre__shake theatre__shake--${tier}` : ""}`}
-              >
+              <div className="w-full">
                 <Roll
                   running={open.phase !== "confirming"}
                   landedValue={open.value}
                   deck={deck}
                   pool={pool}
+                  urgency={tier}
                 />
               </div>
             ) : (
@@ -120,7 +120,7 @@ export function OpenTheatre({
                       opened && !won && !still ? "empty-sigh 1.9s ease-in-out 300ms both" : undefined,
                   }}
                 >
-                  <Crate rarity={spec?.rarity ?? "sealed"} size={560} open />
+                  <Chest rarity={spec?.rarity ?? "sealed"} size={520} />
                 </div>
               </motion.div>
             )}

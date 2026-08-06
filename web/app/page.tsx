@@ -26,13 +26,13 @@ export default function Home() {
 
   return (
     <div className="flex w-full flex-col">
-      <section className="relative w-full overflow-hidden border-b border-slate-800/60 bg-gradient-to-b from-[#090d16] via-[#0b101c] to-[#070a11] px-4 py-12 lg:px-8 lg:py-20">
+      <section className="relative w-full overflow-hidden border-b border-slate-800/60 bg-gradient-to-b from-[#090d16] via-[#0b101c] to-[#070a11] px-4 py-12 lg:px-8 lg:py-20 2xl:px-14">
         <div className="pointer-events-none absolute right-1/4 top-0 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
         <div className="pointer-events-none absolute bottom-0 left-1/4 h-96 w-96 rounded-full bg-blue-600/10 blur-3xl" />
 
-        <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 lg:grid-cols-12">
+        <div className="relative z-10 mx-auto grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
           <div className="flex flex-col items-start space-y-6 lg:col-span-7">
-            <h1 className="t-black text-4xl text-white sm:text-5xl lg:text-6xl">
+            <h1 className="t-black text-4xl text-white sm:text-5xl lg:text-6xl 2xl:text-7xl">
               A finite pool, drawn
               <br />
               without{" "}
@@ -41,7 +41,7 @@ export default function Home() {
               </span>
             </h1>
 
-            <p className="max-w-xl text-lg leading-relaxed text-slate-400 lg:text-xl">
+            <p className="max-w-2xl text-lg leading-relaxed text-slate-400 lg:text-xl">
               A case costs $1 and buys you a real Megapot lottery ticket, the same one sold on
               megapot.io, bought in the transaction that opens the case. What is inside was
               shuffled once, before anyone opened one, and is drawn in order. A prize someone else
@@ -90,8 +90,8 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="w-full border-b border-slate-800/60 bg-[var(--color-section)] px-4 py-16 lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center">
+      <section className="w-full border-b border-slate-800/60 bg-[var(--color-section)] px-4 py-16 lg:px-8 2xl:px-14">
+        <div className="mx-auto flex flex-col items-center">
           <h2 className="t-inscription mb-10 text-center text-2xl font-extrabold text-white lg:text-3xl">
             deck progress
           </h2>
@@ -108,8 +108,8 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="w-full border-b border-slate-800/60 bg-[var(--color-section-alt)] px-4 py-16 lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center">
+      <section className="w-full border-b border-slate-800/60 bg-[var(--color-section-alt)] px-4 py-16 lg:px-8 2xl:px-14">
+        <div className="mx-auto flex flex-col items-center">
           <div className="mb-12 max-w-2xl text-center">
             <span className="t-label mb-2 block text-[var(--color-accent-hover)]">
               mechanics &amp; probabilities
@@ -152,8 +152,8 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="w-full bg-[var(--color-section-deep)] px-4 py-14 lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center">
+      <section className="w-full bg-[var(--color-section-deep)] px-4 py-14 lg:px-8 2xl:px-14">
+        <div className="mx-auto flex flex-col items-center">
           <div className="mb-8 flex items-center gap-2">
             <Award className="h-6 w-6" style={{ color: "var(--color-tier-aureus)" }} />
             <h3 className="t-inscription text-xl font-extrabold text-white">
@@ -193,7 +193,7 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
       }}
     >
       <div className="flex flex-col items-center space-y-4 text-center">
-        <div className="relative flex h-40 w-40 items-center justify-center">
+        <div className="relative flex h-48 w-48 items-center justify-center">
           <span
             aria-hidden
             className="absolute inset-0 rounded-full opacity-30 blur-xl transition-opacity group-hover:opacity-60"
@@ -201,7 +201,7 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
           />
           <Chest
             rarity={deck.empty ? "grout" : (best?.rarity ?? "sealed")}
-            size={144}
+            size={184}
             className="relative z-10 transition-transform duration-300 group-hover:scale-110"
           />
         </div>

@@ -99,7 +99,7 @@ export default function CasePage() {
 
   if (!deck) {
     return (
-      <div className="min-h-screen w-full bg-[var(--color-section)] px-4 py-10 lg:px-8">
+      <div className="min-h-screen w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
         <p className="py-20 text-center text-slate-400">
           {game.isLoading ? "Reading the chain…" : "No such case."}
         </p>
@@ -115,7 +115,7 @@ export default function CasePage() {
   const oneIn = paying > 0 ? Math.max(1, Math.round(deck.size / paying)) : 0;
 
   return (
-    <div className="min-h-screen w-full bg-[var(--color-section)] px-4 py-10 lg:px-8">
+    <div className="min-h-screen w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
       <OpenTheatre
         open={open.state}
         deck={shape}
@@ -124,7 +124,7 @@ export default function CasePage() {
         onClose={open.reset}
       />
 
-      <div className="mx-auto flex max-w-7xl flex-col space-y-6">
+      <div className="mx-auto flex flex-col space-y-6">
         <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-5 md:flex-row md:items-center">
           <div className="flex items-center gap-4">
             <Chest

@@ -34,8 +34,8 @@ export default function BattlesPage() {
   const canPlay = Boolean(address) && game.canAfford && Boolean(chosen);
 
   return (
-    <div className="min-h-screen w-full bg-[var(--color-section)] px-4 py-10 lg:px-8">
-      <div className="mx-auto flex max-w-7xl flex-col space-y-8">
+    <div className="min-h-screen w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
+      <div className="mx-auto flex flex-col space-y-8">
         <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-6 md:flex-row md:items-center">
           <div className="max-w-2xl">
             <h1 className="t-display flex items-center gap-3 text-3xl text-white">

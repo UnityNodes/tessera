@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
-import { Crate, CrateWaiting } from "./Crate";
+import { Chest, ChestWaiting } from "./Chest";
 import { specOf, isVault, type DeckShape } from "@/lib/deck";
 
 export type CasePhase = "idle" | "waiting" | "opened";
@@ -46,7 +46,7 @@ export function Case({ phase, value, deck, size = 340, onClick, risk = false }: 
   if (phase === "waiting") {
     return (
       <div className="grid place-items-center" style={{ width: size, height: size }}>
-        <CrateWaiting size={size * 0.82} />
+        <ChestWaiting size={size * 0.82} />
       </div>
     );
   }
@@ -111,11 +111,10 @@ export function Case({ phase, value, deck, size = 340, onClick, risk = false }: 
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.55, ease: [0.34, 1.3, 0.5, 1] }}
         >
-          <Crate
+          <Chest
             rarity={spec ? spec.rarity : "sealed"}
-            size={size * (spec ? 0.68 : 0.8)}
+            size={size * (spec ? 0.72 : 0.8)}
             drift={!spec}
-            open={Boolean(spec)}
           />
 
 

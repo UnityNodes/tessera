@@ -32,8 +32,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="relative z-[1] flex min-h-screen flex-col">
-      <header className="sticky top-0 z-[var(--z-sticky)] border-b border-slate-800/80 bg-[rgb(10_14_23_/_0.9)] px-4 py-3 backdrop-blur-md lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 md:flex-row">
+      <header className="sticky top-0 z-[var(--z-sticky)] border-b border-slate-800/80 bg-[rgb(10_14_23_/_0.9)] px-4 py-3 backdrop-blur-md lg:px-8 2xl:px-14">
+        <div className="mx-auto flex flex-col items-center justify-between gap-3 md:flex-row">
           <div className="flex w-full items-center justify-between gap-8 md:w-auto">
             <Link href="/" className="group flex items-center gap-2">
               <Mark />
@@ -103,8 +103,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <div className="relative z-[var(--z-stats)] w-full border-b border-slate-800/60 bg-[var(--color-stats)] px-4 py-4 lg:px-8">
-        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="relative z-[var(--z-stats)] w-full border-b border-slate-800/60 bg-[var(--color-stats)] px-4 py-4 lg:px-8 2xl:px-14">
+        <div className="mx-auto grid grid-cols-2 gap-4 md:grid-cols-4">
           <Stat label="cases opened" value={game.drawn} />
           <Stat label="players" value={playerCount} />
           <Stat label="cases left" value={game.remaining} suffix={` in ${game.decks.length}`} />
@@ -115,8 +115,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      <div className="relative z-[var(--z-feed)] w-full border-b border-slate-800/80 bg-[var(--color-bg)] px-4 py-3 lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2">
+      <div className="relative z-[var(--z-feed)] w-full border-b border-slate-800/80 bg-[var(--color-bg)] px-4 py-3 lg:px-8 2xl:px-14">
+        <div className="mx-auto flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-2">
               <span
@@ -141,8 +141,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
       <main className="w-full flex-1">{children}</main>
 
-      <footer className="w-full border-t border-slate-800/80 bg-[var(--color-sunk)] px-4 py-8 lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-xs text-slate-500 sm:flex-row">
+      <footer className="w-full border-t border-slate-800/80 bg-[var(--color-sunk)] px-4 py-8 lg:px-8 2xl:px-14">
+        <div className="mx-auto flex flex-col items-center justify-between gap-4 text-xs text-slate-500 sm:flex-row">
           <span className="flex flex-wrap items-center justify-center gap-2">
             <span className="font-bold text-slate-300">Tessera Protocol</span>
             <span>•</span>

@@ -55,3 +55,39 @@ export function Chest({
     />
   );
 }
+
+/**
+ *
+ */
+export function ChestWaiting({ size = 260 }: { size?: number }) {
+  return (
+    <div
+      className="relative grid place-items-center"
+      style={{ width: size, height: size }}
+      role="img"
+      aria-label="Opening, waiting for the covalidators"
+    >
+      <div
+        aria-hidden
+        className="absolute rounded-full"
+        style={{
+          width: size * 0.9,
+          height: size * 0.9,
+          border: "1.5px dashed color-mix(in oklab, var(--color-accent) 60%, transparent)",
+          animation: "wait-rotate 7s linear infinite",
+        }}
+      />
+      <div
+        aria-hidden
+        className="absolute rounded-full"
+        style={{
+          width: size * 0.7,
+          height: size * 0.7,
+          border: "1px dashed color-mix(in oklab, var(--color-accent-bright) 40%, transparent)",
+          animation: "wait-rotate 11s linear infinite reverse",
+        }}
+      />
+      <Chest rarity="sealed" size={size * 0.62} drift />
+    </div>
+  );
+}

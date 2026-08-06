@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { animate, useMotionValue, motion, useReducedMotion } from "motion/react";
 import { slotsPerTier, specFor, specOf, VAULT_SPEC, type TierSpec, type DeckShape } from "@/lib/deck";
-import { CrateTile } from "./Crate";
+import { Chest } from "./Chest";
 import type { PoolState } from "@/hooks/usePool";
 
 /**
@@ -48,6 +48,7 @@ export function Roll({
   landedValue,
   deck,
   pool,
+  urgency = 0,
 }: {
   running: boolean;
   /**
@@ -56,6 +57,10 @@ export function Roll({
   landedValue?: number;
   deck: DeckShape;
   pool?: PoolState;
+  /**
+   *
+   */
+  urgency?: 0 | 1 | 2 | 3;
 }) {
   const still = useReducedMotion();
   const x = useMotionValue(0);
@@ -143,10 +148,16 @@ export function Roll({
         style={{ opacity: landedValue != null ? 1 : running ? 0.75 : 0.3 }}
       >
         <span
-          className="absolute inset-y-0 left-1/2 w-[3px] -translate-x-1/2"
+          className="absolute inset-y-0 left-1/2 w-[3px] -translate-x-1/2 transition-shadow duration-700"
           style={{
             background: "var(--color-accent-hover)",
-            boxShadow: landedValue != null ? "0 0 15px 1px var(--color-accent)" : "none",
+            boxShadow:
+              landedValue != null
+                ? "0 0 15px 1px var(--color-accent)"
+                : urgency > 0
+                  ? `0 0 ${urgency * 9}px ${urgency}px var(--color-accent)`
+                  : "none",
+            animation: urgency >= 3 ? "marker-live 0.8s ease-in-out infinite" : undefined,
           }}
         />
         <span
@@ -193,7 +204,7 @@ function Item({ spec }: { spec: TierSpec }) {
       }}
     >
       <div className="pointer-events-none absolute inset-x-0 top-2 grid place-items-center">
-        <CrateTile rarity={spec.rarity} size={ITEM - 62} />
+        <Chest rarity={spec.rarity} size={ITEM - 62} />
       </div>
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 to-transparent px-2 pb-2 pt-4 text-center">
         <div className="truncate text-[0.75rem] font-bold" style={{ color: spec.ink }}>
