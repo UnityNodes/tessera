@@ -53,7 +53,11 @@ let inflight: Promise<void> | null = null;
 const revealed = new Map<string, Revealed>();
 const REVEAL_CHUNK = 6;
 const REVEAL_LANES = 3;
-const REVEAL_WINDOW = 60;
+/**
+ *
+ *
+ */
+const REVEAL_WINDOW = 2000;
 let revealing = false;
 
 type Zap = {
