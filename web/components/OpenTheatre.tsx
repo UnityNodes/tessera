@@ -113,6 +113,7 @@ export function OpenTheatre({
                 initial={{ scale: 0.72, y: 20, opacity: 0 }}
                 animate={{ scale: 1, y: 0, opacity: 1 }}
                 transition={{ duration: 0.65, ease: [0.16, 0.84, 0.28, 1] }}
+                className="relative"
               >
                 <div
                   style={{
@@ -122,34 +123,36 @@ export function OpenTheatre({
                 >
                   <Chest rarity={spec?.rarity ?? "sealed"} size={520} open />
                 </div>
+
+                {won && (
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute left-1/2 top-[52%] grid -translate-x-1/2 place-items-center rounded-full"
+                    style={{
+                      width: 132,
+                      height: 132,
+                      background: `radial-gradient(circle at 38% 30%, color-mix(in oklab, ${spec!.ink} 80%, white), ${spec!.ink} 68%)`,
+                      boxShadow: `0 0 90px -10px ${spec!.ink}, inset 0 -8px 20px oklch(0% 0 0 / 0.35)`,
+                      animation: "prize-rise 1.15s var(--ease-out-expo) 620ms both",
+                    }}
+                  >
+                    <span
+                      className="t-chain font-bold leading-none"
+                      style={{
+                        fontSize: isVault(spec!) ? 30 : 40,
+                        color: "oklch(18% 0.02 260)",
+                      }}
+                    >
+                      {isVault(spec!)
+                        ? `$${Number(formatUnits(vault ?? 0n, 6)).toFixed(2)}`
+                        : `+${paid}`}
+                    </span>
+                  </span>
+                )}
               </motion.div>
             )}
 
             {opened && won && !still && <Shards ink={spec!.ink} />}
-
-            {opened && won && (
-              <span
-                aria-hidden
-                className="pointer-events-none absolute left-1/2 top-[46%] grid -translate-x-1/2 place-items-center rounded-full"
-                style={{
-                  width: 132,
-                  height: 132,
-                  background: `radial-gradient(circle at 38% 30%, color-mix(in oklab, ${spec!.ink} 80%, white), ${spec!.ink} 68%)`,
-                  boxShadow: `0 0 90px -10px ${spec!.ink}, inset 0 -8px 20px oklch(0% 0 0 / 0.35)`,
-                  animation: "prize-rise 1.15s var(--ease-out-expo) 420ms both",
-                }}
-              >
-                <span
-                  className="t-chain font-bold leading-none"
-                  style={{
-                    fontSize: isVault(spec!) ? 30 : 40,
-                    color: "oklch(18% 0.02 260)",
-                  }}
-                >
-                  {isVault(spec!) ? `$${Number(formatUnits(vault ?? 0n, 6)).toFixed(2)}` : `+${paid}`}
-                </span>
-              </span>
-            )}
 
             <div className="relative mt-10 min-h-[9rem] text-center">
               <AnimatePresence mode="wait">
