@@ -6,12 +6,7 @@ import { isVault } from "@/lib/deck";
 import { CrateTile } from "./Crate";
 import type { FeedItem } from "@/hooks/useFeed";
 
-/**
- *
- */
-const CARD = 132;
-
-const QUIET = 26;
+const CARD = 150;
 
 /**
  *
@@ -20,171 +15,126 @@ const QUIET = 26;
  */
 export function Ticker({ items }: { items: FeedItem[] }) {
   const { address } = useAccount();
-
   if (items.length === 0) return null;
 
+  const worthy = items.filter(
+    (it) => it.value !== undefined && (it.weight > 0 || isVault(it.spec)),
+  );
+  const reading = items.some((it) => it.value === undefined);
+
+  const firstWorthy = items.findIndex((it) => worthy.includes(it));
+  const emptySince = firstWorthy < 0 ? items.length : firstWorthy;
+  const riskedSince = items.slice(0, emptySince).filter((it) => it.risk).length;
+
   return (
-    <div
-      className="relative overflow-hidden"
-      style={{
-        maskImage:
-          "linear-gradient(90deg, transparent 0%, black 4%, black 92%, transparent 100%)",
-      }}
-    >
-      <ul className="flex items-end gap-2.5 overflow-x-auto pb-2.5 pt-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <AnimatePresence initial={false}>
-          {items.map((it, i) => {
-            const mine = Boolean(address && it.player.toLowerCase() === address.toLowerCase());
-            const pending = it.value === undefined;
-            const prize = !pending && (it.weight > 0 || isVault(it.spec));
-            //
-            const loud = prize;
-            const width = loud ? CARD : Math.round(CARD * 0.26);
-            return (
-              <motion.li
-                key={it.handle}
-                layout
-                initial={{ opacity: 0, x: -CARD, scale: 0.9 }}
-                animate={{ opacity: 1, x: 0, scale: 1 }}
-                transition={{ duration: 0.45, ease: [0.16, 0.84, 0.28, 1] }}
-                className="shrink-0"
-                style={{ width }}
-              >
-                <Card item={it} index={i} mine={mine} pending={pending} prize={prize} loud={loud} />
-                <div
-                  className="t-chain mt-1.5 truncate text-center text-[0.6875rem]"
-                  style={{
-                    color: mine ? "var(--color-accent-bright)" : "var(--color-ink-faint)",
-                  }}
+    <div className="flex items-center gap-6">
+      {worthy.length === 0 ? (
+        <p className="py-6 text-[0.9375rem] text-[var(--color-ink-faint)]">
+          {reading ? "Reading what came out of the pool…" : "Nothing has come out of the pool yet."}
+        </p>
+      ) : (
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <ul className="flex gap-3 overflow-x-auto py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <AnimatePresence initial={false}>
+              {worthy.slice(0, 8).map((it, i) => (
+                <motion.li
+                  key={it.handle}
+                  layout
+                  initial={{ opacity: 0, x: -CARD, scale: 0.92 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  transition={{ duration: 0.45, ease: [0.16, 0.84, 0.28, 1] }}
+                  className="shrink-0"
+                  style={{ width: CARD }}
                 >
-                  {loud ? (mine ? "you" : short(it.player)) : " "}
-                </div>
-              </motion.li>
-            );
-          })}
-        </AnimatePresence>
-      </ul>
+                  <Prize
+                    item={it}
+                    index={i}
+                    mine={Boolean(
+                      address && it.player.toLowerCase() === address.toLowerCase(),
+                    )}
+                  />
+                </motion.li>
+              ))}
+            </AnimatePresence>
+          </ul>
+        </div>
+      )}
+
+      {emptySince > 0 && (
+        <div className="shrink-0 pr-1 text-right">
+          <span className="t-chain block text-[1.5rem] leading-none text-[var(--color-ink-dim)]">
+            {emptySince}
+          </span>
+          <span className="t-label mt-1 block whitespace-nowrap text-[0.5625rem]">
+            empty since{riskedSince > 0 ? ` · ${riskedSince} risked` : ""}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
 
-function Card({
-  item,
-  index,
-  mine,
-  pending,
-  prize,
-  loud,
-}: {
-  item: FeedItem;
-  index: number;
-  mine: boolean;
-  pending: boolean;
-  prize: boolean;
-  loud: boolean;
-}) {
+/**
+ *
+ */
+function Prize({ item, index, mine }: { item: FeedItem; index: number; mine: boolean }) {
   const ink = item.spec.ink;
-
-  if (pending) {
-    return (
-      <div
-        className="relative grid place-items-center overflow-hidden rounded-[3px]"
-        style={{
-          height: loud ? CARD : QUIET,
-          background: "var(--color-raised)",
-          boxShadow: "inset 0 0 0 1px var(--edge)",
-        }}
-      >
-        <span
-          className="t-inscription text-[0.625rem] text-[var(--color-ink-faint)]"
-          style={{ animation: "sealed-pulse 2.2s ease-in-out infinite" }}
-        >
-          sealed
-        </span>
-      </div>
-    );
-  }
+  const paid = item.risk ? item.spec.tickets * 2 : item.spec.tickets;
 
   return (
     <div
       className="relative overflow-hidden rounded-[3px]"
       style={{
-        height: loud ? CARD : QUIET,
-        background: prize
-          ? `linear-gradient(158deg, color-mix(in oklab, ${ink} 22%, var(--color-surface)), var(--color-surface))`
-          : undefined,
-        boxShadow: prize
-          ? `inset 0 0 0 1px color-mix(in oklab, ${ink} 55%, transparent), 0 0 26px -6px color-mix(in oklab, ${ink} 70%, transparent)`
-          : undefined,
+        height: CARD * 0.82,
+        background: `linear-gradient(158deg, color-mix(in oklab, ${ink} 20%, var(--color-surface)), var(--color-surface))`,
+        boxShadow: mine
+          ? `inset 0 0 0 1.5px var(--color-accent-bright), 0 0 30px -8px ${ink}`
+          : `inset 0 0 0 1px color-mix(in oklab, ${ink} 50%, transparent), 0 0 30px -10px color-mix(in oklab, ${ink} 70%, transparent)`,
       }}
     >
-      {prize && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background: `linear-gradient(105deg, transparent 38%, color-mix(in oklab, ${ink} 45%, transparent) 50%, transparent 62%)`,
-            backgroundSize: "220% 100%",
-            animation: `prize-sheen 5.5s linear ${(index % 5) * 0.9}s infinite`,
-          }}
-        />
-      )}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: `linear-gradient(105deg, transparent 38%, color-mix(in oklab, ${ink} 40%, transparent) 50%, transparent 62%)`,
+          backgroundSize: "220% 100%",
+          animation: `prize-sheen 5.5s linear ${(index % 5) * 0.9}s infinite`,
+        }}
+      />
 
-
-      <div className="pointer-events-none absolute inset-0 grid place-items-center">
-        {prize ? (
-          <CrateTile rarity={item.spec.rarity} size={CARD - 30} />
-        ) : (
-          <span
-            className="block"
-            style={{
-              width: item.risk ? "52%" : "34%",
-              height: item.risk ? 3 : 2,
-              background: item.risk ? "var(--color-tier-vault)" : "var(--color-ink-faint)",
-              opacity: item.risk ? 0.85 : 0.4,
-              boxShadow: item.risk ? "0 0 8px -1px var(--color-tier-vault)" : undefined,
-            }}
-          />
-        )}
+      <div className="pointer-events-none absolute inset-x-0 top-1 grid place-items-center">
+        <CrateTile rarity={item.spec.rarity} size={CARD * 0.6} />
       </div>
 
-      {item.spec.tickets > 0 && (
+      {paid > 0 && (
         <div
-          className="t-chain absolute right-2 top-1.5 text-[1.25rem] font-bold leading-none"
-          style={{ color: ink, textShadow: "0 1px 5px oklch(0% 0 0 / 0.95)" }}
+          className="t-chain absolute right-2.5 top-2 text-[1.375rem] font-bold leading-none"
+          style={{ color: ink, textShadow: "0 1px 6px oklch(0% 0 0 / 0.95)" }}
         >
-          +{item.risk ? item.spec.tickets * 2 : item.spec.tickets}
+          +{paid}
         </div>
       )}
 
-      {prize && (
+      {item.risk && (
         <div
-          className="t-inscription absolute inset-x-0 bottom-1.5 text-center text-[0.6875rem]"
-          style={{ color: ink, textShadow: "0 1px 4px oklch(0% 0 0 / 0.95)" }}
-        >
-          {item.spec.name}
-        </div>
-      )}
-
-      {item.risk && loud && (
-        <div
-          className="t-inscription absolute left-2 top-1.5 text-[0.625rem] leading-none"
-          style={{
-            color: "var(--color-tier-vault)",
-            textShadow: "0 1px 4px oklch(0% 0 0 / 0.95)",
-          }}
+          className="t-inscription absolute left-2.5 top-2.5 text-[0.5625rem] leading-none"
+          style={{ color: "var(--color-tier-vault)" }}
         >
           risked
         </div>
       )}
 
-      {mine && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-[3px]"
-          style={{ boxShadow: "inset 0 0 0 2px var(--color-accent-bright)" }}
-        />
-      )}
+      <div className="absolute inset-x-0 bottom-0 px-2.5 pb-2">
+        <div className="t-inscription text-center text-[0.6875rem]" style={{ color: ink }}>
+          {item.spec.name}
+        </div>
+        <div
+          className="t-chain mt-0.5 truncate text-center text-[0.625rem]"
+          style={{ color: mine ? "var(--color-accent-bright)" : "var(--color-ink-faint)" }}
+        >
+          {mine ? "you" : short(item.player)}
+        </div>
+      </div>
     </div>
   );
 }

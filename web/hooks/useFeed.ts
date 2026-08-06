@@ -16,7 +16,7 @@ export interface FeedItem extends OpenEvent {
  *
  *
  */
-export function useFeed(decks: DeckShape[], limit = 16) {
+export function useFeed(decks: DeckShape[], limit = 44) {
   const opens = useOpens();
   const recent = useMemo(
     () => (opens.data ?? []).slice(-limit).reverse(),

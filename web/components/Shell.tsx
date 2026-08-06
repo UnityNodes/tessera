@@ -83,8 +83,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </div>
 
       <div className="relative z-[var(--z-feed)] border-b border-[var(--edge)] bg-[color-mix(in_oklab,var(--color-surface)_38%,transparent)] backdrop-blur-md">
-        <div className="mx-auto max-w-[1800px] px-5 pt-2 sm:px-8 2xl:px-12">
-          <span className="t-label flex items-center gap-1.5 text-[0.625rem]">
+        <div className="mx-auto flex max-w-[1800px] items-center gap-5 px-5 sm:px-8 2xl:px-12">
+          <span className="t-label flex shrink-0 items-center gap-1.5 text-[0.625rem]">
             <span
               aria-hidden
               className="h-1.5 w-1.5 rounded-full"
