@@ -21,6 +21,11 @@
   --color-tier-vault: oklch(92% 0.14 95);
   --color-tier-sealed: oklch(54% 0.11 258);
 
+  --shell-top: oklch(44% 0.02 265);
+  --shell-front: oklch(31% 0.018 265);
+  --shell-side: oklch(19% 0.016 265);
+
+
   --color-danger: oklch(65% 0.21 20);
 
   --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
@@ -34,6 +39,44 @@
   --ease-stone: cubic-bezier(0.16, 0.84, 0.28, 1);
   --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+
+[data-tier="grout"] {
+  --metal: var(--color-tier-grout);
+  --metal-l: oklch(74% 0.018 252);
+  --metal-d: oklch(30% 0.016 252);
+  --glow: 0;
+}
+[data-tier="denarius"] {
+  --metal: var(--color-tier-denarius);
+  --metal-l: oklch(88% 0.11 160);
+  --metal-d: oklch(42% 0.10 156);
+  --glow: 0;
+}
+[data-tier="aureus"] {
+  --metal: var(--color-tier-aureus);
+  --metal-l: oklch(92% 0.10 82);
+  --metal-d: oklch(48% 0.12 68);
+  --glow: 0;
+}
+[data-tier="porphyry"] {
+  --metal: var(--color-tier-porphyry);
+  --metal-l: oklch(80% 0.17 342);
+  --metal-d: oklch(34% 0.16 338);
+  --glow: 0;
+}
+[data-tier="sealed"] {
+  --metal: var(--color-tier-sealed);
+  --metal-l: oklch(74% 0.13 256);
+  --metal-d: oklch(30% 0.09 260);
+  --glow: 0;
+}
+[data-tier="vault"] {
+  --metal: var(--color-tier-vault);
+  --metal-l: oklch(99% 0.05 96);
+  --metal-d: oklch(64% 0.15 88);
+  --glow: 1;
 }
 
 :root {
@@ -220,255 +263,14 @@ body::before {
 }
 
 
-.scene {
-  perspective: 900px;
-  perspective-origin: 50% 42%;
-}
-
-/**
- *
- */
-.crate {
-  --depth: calc(var(--s) * 0.62);
-  --lid-h: calc(var(--s) * 0.19);
-  --body-h: calc(var(--s) * 0.45);
-  --crate-h: calc(var(--lid-h) + var(--body-h));
-
-  position: relative;
-  width: var(--s);
-  height: var(--crate-h);
-  transform-style: preserve-3d;
-  will-change: transform;
-}
-
-/**
- *
- */
-.crate__part {
-  position: absolute;
-  left: 0;
-  width: var(--s);
-  transform-style: preserve-3d;
-}
-
-.crate__lid {
-  top: 0;
-  left: -2.5%;
-  width: 105%;
-  height: var(--lid-h);
-  --w: calc(var(--s) * 1.05);
-  --h: var(--lid-h);
-  --d: calc(var(--depth) * 1.08);
-  transform-origin: 50% 100% calc(var(--depth) * -0.54);
-  transition: transform 900ms var(--ease-out-expo);
-}
-
-.crate--open .crate__lid {
-  transform: rotateX(-98deg);
-}
-
-.crate__body {
-  top: var(--lid-h);
-  height: var(--body-h);
-  --w: var(--s);
-  --h: var(--body-h);
-  --d: var(--depth);
-}
-
-.crate__f {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: var(--w);
-  height: var(--h);
-  background: linear-gradient(166deg, var(--band), var(--base) 44%, var(--shade));
-  backface-visibility: hidden;
-  box-shadow:
-    inset 0 0 0 calc(var(--s) * 0.008) var(--rim),
-    inset 0 calc(var(--s) * 0.015) calc(var(--s) * 0.04) oklch(100% 0 0 / 0.12),
-    inset 0 calc(var(--s) * -0.04) calc(var(--s) * 0.07) oklch(0% 0 0 / 0.42);
-}
-
-/**
- *
- */
-.crate__f--front { transform: translate(-50%, -50%) translateZ(calc(var(--d) / 2)); }
-.crate__f--back {
-  transform: translate(-50%, -50%) rotateY(180deg) translateZ(calc(var(--d) / 2));
-  background: var(--shade);
-}
-.crate__f--right {
-  width: var(--d);
-  transform: translate(-50%, -50%) rotateY(90deg) translateZ(calc(var(--w) / 2));
-  background: linear-gradient(170deg, var(--shade), color-mix(in oklab, var(--shade) 62%, black));
-}
-.crate__f--left {
-  width: var(--d);
-  transform: translate(-50%, -50%) rotateY(-90deg) translateZ(calc(var(--w) / 2));
-  background: linear-gradient(170deg, var(--base), var(--shade) 78%);
-}
-.crate__f--top {
-  height: var(--d);
-  transform: translate(-50%, -50%) rotateX(90deg) translateZ(calc(var(--h) / 2));
-  background: linear-gradient(
-    168deg,
-    color-mix(in oklab, var(--lit) 88%, white),
-    var(--lit) 42%,
-    var(--band) 100%
-  );
-}
-.crate__f--bottom {
-  height: var(--d);
-  transform: translate(-50%, -50%) rotateX(-90deg) translateZ(calc(var(--h) / 2));
-  background: var(--shade);
-}
-
-.crate__inner {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: calc(var(--s) * 0.86);
-  height: calc(var(--s) * 0.86);
-  transform: translate(-50%, -50%) rotateX(90deg)
-    translateZ(calc(var(--h) / -2 + var(--s) * 0.04));
-  background: radial-gradient(closest-side, var(--aura), oklch(0% 0 0 / 0.92) 76%);
-  opacity: 0.14;
-  transition: opacity 500ms var(--ease-stone) 120ms;
-}
-
-.crate--open .crate__inner { opacity: 1; }
-
-.crate__beam {
-  position: absolute;
-  left: 50%;
-  bottom: calc(var(--s) * 0.42);
-  width: calc(var(--s) * 0.72);
-  height: calc(var(--s) * 1.5);
-  transform: translateX(-50%);
-  transform-origin: bottom center;
-  background: linear-gradient(to top, var(--aura), transparent 72%);
-  filter: blur(calc(var(--s) * 0.06));
-  opacity: 0;
-  pointer-events: none;
-}
-
-.crate--open .crate__beam {
-  animation: beam-rise 1.5s var(--ease-out-expo) 140ms both;
-}
-
-.crate__stud {
-  position: absolute;
-  width: calc(var(--s) * 0.032);
-  height: calc(var(--s) * 0.032);
-  border-radius: 50%;
-  background: radial-gradient(circle at 34% 30%, var(--lit), var(--shade) 72%);
-  box-shadow: 0 0 0 1px oklch(0% 0 0 / 0.35);
-}
-
-/**
- *
- */
-.crate__band {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: calc(var(--s) * 0.13);
-  transform: translateX(-50%);
-  background: linear-gradient(
-    90deg,
-    var(--shade),
-    var(--lit) 32%,
-    var(--base) 58%,
-    var(--shade)
-  );
-  box-shadow:
-    inset 0 0 0 1px oklch(0% 0 0 / 0.35),
-    0 0 calc(var(--s) * 0.03) oklch(0% 0 0 / 0.45);
-}
-
-.crate__band--flat {
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: calc(var(--s) * 0.13);
-}
-
-.crate__bracket {
-  position: absolute;
-  width: calc(var(--s) * 0.1);
-  height: calc(var(--s) * 0.1);
-  border: calc(var(--s) * 0.016) solid var(--lit);
-  box-shadow: 0 0 0 1px oklch(0% 0 0 / 0.3);
-}
-
-.crate__bracket--tl { top: 7%; left: 2.5%; border-right: 0; border-bottom: 0; }
-.crate__bracket--tr { top: 7%; right: 2.5%; border-left: 0; border-bottom: 0; }
-.crate__bracket--bl { bottom: 7%; left: 2.5%; border-right: 0; border-top: 0; }
-.crate__bracket--br { bottom: 7%; right: 2.5%; border-left: 0; border-top: 0; }
-
-.crate__plate {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: calc(var(--s) * 0.22);
-  height: calc(var(--s) * 0.22);
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: radial-gradient(circle at 40% 32%, var(--plate-lit), var(--plate) 78%);
-  box-shadow:
-    inset 0 0 0 calc(var(--s) * 0.018) var(--lit),
-    inset 0 calc(var(--s) * 0.02) calc(var(--s) * 0.04) oklch(0% 0 0 / 0.6),
-    0 0 calc(var(--s) * 0.03) oklch(0% 0 0 / 0.4);
-  color: var(--mark);
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: calc(var(--s) * 0.2);
-  line-height: 1;
-}
-
-.crate__shadow {
-  position: absolute;
-  left: 50%;
-  top: calc(var(--s) * 0.68);
-  width: calc(var(--s) * 1.02);
-  height: calc(var(--s) * 0.14);
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background: radial-gradient(closest-side, oklch(0% 0 0 / 0.72), transparent 74%);
-  filter: blur(6px);
-}
-
-.crate__halo {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: calc(var(--s) * 2.1);
-  height: calc(var(--s) * 2.1);
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(closest-side, var(--aura), transparent 68%);
-  filter: blur(26px);
-  opacity: var(--aura-strength, 0);
-  pointer-events: none;
-}
 
 
-@keyframes crate-turn {
-  0% { transform: rotateX(-13deg) rotateY(-34deg); }
-  50% { transform: rotateX(-19deg) rotateY(-16deg); }
-  100% { transform: rotateX(-13deg) rotateY(-34deg); }
-}
 
 @keyframes crate-hover {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(calc(var(--s) * -0.05)); }
+  50% { transform: translateY(-2.5%); }
 }
 
-@keyframes crate-breathe { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
-@keyframes crate-drift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
 @keyframes wait-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 @keyframes burst-win { 0% { opacity: 0; transform: scale(.55); } 26% { opacity: .95; transform: scale(1.08); } 100% { opacity: 0; transform: scale(1.7); } }
 @keyframes burst-empty { 0% { opacity: 0; transform: scale(.8); } 30% { opacity: .35; transform: scale(1.02); } 100% { opacity: 0; transform: scale(1.15); } }

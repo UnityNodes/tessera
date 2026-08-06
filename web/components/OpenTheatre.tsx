@@ -111,7 +111,7 @@ export function OpenTheatre({
                 animate={{ scale: 1, y: 0, opacity: 1 }}
                 transition={{ duration: 0.65, ease: [0.16, 0.84, 0.28, 1] }}
               >
-                <Crate rarity={spec?.rarity ?? "sealed"} size={620} open spin={false} />
+                <Crate rarity={spec?.rarity ?? "sealed"} size={560} open />
               </motion.div>
             )}
 
