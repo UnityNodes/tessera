@@ -13,6 +13,17 @@ export type Rarity = "vault" | "porphyry" | "aureus" | "denarius" | "grout" | "s
 
 const RATIO = 204 / 208;
 
+/**
+ *
+ *
+ *
+ */
+const ART: Partial<Record<Rarity, string>> = {
+  sealed: "/chests/sealed.webp",
+  denarius: "/chests/denarius.webp",
+  aureus: "/chests/aureus.webp",
+};
+
 export function Crate({
   rarity,
   size = 160,
@@ -29,6 +40,28 @@ export function Crate({
   //
   const uid = useId().replace(/:/g, "");
   const g = (name: string) => `${uid}-${name}`;
+
+  const art = open ? undefined : ART[rarity];
+  if (art) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={art}
+        alt=""
+        width={size}
+        height={size}
+        className={className}
+        style={{
+          display: "block",
+          width: size,
+          maxWidth: "100%",
+          height: "auto",
+          animation: drift ? "crate-hover 4.4s ease-in-out infinite" : undefined,
+        }}
+        aria-hidden
+      />
+    );
+  }
 
   return (
     <svg
