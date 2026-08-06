@@ -102,8 +102,8 @@ function Prize({ item, index, mine }: { item: FeedItem; index: number; mine: boo
         }}
       />
 
-      <div className="pointer-events-none absolute inset-x-0 top-1 grid place-items-center">
-        <CrateTile rarity={item.spec.rarity} size={CARD * 0.6} />
+      <div className="pointer-events-none absolute inset-x-0 top-0.5 grid place-items-center">
+        <CrateTile rarity={item.spec.rarity} size={CARD * 0.48} />
       </div>
 
       {paid > 0 && (
