@@ -17,24 +17,26 @@ const STEP = ITEM + GAP;
  *
  *
  */
-const SETTLE_STEPS = 24;
-
 /**
  *
  *
+ */
+const DRIFT_STEPS = 200;
+const DRIFT_S = 40;
+
+/**
+ *
+ */
+const COPIES = 5;
+
+/**
  */
 const DECAY = 2;
 
 /**
  *
  */
-const SPEED = 15.75;
-
-const SEARCH_WINDOW = 12;
-
-/**
- */
-export const SETTLE_MS = Math.ceil((((SETTLE_STEPS + SEARCH_WINDOW) * DECAY) / SPEED) * 1000);
+export const SETTLE_MS = 950;
 
 /**
  *
@@ -88,13 +90,11 @@ export function Roll({
   //
   useEffect(() => {
     if (still || !running || landedValue != null) return;
-    const loop = animate(x, x.get() - STEP * strip.length, {
-      duration: strip.length / SPEED,
-      ease: "linear",
-      repeat: Infinity,
-      repeatType: "loop",
+    const drift = animate(x, x.get() - STEP * DRIFT_STEPS, {
+      duration: DRIFT_S,
+      ease: [0.06, 0.5, 0.28, 1],
     });
-    return () => loop.stop();
+    return () => drift.stop();
   }, [running, landedValue, x, still, strip.length]);
 
   //
@@ -107,7 +107,11 @@ export function Roll({
     const norm = (Math.abs(x.get()) / STEP) % len;
     x.set(-norm * STEP);
 
-    let idx = Math.ceil(norm) + SETTLE_STEPS;
+    //
+    const v = Math.abs(x.getVelocity()) / STEP;
+    const reach = Math.max(3, (v * (SETTLE_MS / 1000)) / DECAY);
+
+    let idx = Math.ceil(norm + reach);
     for (let i = 0; i < len; i++) {
       if (items[(idx + i) % len].name === target) {
         idx += i;
@@ -116,7 +120,7 @@ export function Roll({
     }
 
     const settle = animate(x, -(idx * STEP), {
-      duration: Math.min(((idx - norm) * DECAY) / SPEED, SETTLE_MS / 1000),
+      duration: SETTLE_MS / 1000,
       ease: [0.33, 0.66, 0.66, 1],
     });
     return () => settle.stop();
@@ -146,9 +150,11 @@ export function Roll({
         className="absolute top-[18px] flex"
         style={{ x, gap: GAP, left: `calc(50% - ${ITEM / 2}px)` }}
       >
-        {[...strip, ...strip, ...strip].map((spec, i) => (
-          <Item key={i} spec={spec} />
-        ))}
+        {Array.from({ length: COPIES }, () => strip)
+          .flat()
+          .map((spec, i) => (
+            <Item key={i} spec={spec} />
+          ))}
       </motion.div>
     </div>
   );
