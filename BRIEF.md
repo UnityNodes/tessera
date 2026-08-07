@@ -4,20 +4,54 @@ Inco Summer Game Jam. .
 
 `openCase()` Megapot
 . Base . ,
-, . 100 -
-Base Sepolia Base mainnet .
+, . tessera2,
+'. 118 -Base Sepolia Base mainnet
+.
 
 ```
-TesseraDeck           0x88ec2e5c454b89208f77a6Ae877CE3a1a3f0fAf3  45032469
+TesseraDeck           0x7BD35cF4ddA6fd8f5c2C7Ca4337c3cA863c97887  45072152
 MegapotLegacyAdapter  0xcEFd98581bb131a505e9De53d7f9b191fe94E074
-200 · 1 · 1 +2 · 6 +1
+#0  100 · · 10 5
+#1  200 · · 1 25
+#2  100 · · 2 10
 ```
 
-: -(), , -.
-Sepolia ETH .
+, .
+, :
+, `scripts/audit-chain.cjs` .
+
+: -() -.
+
+⚠️ , .
+,
+`web/lib/chain.ts` . .
 
 . tessera .
 , .
+
+### ,
+
+`next start -p 3080` `.next` '.
+,
+`npm run build`. , ':
+
+```bash
+cd /root/tessera/web && npm run build && sudo systemctl restart tessera-web
+```
+
+`web/DEPLOY.md`.
+
+, → , → , , .
+`OPENS=3 ./audit.sh`
+, .
+
+: `audit-chain.cjs` ,
+. , ,
+, .
+
+, `web/app/api/opens`. . ,
+, 429 RPC 500
+.
 
 ---
 
@@ -489,36 +523,35 @@ RPC .
 
 . :
 
-1. , `@inco/lightning-js` Next.js (ESM , CJS ).
-2. : **** 7.19.4 .
-3. .
-   `scripts/e2e-redeem.cjs`, .
-4. 10-.
+1. **-** .
+   , : .
+2. **-.**
+3. Sepolia ETH :
+   0.002 ETH, 0.022.
 
-⚠️ : `0x0D84…661e` ,
-**`0xAe389544FBb71850e32d20829f48F6c26B5c46ad`**, `.env`,
-0.0959 ETH Sepolia.
+: `@inco/lightning-js` Next.js
+(CJS, ESM), , .
+
+⚠️ **`0xAe389544FBb71850e32d20829f48F6c26B5c46ad`**,
+`.env`, 0.022 ETH Sepolia (7 ).
+`0x0D84EDCa486E3724b9f5AAb529edB141176c661e` : 0.046 ETH
+, .
 
 SDK, : `covalidatorSignatures`
 '`{0: , 1: , …}`, `Uint8Array`.
 `toHex(Uint8Array.from(Object.values(sig)))`.
 
-.
-
-: `0x0D84EDCa486E3724b9f5AAb529edB141176c661e`,
-`.env` (`.gitignore`), ~0.046 ETH Sepolia.
-
 ## 7.
 
-- (200 / 500 / 1000)
-- .
-  : ****, `shardSlots = size / 2`.
-  ', . 40%.
--
 - -: `0xbEDd4F…` (
   , ABI, Sepolia) `0x3bAe6430…`,
   . ,
   12-
+
+: (100 / 200 / 100, ),
+(
+`test_createDeck_rejectsWeightAboveBreakEven`
+, '), (tessera2).
 
 ---
 
@@ -528,10 +561,10 @@ SDK, : `covalidatorSignatures`
 |---|---|---|
 | 3 | , , | ✅ |
 | 3 | Megapot `openCase()`, , , `redeem()` | ✅ , 3 |
-| 46 | Sepolia, e2e, | |
-| 78 | , , | |
-| 911 | , | |
-| 1213 | Sepolia + , -, README | |
+| 46 | Sepolia, e2e, | ✅ |
+| 78 | , , | ✅ |
+| 911 | , | ✅ |
+| 1213 | Sepolia + , -, README | Sepolia ✅, README ✅; |
 | 14 | , ****, | |
 
 ,
