@@ -244,6 +244,19 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
           </span>
         </h3>
 
+        {!deck.empty && oneIn > 0 && (
+          <p
+            className="t-chain rounded-full border px-3 py-1 text-sm font-extrabold"
+            style={{
+              borderColor: `color-mix(in oklab, ${ink} 30%, transparent)`,
+              background: `color-mix(in oklab, ${ink} 8%, transparent)`,
+              color: ink,
+            }}
+          >
+            1 in {oneIn} pays
+          </p>
+        )}
+
         {!deck.empty && (
           <ul className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
             {ladder.map((t, i) => (
@@ -267,7 +280,6 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
             "Every case in this deck has been opened."
           ) : (
             <>
-              {oneIn > 0 ? `1 in ${oneIn} cases pay something. ` : ""}
               Best case{" "}
               <span style={{ color: ink }}>{top > 0 ? `+${top} tickets` : "the vault"}</span>.{" "}
               {deck.vaultUpTo > 0
