@@ -24,7 +24,7 @@ export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
     return (
       <details className="group/w relative">
         <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-          <span className="flex items-center gap-2 rounded-[var(--radius-control)] bg-[var(--color-accent)] px-4 py-2 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all hover:bg-[var(--color-accent-hover)] hover:shadow-[0_0_25px_rgba(6,182,212,0.6)]">
+          <span className="flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] bg-[var(--color-accent)] px-4 py-2 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all hover:bg-[var(--color-accent-hover)] hover:shadow-[0_0_25px_rgba(6,182,212,0.6)] sm:min-h-0">
             <Wallet className="h-4 w-4" />
             {isPending ? "Connecting…" : "Connect wallet"}
           </span>
@@ -36,7 +36,7 @@ export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
               key={c.uid}
               type="button"
               onClick={() => connect({ connector: c })}
-              className="block w-full cursor-pointer rounded-[var(--radius-control)] px-3 py-2.5 text-left text-sm font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)]"
+              className="flex min-h-11 w-full cursor-pointer items-center rounded-[var(--radius-control)] px-3 py-2.5 text-left text-sm font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)]"
             >
               {c.name}
             </button>
@@ -57,7 +57,7 @@ export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
   return (
     <details className="group/w relative">
       <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-        <span className="t-chain flex items-center gap-2 rounded-[var(--radius-control)] border border-[rgb(6_182_212_/_0.4)] bg-slate-800 px-4 py-2 text-xs font-bold text-[var(--color-accent-bright)] transition-colors hover:bg-slate-700">
+        <span className="t-chain flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] border border-[rgb(6_182_212_/_0.4)] bg-slate-800 px-4 py-2 text-xs font-bold text-[var(--color-accent-bright)] transition-colors hover:bg-slate-700 sm:min-h-0">
           <ShieldCheck className="h-4 w-4 text-[var(--color-accent-hover)]" />
           {short(address!)}
           <ChevronDown className="h-3 w-3 opacity-60 transition-transform duration-200 group-open/w:rotate-180" />
@@ -77,7 +77,7 @@ export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
           href={addressUrl(address!)}
           target="_blank"
           rel="noreferrer"
-          className="block rounded-[var(--radius-control)] px-3 py-2.5 text-sm font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)]"
+          className="flex min-h-11 items-center rounded-[var(--radius-control)] px-3 py-2.5 text-sm font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)]"
         >
           View on Basescan ↗
         </a>

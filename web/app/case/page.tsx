@@ -86,7 +86,7 @@ function Pill({
     <button
       type="button"
       onClick={onClick}
-      className={`t-label cursor-pointer whitespace-nowrap rounded-[var(--radius-chip)] px-3.5 py-1.5 transition-all ${
+      className={`t-label flex min-h-11 cursor-pointer items-center whitespace-nowrap rounded-[var(--radius-chip)] px-3.5 py-1.5 transition-all sm:min-h-0 ${
         on
           ? "bg-[var(--color-accent)] text-slate-950 shadow-[0_0_10px_rgba(6,182,212,0.4)]"
           : "text-slate-400 hover:text-white"
@@ -167,14 +167,14 @@ function DeckCard({ deck, onInspect }: { deck: DeckInfo; onInspect: () => void }
           type="button"
           onClick={onInspect}
           title="Inspect what is in this deck"
-          className="cursor-pointer rounded-[var(--radius-control)] border border-slate-800 bg-slate-950 p-3 text-slate-400 transition-colors hover:text-white"
+          className="grid min-h-11 min-w-11 cursor-pointer place-items-center rounded-[var(--radius-control)] border border-slate-800 bg-slate-950 p-3 text-slate-400 transition-colors hover:text-white"
         >
           <Eye className="h-4 w-4" />
         </button>
 
         <Link
           href={`/case/${deck.id}`}
-          className="t-label flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-control)] py-3 shadow-lg transition-all hover:brightness-110"
+          className="t-label flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-control)] py-3 shadow-lg transition-all hover:brightness-110"
           style={{
             backgroundColor: deck.empty ? "#1e293b" : ink,
             color: deck.empty ? "#94a3b8" : "#090d16",

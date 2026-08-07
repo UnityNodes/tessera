@@ -4,6 +4,7 @@ import { useAccount, useConnect } from "wagmi";
 import { Wallet, Coins } from "lucide-react";
 import { useDeck } from "@/hooks/useDeck";
 import { useMint } from "@/hooks/useMint";
+import { chiselSkin } from "./ui/Button";
 
 /**
  *
@@ -35,11 +36,7 @@ export function StartHere({
         )}
         <details className="group/s">
           <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-            <span
-              className={`flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] bg-[var(--color-accent)] font-extrabold tracking-wide text-slate-950 shadow-[0_0_25px_rgba(6,182,212,0.45)] transition-all hover:bg-[var(--color-accent-hover)] hover:shadow-[0_0_35px_rgba(6,182,212,0.65)] ${
-                compact ? "px-4 py-2 text-xs" : "w-full px-6 py-4 text-base"
-              }`}
-            >
+            <span className={`${chiselSkin(compact ? "sm" : "md")} ${compact ? "" : "w-full"}`}>
               <Wallet className={compact ? "h-4 w-4" : "h-5 w-5"} />
               {isPending ? "Connecting…" : compact ? "Connect to join" : "Connect a wallet"}
             </span>
@@ -54,7 +51,7 @@ export function StartHere({
                 key={c.uid}
                 type="button"
                 onClick={() => connect({ connector: c })}
-                className="cursor-pointer rounded-[var(--radius-control)] px-3 py-2.5 text-left text-sm font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)]"
+                className="flex min-h-11 cursor-pointer items-center rounded-[var(--radius-control)] px-3 py-2.5 text-left text-sm font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)]"
               >
                 {c.name}
               </button>
@@ -77,8 +74,8 @@ export function StartHere({
         type="button"
         onClick={() => void mint()}
         disabled={minting}
-        className={`flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] bg-[var(--color-accent)] font-extrabold tracking-wide text-slate-950 shadow-[0_0_25px_rgba(6,182,212,0.45)] transition-all hover:bg-[var(--color-accent-hover)] hover:shadow-[0_0_35px_rgba(6,182,212,0.65)] disabled:cursor-progress disabled:opacity-60 ${
-          compact ? "px-4 py-2 text-xs" : "w-full px-6 py-4 text-base"
+        className={`${chiselSkin(compact ? "sm" : "md")} cursor-pointer disabled:cursor-progress disabled:opacity-60 ${
+          compact ? "" : "w-full"
         }`}
       >
         <Coins className={compact ? "h-4 w-4" : "h-5 w-5"} />

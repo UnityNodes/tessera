@@ -5,12 +5,24 @@ import { forwardRef } from "react";
 type Variant = "chisel" | "quiet" | "ghost";
 type Size = "sm" | "md";
 
+const TOUCH = "min-h-11 sm:min-h-0 ";
+
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
   block?: boolean;
   loading?: boolean;
 }
+
+/**
+ *
+ */
+export const chiselSkin = (size: Size = "md") =>
+  `${size === "sm" ? `${TOUCH}px-4 py-2 text-xs` : "px-6 py-4 text-base"} ` +
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] " +
+  "font-extrabold tracking-wide bg-[var(--color-accent)] text-slate-950 " +
+  "shadow-[0_0_25px_rgba(6,182,212,0.45)] transition-all duration-200 " +
+  "hover:bg-[var(--color-accent-hover)] hover:shadow-[0_0_35px_rgba(6,182,212,0.65)]";
 
 /**
  *
@@ -26,7 +38,10 @@ export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
     "transition-all duration-200 cursor-pointer " +
     "disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100";
 
-  const pad = size === "sm" ? "px-4 py-2 text-xs" : "px-6 py-3.5 text-[0.9375rem]";
+  const pad =
+    size === "sm"
+      ? `${TOUCH}px-4 py-2 text-xs`
+      : "px-6 py-3.5 text-[0.9375rem]";
 
   const skins: Record<Variant, string> = {
     chisel:

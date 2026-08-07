@@ -6,7 +6,10 @@ import { DataRow } from "./ui/Panel";
 import type { useMegapot } from "@/hooks/useMegapot";
 
 const usd = (v: bigint) =>
-  `$${Number(formatUnits(v, 6)).toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+  `$${Number(formatUnits(v, 6)).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 
 /**
  *

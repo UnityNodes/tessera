@@ -163,7 +163,7 @@ function Tab({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <Link
       href={href}
-      className={`shrink-0 rounded-[var(--radius-chip)] px-2.5 py-1.5 text-xs font-semibold capitalize transition-all sm:px-4 sm:text-sm ${
+      className={`flex shrink-0 items-center rounded-[var(--radius-chip)] px-2.5 py-1.5 text-xs font-semibold capitalize transition-all min-h-11 sm:min-h-0 sm:px-4 sm:text-sm ${
         active
           ? "border border-[rgb(6_182_212_/_0.3)] bg-[rgb(6_182_212_/_0.2)] text-[var(--color-accent-hover)] shadow-[0_0_10px_rgba(6,182,212,0.2)]"
           : "border border-transparent text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"
@@ -215,7 +215,7 @@ function TicketsStat({ tickets, caseHref }: { tickets: number; caseHref: string 
         </p>
         <Link
           href={caseHref}
-          className="t-label mt-4 inline-flex items-center gap-1.5 text-[var(--color-accent-hover)] hover:text-[var(--color-accent-bright)]"
+          className="t-label mt-4 inline-flex min-h-11 items-center gap-1.5 text-[var(--color-accent-hover)] hover:text-[var(--color-accent-bright)]"
         >
           see the jackpot and claim winnings →
         </Link>

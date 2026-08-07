@@ -71,14 +71,12 @@ with sync_playwright() as p:
 
     # ── ─────────────────────────────────────────
     print("\n── ──")
-    # still sealed, all decks
-    # , -.
-    hero = page.locator("div", has=page.get_by_text("still sealed, all decks")).last.inner_text()
-    same(
-        "= ",
-        t["remaining"],
-        int(num(hero) or -1),
-    )
+    # : 238 of 400 slots still sealed, across every
+    # deck.
+    # , .
+    hero = page.locator("text=/slots still sealed, across every deck/").first.inner_text()
+    same("= ", t["remaining"], int(num(hero) or -1))
+    same("= ", t["size"], int(num(hero.split("of")[1]) or -1))
     for d in EXPECTED["decks"]:
         card = page.locator(f"a[href='/case/{d['id']}']").last
         txt = card.inner_text()
