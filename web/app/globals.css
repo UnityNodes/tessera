@@ -28,6 +28,7 @@
 
   --color-tier-grout: #7d8a9c;
   --color-tier-sealed: #38bdf8;
+  --color-tier-shard: #10b981;
   --color-tier-denarius: #34d399;
   --color-tier-aureus: #fbbf24;
   --color-tier-porphyry: #a855f7;
@@ -71,6 +72,13 @@
   --metal-d: #0369a1;
   --glow: 0.45;
   --tint: 0.14;
+}
+[data-tier="shard"] {
+  --metal: var(--color-tier-shard);
+  --metal-l: #6ee7b7;
+  --metal-d: #065f46;
+  --glow: 0.3;
+  --tint: 0.1;
 }
 [data-tier="denarius"] {
   --metal: var(--color-tier-denarius);

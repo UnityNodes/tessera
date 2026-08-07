@@ -5,7 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Chest } from "./Chest";
 import { Prize } from "./Prize";
 import { Roll } from "./Roll";
-import { specOf, isVault, type DeckShape } from "@/lib/deck";
+import { specOf, isVault, isPrize, isShard, type DeckShape } from "@/lib/deck";
 import type { OpenState } from "@/hooks/useOpenCase";
 import type { PoolState } from "@/hooks/usePool";
 
@@ -50,7 +50,7 @@ export function OpenTheatre({
   }, [on, opened, onClose]);
 
   const spec = opened && open.value != null ? specOf(open.value, deck) : null;
-  const won = Boolean(spec && (spec.tickets > 0 || isVault(spec)));
+  const won = Boolean(spec && isPrize(spec));
   const paid = spec ? (open.risk ? spec.tickets * 2 : spec.tickets) : 0;
 
   //
@@ -129,7 +129,7 @@ export function OpenTheatre({
                   <Chest rarity={spec?.rarity ?? "sealed"} size={520} open />
                 </div>
 
-                {won && (
+                {won && !isShard(spec!) && (
                   <Prize
                     spec={spec!}
                     paid={paid}
@@ -167,7 +167,9 @@ export function OpenTheatre({
                       <p className="t-inscription mt-3 text-[0.875rem] text-[var(--color-ink-dim)]">
                         {isVault(spec)
                           ? "everything the vault holds"
-                          : won
+                          : isShard(spec)
+                            ? `five make a real ticket${open.risk ? " · this one counts double" : ""}`
+                            : won
                             ? `${paid} real ticket${paid > 1 ? "s" : ""}${open.risk ? " · doubled" : ""}`
                             : open.risk
                               ? "double nothing is nothing, that was the bet"

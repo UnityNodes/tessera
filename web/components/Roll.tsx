@@ -2,7 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { animate, useMotionValue, useTransform, motion, useReducedMotion } from "motion/react";
-import { slotsPerTier, specFor, specOf, VAULT_SPEC, type TierSpec, type DeckShape } from "@/lib/deck";
+import {
+  slotsPerTier,
+  specFor,
+  specOf,
+  isPrize,
+  VAULT_SPEC,
+  type TierSpec,
+  type DeckShape,
+} from "@/lib/deck";
 import { Chest } from "./Chest";
 import type { PoolState } from "@/hooks/usePool";
 
@@ -95,7 +103,7 @@ export function Roll({
   //
   useEffect(() => {
     if (landedValue != null || !strip.length) return;
-    const empty = strip.findIndex((s) => s.tickets === 0 && s.name !== VAULT_SPEC.name);
+    const empty = strip.findIndex((s) => !isPrize(s));
     x.set(-STEP * (strip.length + (empty >= 0 ? empty : 0)));
   }, [strip, landedValue, x]);
 
@@ -205,7 +213,7 @@ export function Roll({
  *
  */
 function Item({ spec }: { spec: TierSpec }) {
-  const prize = spec.tickets > 0 || spec.name === VAULT_SPEC.name;
+  const prize = isPrize(spec);
   return (
     <div
       data-roll-item

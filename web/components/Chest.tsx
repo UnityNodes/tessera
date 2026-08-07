@@ -11,6 +11,11 @@ import type { Rarity } from "@/lib/deck";
 const ART: Record<Rarity, { src: string; open: string; filter?: string }> = {
   sealed: { src: "/chests/sealed.webp", open: "/chests/sealed-open.webp" },
   denarius: { src: "/chests/denarius.webp", open: "/chests/denarius-open.webp" },
+  shard: {
+    src: "/chests/denarius.webp",
+    open: "/chests/denarius-open.webp",
+    filter: "saturate(0.7) brightness(0.86)",
+  },
   aureus: { src: "/chests/aureus.webp", open: "/chests/aureus-open.webp" },
   porphyry: {
     src: "/chests/aureus.webp",

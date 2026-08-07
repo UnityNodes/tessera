@@ -22,7 +22,14 @@ export function weightOf(value: number, deck: DeckShape): number {
 
 export const WEIGHT_PER_TICKET = 5;
 
-export type Rarity = "vault" | "porphyry" | "aureus" | "denarius" | "grout" | "sealed";
+export type Rarity =
+  | "vault"
+  | "porphyry"
+  | "aureus"
+  | "denarius"
+  | "shard"
+  | "grout"
+  | "sealed";
 
 export interface TierSpec {
   name: string;
@@ -69,6 +76,18 @@ export function specFor(weight: number): TierSpec {
       rarity: "denarius",
     };
   }
+  //
+  if (weight > 0) {
+    return {
+      name: "Shard",
+      note: `${WEIGHT_PER_TICKET} make a ticket`,
+      tint: "color-mix(in oklab, var(--color-tier-shard) 9%, var(--color-surface))",
+      ink: "var(--color-tier-shard)",
+      tickets: 0,
+      rarity: "shard",
+    };
+  }
+
   return {
     name: "Grout",
     note: "nothing this time",
@@ -94,6 +113,14 @@ export const VAULT_SPEC: TierSpec = {
 };
 
 export const isVault = (spec: TierSpec) => spec.name === VAULT_SPEC.name;
+
+/**
+ *
+ */
+export const isShard = (spec: TierSpec) => spec.rarity === "shard";
+
+export const isPrize = (spec: TierSpec) =>
+  spec.tickets > 0 || spec.rarity === "shard" || isVault(spec);
 
 export function ticketsFromWeight(weight: number): number {
   return Math.floor(weight / WEIGHT_PER_TICKET);
