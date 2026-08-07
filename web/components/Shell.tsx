@@ -44,6 +44,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <Tab href="/">home</Tab>
               <Tab href="/case">cases</Tab>
               <Tab href="/battles">battles</Tab>
+              <Tab href="/leaderboard">standings</Tab>
+              <Tab href="/profile">shelf</Tab>
             </nav>
           </div>
 
