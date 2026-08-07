@@ -20,6 +20,10 @@ export interface Slot {
   risk: boolean;
   spent: boolean;
   sealed: boolean;
+  /**
+   *
+   */
+  locked: boolean;
 }
 
 const KEY = (address?: string) => ["inventory", address] as const;
@@ -104,6 +108,33 @@ export function useInventory(decks: DeckShape[]) {
         })) as readonly bigint[]).map(Number),
       );
 
+      const mine = (await readContract(config, {
+        address: DECK_ADDRESS,
+        abi: TESSERA_DECK_ABI,
+        functionName: "battlesOf",
+        args: [address!],
+      })) as readonly bigint[];
+
+      const locked = new Set(sealed);
+      if (mine.length > 0) {
+        const battleCalls: ContractFunctionParameters[] = mine.map((id) => ({
+          address: DECK_ADDRESS,
+          abi: TESSERA_DECK_ABI,
+          functionName: "battleAt",
+          args: [id],
+        }));
+        const fought = (await readContracts(config, { contracts: battleCalls })) as {
+          result?: { a: string; b: string; slotA: bigint; slotB: bigint; resolved: boolean };
+        }[];
+        const me = address!.toLowerCase();
+        for (const r of fought) {
+          const bt = r.result;
+          if (!bt || bt.resolved) continue;
+          if (bt.a.toLowerCase() === me) locked.add(Number(bt.slotA));
+          if (bt.b.toLowerCase() === me) locked.add(Number(bt.slotB));
+        }
+      }
+
       const revealed = await revealHandles(
         list.filter((s) => !sealed.has(s.index)).map((s) => s.handle),
         { priority: "background" },
@@ -120,6 +151,7 @@ export function useInventory(decks: DeckShape[]) {
           weight: s.risk ? base * 2 : base,
           spent: spentFlags[i]?.result ?? false,
           sealed: sealed.has(s.index),
+          locked: locked.has(s.index),
         };
       });
     },
@@ -135,8 +167,13 @@ export function useRefreshInventory() {
   );
 }
 
+/**
+ *
+ */
 export function spendable(slots: Slot[] | undefined): Slot[] {
-  return (slots ?? []).filter((s) => s.weight > 0 && !s.spent && s.signatures?.length);
+  return (slots ?? []).filter(
+    (s) => s.weight > 0 && !s.spent && !s.locked && s.signatures?.length,
+  );
 }
 
 export function heldWeight(slots: Slot[] | undefined): number {

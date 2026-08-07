@@ -137,6 +137,57 @@ contract TesseraBattleTest is Test {
         deck.claimVault(0, 1, _sigs());
     }
 
+    ///
+    ///
+    function test_battle_joinedCardIsNoLongerSealedButStillLocked() public {
+        uint256 id = _joined();
+
+        assertEq(deck.sealedSlotsOf(alice).length, 0, unicode"");
+        assertEq(deck.sealedSlotsOf(bob).length, 0, unicode"");
+
+        TesseraDeck.Battle memory bt = deck.battleAt(id);
+        assertFalse(bt.resolved, unicode"");
+        assertEq(bt.a, alice);
+        assertEq(bt.b, bob);
+
+        assertEq(deck.battlesOf(alice)[0], id);
+        assertEq(deck.battlesOf(bob)[0], id);
+
+        _attest(true);
+        uint256[] memory idx = new uint256[](1);
+        uint256[] memory vals = new uint256[](1);
+        bytes[][] memory sigs = new bytes[][](1);
+        vals[0] = 3;
+        sigs[0] = _sigs();
+
+        idx[0] = bt.slotA;
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(TesseraDeck.SlotInBattle.selector, uint64(id)));
+        deck.redeem(idx, vals, sigs);
+
+        idx[0] = bt.slotB;
+        vm.prank(bob);
+        vm.expectRevert(abi.encodeWithSelector(TesseraDeck.SlotInBattle.selector, uint64(id)));
+        deck.redeem(idx, vals, sigs);
+    }
+
+    function test_battle_settlingReleasesBothCards() public {
+        uint256 id = _joined();
+        _attest(true);
+        deck.resolveBattle(id, 3, _sigs(), 4, _sigs());
+
+        assertTrue(deck.battleAt(id).resolved, unicode"");
+
+        uint256[] memory mine = deck.battlesOf(alice);
+        for (uint256 i = 0; i < mine.length; i++) {
+            assertTrue(deck.battleAt(mine[i]).resolved, unicode"");
+        }
+        mine = deck.battlesOf(bob);
+        for (uint256 i = 0; i < mine.length; i++) {
+            assertTrue(deck.battleAt(mine[i]).resolved, unicode"");
+        }
+    }
+
 
     function test_battle_bothPayAndBothGetARealTicket() public {
         uint256 aliceBefore = _tickets(alice);

@@ -13,6 +13,7 @@ export function StakePanel({
   toRedeem,
   weight,
   decided,
+  decidingInBattle,
   onRedeem,
   redeeming,
   treasury,
@@ -22,6 +23,7 @@ export function StakePanel({
   toRedeem: Slot[];
   weight: number;
   decided?: { value: number; signatures: `0x${string}`[] };
+  decidingInBattle?: boolean;
   onRedeem: () => void;
   redeeming: boolean;
   treasury: bigint;
@@ -75,8 +77,20 @@ export function StakePanel({
           disabled={busy || !decided}
           onClick={() => decided && void stake.settle(decided.value, decided.signatures)}
         >
-          {busy ? "Settling…" : decided ? "Settle the stake" : "Waiting for the covalidators…"}
+          {busy
+            ? "Settling…"
+            : decidingInBattle
+              ? "That card is in a battle"
+              : decided
+                ? "Settle the stake"
+                : "Waiting for the covalidators…"}
         </Button>
+        {decidingInBattle && (
+          <p className="mt-3 text-sm text-slate-400">
+            The case that decides this stake was drawn into a battle. Settle the battle
+            first, anyone can, and the loser cannot freeze it by staying away.
+          </p>
+        )}
         {stake.state.phase === "done" && stake.state.won === false && (
           <p className="mt-3 text-sm text-slate-400">
             Empty. The stake burned, but every ticket you paid for is still yours.

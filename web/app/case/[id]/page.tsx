@@ -85,6 +85,7 @@ export default function CasePage() {
       s.deckId === deckId &&
       s.value != null &&
       !s.spent &&
+      !s.locked &&
       s.signatures?.length &&
       isVault(specOf(s.value, shape)),
   );
@@ -342,10 +343,11 @@ export default function CasePage() {
               toRedeem={toRedeem}
               weight={weight}
               decided={
-                decidingSlot?.value != null && decidingSlot.signatures
+                decidingSlot?.value != null && decidingSlot.signatures && !decidingSlot.locked
                   ? { value: decidingSlot.value, signatures: decidingSlot.signatures }
                   : undefined
               }
+              decidingInBattle={Boolean(decidingSlot?.locked)}
               onRedeem={() => redeem.redeem(toRedeem)}
               redeeming={redeem.state.phase === "signing" || redeem.state.phase === "confirming"}
               treasury={game.treasury}
