@@ -1,6 +1,7 @@
 //
 //
-//   node e2e-battle.cjs <deck> <privateKeyA> <privateKeyB>
+//   DECK=3 node e2e-battle.cjs <deck> <privateKeyA> <privateKeyB>
+//
 
 const { Lightning } = require("@inco/lightning-js/lite");
 const {
@@ -16,7 +17,7 @@ const RPC = process.env.BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org";
 const TOKEN = "0xA4253E7C13525287C56550b8708100f93E60509f";
 
 const abi = parseAbi([
-  "function openBattle() returns (uint256 id, uint64 slotIndex)",
+  "function openBattle(uint32 deckId) returns (uint256 id, uint64 slotIndex)",
   "function joinBattle(uint256 id) returns (uint64 slotIndex)",
   "function resolveBattle(uint256 id, uint256 valueA, bytes[] signaturesA, uint256 valueB, bytes[] signaturesB) returns (address winner, uint256 banked)",
   "function abandonBattle(uint256 id)",
@@ -24,7 +25,7 @@ const abi = parseAbi([
   "function openBattleIds(uint256 max) view returns (uint256[])",
   "function sealedSlotsOf(address) view returns (uint64[])",
   "function handleOf(address, uint256) view returns (bytes32)",
-  "function weightNow(uint256) view returns (uint16)",
+  "function weightOf(uint32, uint256) view returns (uint16)",
   "function bankedWeight(address) view returns (uint256)",
 ]);
 const erc20 = parseAbi([
@@ -89,8 +90,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     console.log(`funded ${p.address}`);
   }
 
-  const [id] = await a.send(ADDR, abi, "openBattle");
-  console.log(`\nbattle #${id} opened by ${a.address}`);
+  const DECK = Number(process.env.DECK ?? 0);
+  const [id] = await a.send(ADDR, abi, "openBattle", [DECK]);
+  console.log(`\nbattle #${id} opened by ${a.address} on deck #${DECK}`);
 
   await until(["battleAt", [id]], (bt) => bt.a.toLowerCase() === a.address.toLowerCase());
 
@@ -139,8 +141,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const cardB = byHandle.get(handleB.toLowerCase());
   const valueA = Number(cardA.plaintext.value);
   const valueB = Number(cardB.plaintext.value);
-  const weightA = await read("weightNow", [BigInt(valueA)]);
-  const weightB = await read("weightNow", [BigInt(valueB)]);
+  const weightA = await read("weightOf", [DECK, BigInt(valueA)]);
+  const weightB = await read("weightOf", [DECK, BigInt(valueB)]);
   console.log(`creator  weight ${weightA}`);
   console.log(`opponent weight ${weightB}`);
 
