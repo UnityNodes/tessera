@@ -34,11 +34,13 @@ export function useDeck() {
       { ...deck, functionName: "feesClaimable" },
       { ...deck, functionName: "adapter" },
       { ...deck, functionName: "unsweptOpens" },
+      { ...deck, functionName: "vaultShareBps" },
     ],
     query: { refetchInterval: 12_000 },
   });
 
   const count = Number((head.data?.[0]?.result as bigint | undefined) ?? 0n);
+  const vaultShareBps = (head.data?.[5]?.result as bigint | undefined) ?? 5000n;
   const adapter = head.data?.[3]?.result as `0x${string}` | undefined;
   const ids = useMemo(() => Array.from({ length: count }, (_, i) => i), [count]);
 
@@ -78,7 +80,7 @@ export function useDeck() {
 
         const coming =
           d.vaultUpTo > 0 && unswept > 0n
-            ? ((claimable / 2n) * BigInt(d.unsweptOpens)) / unswept
+            ? (((claimable * vaultShareBps) / 10_000n) * BigInt(d.unsweptOpens)) / unswept
             : 0n;
 
         return {
@@ -94,7 +96,7 @@ export function useDeck() {
         };
       })
       .filter((d): d is DeckInfo => d !== null);
-  }, [ids, rows.data, claimable, unswept]);
+  }, [ids, rows.data, claimable, unswept, vaultShareBps]);
 
   const price = useReadContract({
     address: adapter,
@@ -135,6 +137,11 @@ export function useDeck() {
     feesClaimable: claimable,
     adapter,
     ticketPrice,
+    /**
+     *
+     *
+     */
+    treasuryPerOpen: ((ticketPrice / 10n) * (10_000n - vaultShareBps)) / 10_000n,
 
     slotCount: Number((player.data?.[0]?.result as bigint | undefined) ?? 0n),
     balance,

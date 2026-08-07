@@ -17,6 +17,7 @@ export function StakePanel({
   redeeming,
   treasury,
   ticketPrice,
+  treasuryPerOpen,
 }: {
   stake: ReturnType<typeof useStake>;
   toRedeem: Slot[];
@@ -26,6 +27,7 @@ export function StakePanel({
   redeeming: boolean;
   treasury: bigint;
   ticketPrice: bigint;
+  treasuryPerOpen: bigint;
 }) {
   const busy = stake.state.phase === "signing" || stake.state.phase === "confirming";
 
@@ -107,6 +109,8 @@ export function StakePanel({
   const needed = ticketPrice * BigInt(tickets);
   const canPay = treasury >= needed;
   const shortBy = canPay ? 0n : needed - treasury;
+  const opensLeft =
+    treasuryPerOpen > 0n ? Math.ceil(Number(shortBy) / Number(treasuryPerOpen)) : 0;
 
   return (
     <div className="mt-6">
@@ -131,7 +135,7 @@ export function StakePanel({
         <p className="mt-3 text-sm text-slate-400">
           The game funds prizes out of the commission it earns, and it is{" "}
           <span className="t-chain">${(Number(shortBy) / 1e6).toFixed(2)}</span> short.
-          About {Math.ceil(Number(shortBy) / 100_000)} more opens, by anyone, and this
+          About {opensLeft} more open{opensLeft > 1 ? "s" : ""}, by anyone, and this
           ticket is yours. Nothing expires.
         </p>
       )}

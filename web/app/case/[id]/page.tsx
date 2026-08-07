@@ -352,6 +352,7 @@ export default function CasePage() {
               redeeming={redeem.state.phase === "signing" || redeem.state.phase === "confirming"}
               treasury={game.treasury}
               ticketPrice={game.ticketPrice}
+              treasuryPerOpen={game.treasuryPerOpen}
             />
 
             {redeem.state.phase === "done" && (
