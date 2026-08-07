@@ -82,13 +82,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 boxShadow: "0 0 12px rgb(236 72 153 / 0.12)",
               }}
             >
-              <Lock
-                className="h-3.5 w-3.5"
-                style={{
-                  color: "var(--color-tier-vault)",
-                  animation: "marker-live 2.4s ease-in-out infinite",
-                }}
-              />
+              <Lock className="h-3.5 w-3.5" style={{ color: "var(--color-tier-vault)" }} />
               <Counter
                 value={Number(formatUnits(game.vault, 6))}
                 decimals={2}

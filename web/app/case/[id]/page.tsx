@@ -162,8 +162,13 @@ export default function CasePage() {
           </div>
 
           <p className="t-chain text-sm text-slate-400">
-            <span className="text-2xl font-extrabold text-white">{deck.remaining}</span> of{" "}
-            {deck.size} still sealed
+            <span
+              className="text-4xl font-extrabold text-white"
+              style={{ textShadow: "0 0 34px rgb(255 255 255 / 0.18)" }}
+            >
+              {deck.remaining}
+            </span>{" "}
+            of {deck.size} still sealed
           </p>
         </div>
 
@@ -303,11 +308,8 @@ export default function CasePage() {
                   the vault
                 </span>
                 <span
-                  className="t-chain mt-2 block text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold leading-none"
-                  style={{
-                    color: "var(--color-tier-vault)",
-                    textShadow: "0 0 34px rgb(236 72 153 / 0.5)",
-                  }}
+                  className="t-chain mt-2 block text-3xl font-bold leading-none"
+                  style={{ color: "var(--color-tier-vault)" }}
                 >
                   ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
                 </span>

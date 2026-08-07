@@ -3,10 +3,9 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { formatUnits } from "viem";
-import { Sparkles, Swords, Ticket, Lock, ShieldCheck, Award } from "lucide-react";
+import { Sparkles, Swords, Award } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Chest } from "@/components/Chest";
-import { Counter } from "@/components/ui/Counter";
 import { useDeck, type DeckInfo } from "@/hooks/useDeck";
 import { useBattleList } from "@/hooks/useBattles";
 import { useFeed } from "@/hooks/useFeed";
@@ -64,15 +63,9 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="flex items-baseline gap-3 pt-2">
-              <Counter
-                value={game.remaining}
-                className="t-chain text-4xl font-extrabold leading-none text-white"
-                style={{ textShadow: "0 0 40px rgb(34 211 238 / 0.45)" }}
-              />
-              <span className="t-chain text-lg text-slate-500">/ {total || ", "}</span>
-              <span className="t-label">still sealed, all decks</span>
-            </div>
+            <p className="t-chain pt-2 text-sm text-slate-500">
+              {game.remaining} of {total || ", "} slots still sealed, across every deck
+            </p>
           </div>
 
           <div className="relative flex items-center justify-center lg:col-span-5">
@@ -115,9 +108,6 @@ export default function Home() {
       <section className="w-full border-b border-slate-800/60 bg-[var(--color-section-alt)] px-4 py-16 lg:px-8 2xl:px-14">
         <div className="mx-auto flex flex-col items-center">
           <div className="mb-12 max-w-2xl text-center">
-            <span className="t-label mb-2 block text-[var(--color-accent-hover)]">
-              mechanics &amp; probabilities
-            </span>
             <h2 className="t-display text-3xl text-white">
               How the ticket, the pool and the vault fit together
             </h2>
@@ -125,7 +115,6 @@ export default function Home() {
 
           <div className="grid w-full grid-cols-1 gap-8 md:grid-cols-3">
             <Step
-              icon={<Ticket className="h-6 w-6" />}
               ink="var(--color-accent)"
               title="1. Every case buys a real ticket"
             >
@@ -135,7 +124,6 @@ export default function Home() {
             </Step>
 
             <Step
-              icon={<Lock className="h-6 w-6" />}
               ink="var(--color-tier-vault)"
               title="2. The vault grows until someone draws it"
             >
@@ -144,7 +132,6 @@ export default function Home() {
             </Step>
 
             <Step
-              icon={<ShieldCheck className="h-6 w-6" />}
               ink="var(--color-tier-denarius)"
               title="3. Drawn without replacement, in public"
             >
@@ -273,31 +260,22 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
   );
 }
 
+/**
+ *
+ */
 function Step({
-  icon,
   ink,
   title,
   children,
 }: {
-  icon: React.ReactNode;
   ink: string;
   title: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-start space-y-3 rounded-[var(--radius-panel)] border border-slate-800 bg-slate-900/50 p-6">
-      <span
-        className="flex h-12 w-12 items-center justify-center rounded-[var(--radius-control)] border"
-        style={{
-          color: ink,
-          borderColor: `color-mix(in oklab, ${ink} 30%, transparent)`,
-          background: `color-mix(in oklab, ${ink} 10%, transparent)`,
-        }}
-      >
-        {icon}
-      </span>
+    <div className="border-t pt-5" style={{ borderColor: `color-mix(in oklab, ${ink} 40%, transparent)` }}>
       <h3 className="text-lg font-bold text-white">{title}</h3>
-      <p className="text-sm leading-relaxed text-slate-400">{children}</p>
+      <p className="mt-3 text-sm leading-relaxed text-slate-400">{children}</p>
     </div>
   );
 }

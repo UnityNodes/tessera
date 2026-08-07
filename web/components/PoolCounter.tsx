@@ -36,8 +36,8 @@ export function PoolCounter({ deck, drawn, pool }: { deck: DeckShape; drawn: num
             className="flex items-center gap-3 rounded-[var(--radius-control)] border border-slate-800 bg-slate-950 p-2.5"
           >
             <span
-              className="h-8 w-1.5 shrink-0 rounded-full"
-              style={{ background: t.spec.ink, opacity: t.left > 0 ? 1 : 0.2 }}
+              className="h-2 w-2 shrink-0 rounded-full"
+              style={{ background: t.spec.ink, opacity: t.left > 0 ? 1 : 0.25 }}
             />
             <span className="min-w-0 flex-1">
               <span

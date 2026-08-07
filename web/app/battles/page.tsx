@@ -40,10 +40,7 @@ export default function BattlesPage() {
         <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-6 md:flex-row md:items-center">
           <div className="max-w-2xl">
             <h1 className="t-display flex items-center gap-3 text-3xl text-white">
-              <Swords
-                className="h-8 w-8 text-[var(--color-accent-hover)]"
-                style={{ animation: "marker-live 2.4s ease-in-out infinite" }}
-              />
+              <Swords className="h-8 w-8 text-[var(--color-accent-hover)]" />
               <span>Case battles arena</span>
             </h1>
             <p className="mt-1 text-sm text-slate-400">
