@@ -40,7 +40,8 @@ export function useDeck() {
   });
 
   const count = Number((head.data?.[0]?.result as bigint | undefined) ?? 0n);
-  const vaultShareBps = (head.data?.[5]?.result as bigint | undefined) ?? 5000n;
+  //
+  const vaultShareBps = BigInt((head.data?.[5]?.result as bigint | number | undefined) ?? 5000);
   const adapter = head.data?.[3]?.result as `0x${string}` | undefined;
   const ids = useMemo(() => Array.from({ length: count }, (_, i) => i), [count]);
 
