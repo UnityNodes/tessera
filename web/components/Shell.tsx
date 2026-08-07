@@ -139,7 +139,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      <main className="w-full flex-1">{children}</main>
+
+      <main className="w-full flex-1 bg-[var(--color-section)]">{children}</main>
 
       <footer className="w-full border-t border-slate-800/80 bg-[var(--color-sunk)] px-4 py-8 lg:px-8 2xl:px-14">
         <div className="mx-auto flex flex-col items-center justify-between gap-4 text-xs text-slate-500 sm:flex-row">

@@ -24,7 +24,7 @@ export default function CasesPage() {
   });
 
   return (
-    <div className="min-h-screen w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
+    <div className="w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
       <div className="mx-auto flex flex-col space-y-8">
         <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-6 md:flex-row md:items-center">
           <div>

@@ -100,7 +100,7 @@ export default function CasePage() {
 
   if (!deck) {
     return (
-      <div className="min-h-screen w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
+      <div className="w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
         <p className="py-20 text-center text-slate-400">
           {game.isLoading ? "Reading the chain…" : "No such case."}
         </p>
@@ -116,7 +116,7 @@ export default function CasePage() {
   const oneIn = paying > 0 ? Math.max(1, Math.round(deck.size / paying)) : 0;
 
   return (
-    <div className="min-h-screen w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
+    <div className="w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
       <OpenTheatre
         open={open.state}
         deck={shape}
@@ -125,7 +125,7 @@ export default function CasePage() {
         onClose={open.reset}
       />
 
-      <div className="mx-auto flex flex-col space-y-6">
+      <div className="mx-auto flex flex-col gap-6">
         <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-5 md:flex-row md:items-center">
           <div className="flex items-center gap-4">
             <Chest
@@ -168,61 +168,28 @@ export default function CasePage() {
         </div>
 
         <section className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-          <div className="frame relative grid w-full place-items-center p-6 sm:p-10">
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-x-12 inset-y-10 rounded-full opacity-20 blur-3xl"
-              style={{ background: ink }}
-            />
-            <Case
-              phase={open.state.phase === "done" ? "opened" : "idle"}
-              value={open.state.value}
-              deck={shape}
-              risk={open.state.risk}
-              vault={deck.vault}
-              size={380}
-              onClick={
-                canOpen ? () => open.open({ deckId, needsApproval: game.needsApproval }) : undefined
-              }
-            />
-          </div>
-
-          <div className="flex flex-col gap-4">
-            <div className="slab p-5">
-              <PoolCounter deck={shape} drawn={deck.drawn} pool={pool.data} />
+          <div className="frame relative flex w-full flex-col">
+            <div className="relative grid place-items-center px-6 pb-4 pt-8 sm:px-10">
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-x-12 inset-y-6 rounded-full opacity-20 blur-3xl"
+                style={{ background: ink }}
+              />
+              <Case
+                phase={open.state.phase === "done" ? "opened" : "idle"}
+                value={open.state.value}
+                deck={shape}
+                risk={open.state.risk}
+                vault={deck.vault}
+                size={380}
+                onClick={
+                  canOpen ? () => open.open({ deckId, needsApproval: game.needsApproval }) : undefined
+                }
+              />
             </div>
 
-            {deck.vaultUpTo > 0 && (
-              <div
-                className="slab p-5"
-                style={{
-                  borderColor: "rgb(236 72 153 / 0.35)",
-                  boxShadow: "0 0 25px rgb(236 72 153 / 0.12)",
-                }}
-              >
-                <span className="t-label flex items-center gap-2" style={{ color: "var(--color-tier-vault)" }}>
-                  <Lock className="h-3.5 w-3.5" />
-                  the vault
-                </span>
-                <span
-                  className="t-chain mt-2 block text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold leading-none"
-                  style={{
-                    color: "var(--color-tier-vault)",
-                    textShadow: "0 0 34px rgb(236 72 153 / 0.5)",
-                  }}
-                >
-                  ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
-                </span>
-                <VaultStatus
-                  taken={Boolean(pool.data?.vaultTaken)}
-                  mine={Boolean(vaultSlot)}
-                  remaining={deck.remaining}
-                />
-              </div>
-            )}
-
-            <div className="slab flex flex-col justify-center p-5">
-              <div className="min-h-[6rem]">
+            <div className="border-t border-slate-800/70 p-5 sm:p-6">
+              <div className="min-h-[5rem]">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={open.state.phase + (open.state.value ?? "")}
@@ -236,7 +203,7 @@ export default function CasePage() {
                 </AnimatePresence>
               </div>
 
-              <div className="mt-2">
+              <div className="mt-3">
                 {deck.empty ? (
                   <p className="text-slate-400">Every case in this season has been opened.</p>
                 ) : !isConnected || !game.canAfford ? (
@@ -317,10 +284,46 @@ export default function CasePage() {
               )}
             </div>
           </div>
+
+          <div className="flex flex-col gap-4">
+            <div className="slab p-5">
+              <PoolCounter deck={shape} drawn={deck.drawn} pool={pool.data} />
+            </div>
+
+            {deck.vaultUpTo > 0 && (
+              <div
+                className="slab p-5"
+                style={{
+                  borderColor: "rgb(236 72 153 / 0.35)",
+                  boxShadow: "0 0 25px rgb(236 72 153 / 0.12)",
+                }}
+              >
+                <span className="t-label flex items-center gap-2" style={{ color: "var(--color-tier-vault)" }}>
+                  <Lock className="h-3.5 w-3.5" />
+                  the vault
+                </span>
+                <span
+                  className="t-chain mt-2 block text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold leading-none"
+                  style={{
+                    color: "var(--color-tier-vault)",
+                    textShadow: "0 0 34px rgb(236 72 153 / 0.5)",
+                  }}
+                >
+                  ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
+                </span>
+                <VaultStatus
+                  taken={Boolean(pool.data?.vaultTaken)}
+                  mine={Boolean(vaultSlot)}
+                  remaining={deck.remaining}
+                />
+              </div>
+            )}
+
+          </div>
         </section>
 
-        <section className="slab p-6 sm:p-8">
-          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
+        <section className="px-1 py-2">
+          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-3">
             <span className="t-label">the deck, one cell per case</span>
             <span className="t-chain text-xs text-slate-500">
               {deck.drawn} drawn · {deck.remaining} sealed
@@ -359,7 +362,7 @@ export default function CasePage() {
           </section>
         )}
 
-        <section className="slab p-6 sm:p-8">
+        <section className="slab mt-4 p-6 sm:p-8">
           <p className="t-label mb-6 flex items-center gap-2">
             <ShieldCheck className="h-3.5 w-3.5" />
             case drops &amp; what is left of them
