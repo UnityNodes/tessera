@@ -34,6 +34,18 @@ if [ -n "${OPENS:-}" ]; then
   run "" node browser-e2e.cjs "$URL"
 fi
 
+# , : . :
+# BATTLE=1 ./audit.sh, DECK=3 .
+#
+# , ', .
+#
+# openBattle() ,
+# . audit.sh ,
+# , .
+if [ -n "${BATTLE:-}" ]; then
+  run "" node e2e-battle.cjs
+fi
+
 echo
 echo "════════════════════════════════════════════════"
 if [ ${#FAILED[@]} -eq 0 ]; then

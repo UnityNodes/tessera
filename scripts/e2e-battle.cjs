@@ -6,13 +6,22 @@
 const { Lightning } = require("@inco/lightning-js/lite");
 const {
   createWalletClient, createPublicClient, http, defineChain, parseGwei, parseAbi, toHex,
+  keccak256,
 } = require("viem");
 const { privateKeyToAccount } = require("viem/accounts");
 const { baseSepolia } = require("viem/chains");
 
-const ADDR = process.argv[2];
-const PK_A = process.argv[3];
-const PK_B = process.argv[4];
+const fs = require("fs");
+const path = require("path");
+
+const chainSrc = fs.readFileSync(
+  path.join(__dirname, "..", "web", "lib", "chain.ts"),
+  "utf8",
+);
+const ADDR =
+  process.argv[2] ||
+  (chainSrc.match(/DECK_ADDRESS[^"']*["'](0x[0-9a-fA-F]{40})["']/) || [])[1];
+const PK_A = process.argv[3] || process.env.DEPLOYER_PRIVATE_KEY;
 const RPC = process.env.BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org";
 const TOKEN = "0xA4253E7C13525287C56550b8708100f93E60509f";
 
@@ -74,7 +83,30 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   };
 
   const a = player(PK_A);
+
+  //
+  //
+  const PK_B =
+    process.argv[4] ||
+    process.env.OPPONENT_PRIVATE_KEY ||
+    keccak256(toHex(`tessera-opponent:${PK_A}`));
   const b = player(PK_B);
+
+  const GAS_FLOOR = 3_000_000_000_000_000n; // 0.003 ETH
+  if ((await pub.getBalance({ address: b.address })) < GAS_FLOOR) {
+    const wallet = createWalletClient({ chain, transport: http(RPC), account: a.account });
+    const hash = await wallet.sendTransaction({
+      to: b.address,
+      value: 10_000_000_000_000_000n, // 0.01 ETH
+    });
+    await pub.waitForTransactionReceipt({ hash });
+
+    for (let i = 0; i < 30; i++) {
+      if ((await pub.getBalance({ address: b.address })) >= GAS_FLOOR) break;
+      await sleep(400);
+    }
+    console.log(`${b.address}`);
+  }
 
   for (const p of [a, b]) {
     const balance = await pub.readContract({
