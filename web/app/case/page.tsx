@@ -25,12 +25,12 @@ export default function CasesPage() {
 
   return (
     <div className="w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
-      <div className="mx-auto flex flex-col space-y-8">
+      <div className="mx-auto flex max-w-[1320px] flex-col space-y-8">
         <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-6 md:flex-row md:items-center">
           <div>
             <h1 className="t-display flex flex-wrap items-center gap-3 text-3xl text-white">
               <span>Case deck catalog</span>
-              <span className="t-chain rounded-full border border-[rgb(6_182_212_/_0.3)] bg-[rgb(6_182_212_/_0.2)] px-2.5 py-1 text-xs font-normal text-[var(--color-accent-bright)]">
+              <span className="t-chain rounded-full border border-[rgb(57_255_136_/_0.3)] bg-[rgb(57_255_136_/_0.2)] px-2.5 py-1 text-xs font-normal text-[var(--color-accent-bright)]">
                 {game.decks.length} {game.decks.length === 1 ? "deck" : "decks"}
               </span>
             </h1>
@@ -60,7 +60,7 @@ export default function CasesPage() {
         ) : shown.length === 0 ? (
           <p className="py-20 text-center text-slate-400">Nothing matches that filter.</p>
         ) : (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(17rem,1fr))]">
             {shown.map((d) => (
               <DeckCard key={d.id} deck={d} onInspect={() => setInspect(d)} />
             ))}

@@ -57,7 +57,7 @@ export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
   return (
     <details className="group/w relative">
       <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-        <span className="t-chain flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] border border-[rgb(6_182_212_/_0.4)] bg-slate-800 px-4 py-2 text-xs font-bold text-[var(--color-accent-bright)] transition-colors hover:bg-slate-700 sm:min-h-0">
+        <span className="t-chain flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] border border-[rgb(57_255_136_/_0.4)] bg-slate-800 px-4 py-2 text-xs font-bold text-[var(--color-accent-bright)] transition-colors hover:bg-slate-700 sm:min-h-0">
           <ShieldCheck className="h-4 w-4 text-[var(--color-accent-hover)]" />
           {short(address!)}
           <ChevronDown className="h-3 w-3 opacity-60 transition-transform duration-200 group-open/w:rotate-180" />

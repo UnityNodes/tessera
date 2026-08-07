@@ -165,7 +165,7 @@ function Tab({ href, children }: { href: string; children: React.ReactNode }) {
       href={href}
       className={`flex shrink-0 items-center rounded-[var(--radius-chip)] px-2.5 py-1.5 text-xs font-semibold capitalize transition-all min-h-11 sm:min-h-0 sm:px-4 sm:text-sm ${
         active
-          ? "border border-[rgb(6_182_212_/_0.3)] bg-[rgb(6_182_212_/_0.2)] text-[var(--color-accent-hover)] shadow-[var(--glow-accent-soft)]"
+          ? "border border-[rgb(57_255_136_/_0.3)] bg-[rgb(57_255_136_/_0.2)] text-[var(--color-accent-hover)] shadow-[var(--glow-accent-soft)]"
           : "border border-transparent text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"
       }`}
     >
@@ -195,7 +195,7 @@ function TicketsStat({ tickets, caseHref }: { tickets: number; caseHref: string 
               textShadow: "0 0 24px rgb(34 211 238 / 0.5)",
             }}
           />
-          <span className="rounded border border-[rgb(6_182_212_/_0.3)] bg-[rgb(6_182_212_/_0.1)] px-1.5 py-0.5 text-[10px] uppercase text-[var(--color-accent-hover)]">
+          <span className="rounded border border-[rgb(57_255_136_/_0.3)] bg-[rgb(57_255_136_/_0.1)] px-1.5 py-0.5 text-[10px] uppercase text-[var(--color-accent-hover)]">
             vault chance
           </span>
         </span>
@@ -245,7 +245,7 @@ const Mark = () => (
     className="grid h-8 w-8 shrink-0 place-items-center rounded-[var(--radius-chip)] transition-transform group-hover:scale-105"
     style={{
       background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-press))",
-      boxShadow: "0 0 15px rgb(6 182 212 / 0.4)",
+      boxShadow: "0 0 15px rgb(57 255 136 / 0.4)",
     }}
   >
     <span className="t-black text-lg leading-none tracking-tighter text-white">T</span>

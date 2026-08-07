@@ -71,7 +71,7 @@ export default function BattlePage() {
 
   return (
     <div className="w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
-      <div className="mx-auto flex flex-col space-y-6">
+      <div className="mx-auto flex max-w-[1100px] flex-col space-y-6">
         <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-5 md:flex-row md:items-end">
           <div>
             <Link
@@ -84,7 +84,7 @@ export default function BattlePage() {
             <h1 className="t-black mt-1 flex flex-wrap items-center gap-3 text-2xl text-white">
               <Swords className="h-6 w-6 text-[var(--color-accent-hover)]" />
               Battle #{String(battle.id)}
-              <span className="t-chain rounded-[var(--radius-chip)] border border-[rgb(6_182_212_/_0.3)] bg-[rgb(6_182_212_/_0.1)] px-2.5 py-1 text-xs font-normal text-[var(--color-accent-hover)]">
+              <span className="t-chain rounded-[var(--radius-chip)] border border-[rgb(57_255_136_/_0.3)] bg-[rgb(57_255_136_/_0.1)] px-2.5 py-1 text-xs font-normal text-[var(--color-accent-hover)]">
                 deck #{battle.deckId}
               </span>
             </h1>

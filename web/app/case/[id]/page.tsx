@@ -127,7 +127,7 @@ export default function CasePage() {
         onClose={open.reset}
       />
 
-      <div className="mx-auto flex flex-col gap-6">
+      <div className="mx-auto flex max-w-[1320px] flex-col gap-6">
         <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-5 md:flex-row md:items-center">
           <div className="flex items-center gap-4">
             <Chest
