@@ -137,9 +137,9 @@ function DeckCard({ deck, onInspect }: { deck: DeckInfo; onInspect: () => void }
           />
         </div>
 
-        <h3 className="t-black text-center text-2xl" style={{ color: ink }}>
+        <h2 className="t-black text-center text-2xl" style={{ color: ink }}>
           {deck.empty ? "Emptied" : (best?.name ?? "Sealed")}
-        </h3>
+        </h2>
 
         <p className="mt-2 min-h-[48px] text-center text-xs leading-relaxed text-slate-400">
           {deck.empty ? (
@@ -207,10 +207,10 @@ function Inspector({ deck, onClose }: { deck: DeckInfo; onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <h3 className="flex flex-wrap items-center gap-2 text-lg font-bold text-white">
+          <h2 className="flex flex-wrap items-center gap-2 text-lg font-bold text-white">
             <span style={{ color: ink }}>{best?.name ?? "Sealed"}</span>
             <span>deck · what is in it</span>
-          </h3>
+          </h2>
           <button
             type="button"
             onClick={onClose}

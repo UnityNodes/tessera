@@ -234,9 +234,9 @@ function Row({
         </span>
 
         <div className="min-w-0">
-          <h4 className="truncate text-sm font-bold text-white">
+          <h3 className="truncate text-sm font-bold text-white">
             Battle #{String(battle.id)} · deck #{battle.deckId} ({battle.joined ? "2/2" : "1/2"})
-          </h4>
+          </h3>
           <span className="t-chain block truncate text-xs text-slate-400">
             {short(battle.a)}
             {battle.joined ? ` vs ${short(battle.b)}` : " · waiting for a challenger"} ·{" "}

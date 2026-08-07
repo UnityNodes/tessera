@@ -78,7 +78,11 @@ export default function Home() {
           <div className="relative flex items-center justify-center lg:col-span-5">
             <div className="pointer-events-none absolute -top-20 left-1/2 h-[350px] w-72 -translate-x-1/2 -skew-x-12 bg-gradient-to-b from-cyan-400/25 via-cyan-500/5 to-transparent blur-xl" />
 
-            <Link href={`/case/${first?.id ?? 0}`} className="group relative">
+            <Link
+              href={`/case/${first?.id ?? 0}`}
+              aria-label="Open a case"
+              className="group relative"
+            >
               <div className="absolute bottom-6 left-1/2 h-16 w-64 -translate-x-1/2 rounded-full bg-cyan-500/30 blur-2xl transition-all group-hover:bg-cyan-400/50" />
               <Chest
                 rarity="sealed"

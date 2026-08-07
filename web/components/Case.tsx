@@ -60,8 +60,6 @@ export function Case({ phase, value, deck, size = 340, onClick, risk = false, va
     <div
       className="relative grid w-full place-items-center"
       style={{ maxWidth: size, aspectRatio: "1 / 1" }}
-      role="img"
-      aria-label={spec ? `Opened: ${spec.name}, ${spec.note}` : "A sealed case"}
     >
       {spec && !still && (
         <motion.div
@@ -103,6 +101,13 @@ export function Case({ phase, value, deck, size = 340, onClick, risk = false, va
         type="button"
         onClick={clickable ? onClick : undefined}
         disabled={!clickable}
+        aria-label={
+          spec
+            ? `Opened: ${spec.name}${spec.tickets > 0 ? `, ${paid} tickets` : ""}`
+            : clickable
+              ? "Open this case"
+              : "A sealed case"
+        }
         className="relative grid place-items-center disabled:cursor-default"
         style={{ marginBottom: spec ? size * 0.18 : 0 }}
         whileHover={clickable ? { y: -10, scale: 1.05 } : undefined}

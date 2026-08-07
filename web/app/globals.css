@@ -19,14 +19,14 @@
 
   --color-ink: #f1f5f9;
   --color-ink-dim: #94a3b8;
-  --color-ink-faint: #64748b;
+  --color-ink-faint: #7d8a9c;
 
   --color-accent: #06b6d4;
   --color-accent-hover: #22d3ee;
   --color-accent-press: #0891b2;
   --color-accent-bright: #22d3ee;
 
-  --color-tier-grout: #64748b;
+  --color-tier-grout: #7d8a9c;
   --color-tier-sealed: #38bdf8;
   --color-tier-denarius: #34d399;
   --color-tier-aureus: #fbbf24;
@@ -56,8 +56,8 @@
 
 [data-tier="grout"] {
   --metal: var(--color-tier-grout);
-  --metal-l: #cbd5e1;
-  --metal-d: #334155;
+  --metal-l: #dbe2ea;
+  --metal-d: #3d4a5c;
   --glow: 0;
   --tint: 0;
 }
@@ -189,6 +189,10 @@
     background: rgb(15 23 42 / 0.9);
     border: 1px solid var(--edge);
     border-radius: var(--radius-control);
+  }
+
+  .chip--tier {
+    color: color-mix(in oklab, var(--tier-ink, currentColor) 75%, white);
   }
 
   .chip {
@@ -353,10 +357,23 @@
   }
 }
 
-:where(a, button, [tabindex]):focus-visible {
+ *
+ *
+ *
+ */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
   outline: 2px solid var(--color-accent-bright);
   outline-offset: 2px;
   border-radius: 6px;
+  transition: none;
+}
+
+summary:focus-visible {
+  outline-offset: 3px;
 }
 
 ::selection {

@@ -85,7 +85,10 @@ export function Contents({ deck, pool }: { deck: DeckShape; pool?: PoolState }) 
 
               <span className="flex shrink-0 flex-col items-end gap-1.5">
                 {t.spec.tickets > 0 && (
-                  <span className="chip py-0.5" style={{ color: t.spec.ink }}>
+                  <span
+                    className="chip chip--tier py-0.5"
+                    style={{ "--tier-ink": t.spec.ink } as React.CSSProperties}
+                  >
                     +{t.spec.tickets}
                   </span>
                 )}
