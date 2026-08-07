@@ -53,7 +53,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
       )}
 
       {emptySince > 0 && (
-        <div className="shrink-0 pr-1 text-right">
+        <div className="hidden shrink-0 pr-1 text-right sm:block">
           <span className="t-chain block text-xl font-extrabold leading-none text-slate-400">
             {emptySince}
           </span>

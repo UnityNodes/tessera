@@ -2,7 +2,7 @@
 
 import { forwardRef } from "react";
 
-type Variant = "chisel" | "quiet" | "ghost";
+type Variant = "chisel" | "battle" | "quiet" | "ghost";
 type Size = "sm" | "md";
 
 const TOUCH = "min-h-11 sm:min-h-0 ";
@@ -20,9 +20,10 @@ interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export const chiselSkin = (size: Size = "md") =>
   `${size === "sm" ? `${TOUCH}px-4 py-2 text-xs` : "px-6 py-4 text-base"} ` +
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] " +
-  "font-extrabold tracking-wide bg-[var(--color-accent)] text-slate-950 " +
+  "font-extrabold tracking-wide text-[var(--color-on-accent)] " +
+  "bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-press))] " +
   "shadow-[var(--glow-accent)] transition-all duration-200 " +
-  "hover:bg-[var(--color-accent-hover)] hover:shadow-[var(--glow-accent-lift)]";
+  "hover:brightness-110 hover:shadow-[var(--glow-accent-lift)]";
 
 /**
  *
@@ -46,21 +47,28 @@ export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
   const skins: Record<Variant, string> = {
     chisel:
       `${pad} font-extrabold tracking-wide ` +
-      "bg-[var(--color-accent)] text-slate-950 " +
+      "text-[var(--color-on-accent)] " +
+      "bg-[linear-gradient(135deg,var(--color-accent),var(--color-accent-press))] " +
       "shadow-[var(--glow-accent)] " +
-      "hover:bg-[var(--color-accent-hover)] hover:shadow-[var(--glow-accent-lift)] hover:scale-[1.02] " +
+      "hover:brightness-110 hover:shadow-[var(--glow-accent-lift)] hover:scale-[1.02] " +
       "active:scale-[0.99] " +
-      "disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none",
+      "disabled:bg-[var(--color-raised)] disabled:bg-none disabled:text-[var(--color-ink-faint)] disabled:shadow-none",
+    battle:
+      `${pad} font-extrabold tracking-wide ` +
+      "text-white bg-[linear-gradient(135deg,#ff2d55,#c81f42)] " +
+      "shadow-[var(--glow-danger)] " +
+      "hover:brightness-110 hover:scale-[1.02] active:scale-[0.99] " +
+      "disabled:bg-[var(--color-raised)] disabled:bg-none disabled:text-[var(--color-ink-faint)] disabled:shadow-none",
     quiet:
       `${pad} font-bold ` +
-      "bg-slate-900/90 border border-slate-700 text-slate-200 " +
-      "hover:bg-slate-800 hover:border-[rgb(6_182_212_/_0.5)] hover:text-[var(--color-accent-hover)] " +
-      "disabled:bg-slate-900/60 disabled:border-slate-800 disabled:text-slate-600",
+      "bg-transparent border border-[var(--edge-strong)] text-[#c7d6cd] " +
+      "hover:border-[rgb(57_255_136_/_0.5)] hover:text-[var(--color-accent-hover)] " +
+      "disabled:border-[var(--edge)] disabled:text-[var(--color-ink-faint)]",
     ghost:
       `${pad} font-bold ` +
       "text-[var(--color-ink-dim)] " +
-      "hover:bg-slate-800/70 hover:text-[var(--color-ink)] " +
-      "disabled:text-slate-700",
+      "hover:bg-[var(--color-raised)] hover:text-[var(--color-ink)] " +
+      "disabled:text-[var(--color-ink-faint)]",
   };
 
   return (

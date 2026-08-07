@@ -177,7 +177,7 @@ function DeckCard({ deck, onInspect }: { deck: DeckInfo; onInspect: () => void }
           className="t-label flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-control)] py-3 shadow-lg transition-all hover:brightness-110"
           style={{
             backgroundColor: deck.empty ? "#1e293b" : ink,
-            color: deck.empty ? "#94a3b8" : "#090d16",
+            color: deck.empty ? "#7c9083" : "var(--color-on-accent)",
             boxShadow: deck.empty ? undefined : `0 0 15px color-mix(in oklab, ${ink} 26%, transparent)`,
           }}
         >

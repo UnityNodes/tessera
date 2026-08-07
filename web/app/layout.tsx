@@ -1,22 +1,21 @@
 import type { Metadata } from "next";
-import { Archivo, IBM_Plex_Mono } from "next/font/google";
+import { Orbitron, Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Shell } from "@/components/Shell";
 import { Backdrop } from "@/components/Backdrop";
 
-//
-const archivo = Archivo({
-  variable: "--font-archivo",
+const orbitron = Orbitron({
+  variable: "--font-orbitron",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["500", "700", "900"],
   display: "swap",
 });
 
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin", "cyrillic"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -30,7 +29,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${archivo.variable} ${plexMono.variable} h-full antialiased`}>
+    <html lang="en" className={`${orbitron.variable} ${inter.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-[var(--color-bg)] text-[var(--color-ink)]">
         <Backdrop />
         <Providers>

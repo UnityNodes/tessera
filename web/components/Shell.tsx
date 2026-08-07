@@ -147,7 +147,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             href={addressUrl(DECK_ADDRESS)}
             target="_blank"
             rel="noreferrer"
-            className="t-chain transition-colors hover:text-[var(--color-accent-hover)]"
+            className="t-addr transition-colors hover:text-[var(--color-accent-hover)]"
           >
             {DECK_ADDRESS}
           </a>
@@ -244,7 +244,7 @@ const Mark = () => (
   <span
     className="grid h-8 w-8 shrink-0 place-items-center rounded-[var(--radius-chip)] transition-transform group-hover:scale-105"
     style={{
-      background: "linear-gradient(to top right, #06b6d4, #2563eb)",
+      background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-press))",
       boxShadow: "0 0 15px rgb(6 182 212 / 0.4)",
     }}
   >

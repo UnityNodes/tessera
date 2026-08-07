@@ -1,6 +1,7 @@
 /**
  *
  *
+ *
  */
 
 const POOLS = [
@@ -9,7 +10,7 @@ const POOLS = [
     h: "60vw",
     top: "-26vw",
     right: "-14vw",
-    tint: "rgb(6 182 212 / 0.16)",
+    tint: "rgb(57 255 136 / 0.09)",
     anim: "pool-drift 44s ease-in-out infinite",
   },
   {
@@ -17,7 +18,7 @@ const POOLS = [
     h: "58vw",
     bottom: "-26vw",
     left: "-16vw",
-    tint: "rgb(37 99 235 / 0.16)",
+    tint: "rgb(31 207 108 / 0.07)",
     anim: "pool-drift 58s ease-in-out infinite reverse",
   },
   {
@@ -25,7 +26,7 @@ const POOLS = [
     h: "42vw",
     top: "42%",
     left: "34%",
-    tint: "rgb(168 85 247 / 0.08)",
+    tint: "rgb(57 255 136 / 0.05)",
     anim: "pool-drift 66s ease-in-out infinite",
   },
 ] as const;

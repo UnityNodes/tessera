@@ -25,9 +25,9 @@ export default function Home() {
 
   return (
     <div className="flex w-full flex-col">
-      <section className="relative w-full overflow-hidden border-b border-slate-800/60 bg-gradient-to-b from-[#090d16] via-[#0b101c] to-[#070a11] px-4 py-12 lg:px-8 lg:py-20 2xl:px-14">
-        <div className="pointer-events-none absolute right-1/4 top-0 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
-        <div className="pointer-events-none absolute bottom-0 left-1/4 h-96 w-96 rounded-full bg-blue-600/10 blur-3xl" />
+      <section className="relative w-full overflow-hidden border-b border-slate-800/60 bg-gradient-to-b from-[#0c130e] via-[#0a0f0a] to-[#070b07] px-4 py-12 lg:px-8 lg:py-20 2xl:px-14">
+        <div className="pointer-events-none absolute right-1/4 top-0 h-96 w-96 rounded-full bg-[rgb(57_255_136_/_0.07)] blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-1/4 h-96 w-96 rounded-full bg-[rgb(31_207_108_/_0.06)] blur-3xl" />
 
         <div className="relative z-10 mx-auto grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
           <div className="flex flex-col items-start space-y-6 lg:col-span-7">
@@ -35,7 +35,7 @@ export default function Home() {
               A finite pool, drawn
               <br />
               without{" "}
-              <span className="text-[var(--color-accent-hover)] drop-shadow-[0_0_20px_rgba(56,189,248,0.4)]">
+              <span className="text-[var(--color-accent-hover)] drop-shadow-[0_0_20px_rgba(57,255,136,0.35)]">
                 replacement.
               </span>
             </h1>
@@ -69,14 +69,14 @@ export default function Home() {
           </div>
 
           <div className="relative flex items-center justify-center lg:col-span-5">
-            <div className="pointer-events-none absolute -top-20 left-1/2 h-[350px] w-72 -translate-x-1/2 -skew-x-12 bg-gradient-to-b from-cyan-400/25 via-cyan-500/5 to-transparent blur-xl" />
+            <div className="pointer-events-none absolute -top-20 left-1/2 h-[350px] w-72 -translate-x-1/2 -skew-x-12 bg-gradient-to-b from-[rgb(57_255_136_/_0.22)] via-[rgb(57_255_136_/_0.05)] to-transparent blur-xl" />
 
             <Link
               href={`/case/${first?.id ?? 0}`}
               aria-label="Open a case"
               className="group relative"
             >
-              <div className="absolute bottom-6 left-1/2 h-16 w-64 -translate-x-1/2 rounded-full bg-cyan-500/30 blur-2xl transition-all group-hover:bg-cyan-400/50" />
+              <div className="absolute bottom-6 left-1/2 h-16 w-64 -translate-x-1/2 rounded-full bg-[rgb(57_255_136_/_0.26)] blur-2xl transition-all group-hover:bg-[rgb(57_255_136_/_0.42)]" />
               <Chest
                 rarity="sealed"
                 size={384}

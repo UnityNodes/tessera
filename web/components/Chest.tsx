@@ -9,29 +9,30 @@ import type { Rarity } from "@/lib/deck";
  */
 
 const ART: Record<Rarity, { src: string; open: string; filter?: string }> = {
-  sealed: { src: "/chests/sealed.webp", open: "/chests/sealed-open.webp" },
-  denarius: { src: "/chests/denarius.webp", open: "/chests/denarius-open.webp" },
-  shard: {
-    src: "/chests/denarius.webp",
-    open: "/chests/denarius-open.webp",
-    filter: "saturate(0.7) brightness(0.86)",
-  },
-  aureus: { src: "/chests/aureus.webp", open: "/chests/aureus-open.webp" },
-  porphyry: {
-    src: "/chests/aureus.webp",
-    open: "/chests/aureus-open.webp",
-    filter: "hue-rotate(258deg) saturate(1.45)",
-  },
-  vault: {
-    src: "/chests/aureus.webp",
-    open: "/chests/aureus-open.webp",
-    filter: "hue-rotate(292deg) saturate(1.35) brightness(1.05)",
+  //
+  sealed: {
+    src: "/chests/sealed.webp",
+    open: "/chests/sealed-open.webp",
+    filter: "saturate(0.14) brightness(0.95)",
   },
   grout: {
     src: "/chests/sealed.webp",
     open: "/chests/sealed-open.webp",
-    filter: "saturate(0.12) brightness(0.82)",
+    filter: "saturate(0.1) brightness(0.72)",
   },
+  shard: {
+    src: "/chests/denarius.webp",
+    open: "/chests/denarius-open.webp",
+    filter: "saturate(0.75) brightness(0.78)",
+  },
+  denarius: { src: "/chests/denarius.webp", open: "/chests/denarius-open.webp" },
+  aureus: { src: "/chests/sealed.webp", open: "/chests/sealed-open.webp" },
+  porphyry: {
+    src: "/chests/sealed.webp",
+    open: "/chests/sealed-open.webp",
+    filter: "hue-rotate(72deg) saturate(1.3)",
+  },
+  vault: { src: "/chests/aureus.webp", open: "/chests/aureus-open.webp" },
 };
 
 const MASK = "radial-gradient(closest-side, #000 56%, transparent 92%)";
