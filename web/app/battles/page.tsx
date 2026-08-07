@@ -82,9 +82,15 @@ export default function BattlesPage() {
         )}
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-          <div className="space-y-6 rounded-[var(--radius-window)] border border-slate-800 bg-slate-900/70 p-6 lg:col-span-5">
-            <h2 className="flex items-center gap-2 text-xl font-bold text-white">
-              <Plus className="h-5 w-5 text-[var(--color-accent-hover)]" />
+          <div
+            className="space-y-6 rounded-[var(--radius-window)] border p-6 lg:col-span-5"
+            style={{
+              background: "var(--color-surface)",
+              borderColor: "color-mix(in oklab, var(--color-danger) 25%, transparent)",
+            }}
+          >
+            <h2 className="t-display flex items-center gap-2 text-xl text-white">
+              <Plus className="h-5 w-5" style={{ color: "var(--color-danger)" }} />
               <span>Create a battle</span>
             </h2>
 
@@ -216,11 +222,14 @@ function Row({
   const [label, ink] = battle.resolved
     ? ["done", "var(--color-ink-faint)"]
     : battle.joined
-      ? ["live", "var(--color-accent-hover)"]
+      ? ["live", "var(--color-danger)"]
       : ["waiting", "var(--color-ink-dim)"];
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-panel)] border border-slate-800 bg-slate-900/60 p-4 transition-all hover:border-slate-700">
+    <div
+      className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-panel)] border p-5 transition-colors"
+      style={{ background: "var(--color-surface)", borderColor: "var(--edge)" }}
+    >
       <div className="flex min-w-0 items-center gap-4">
         <span
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] border"

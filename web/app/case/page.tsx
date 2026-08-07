@@ -103,27 +103,24 @@ function DeckCard({ deck, onInspect }: { deck: DeckInfo; onInspect: () => void }
 
   return (
     <div
-      className="flex flex-col justify-between rounded-[var(--radius-panel)] border bg-slate-900/60 p-6 transition-all hover:scale-[1.02]"
+      className="relative flex flex-col justify-between rounded-[20px] border px-6 pb-6 pt-8 transition-all hover:scale-[1.02]"
       style={{
-        borderColor: `color-mix(in oklab, ${ink} 40%, transparent)`,
-        boxShadow: `0 0 25px color-mix(in oklab, ${ink} 22%, transparent)`,
+        background: "var(--color-surface)",
+        borderColor: `color-mix(in oklab, ${ink} 27%, transparent)`,
+        boxShadow: `0 0 25px color-mix(in oklab, ${ink} 14%, transparent)`,
       }}
     >
-      <div>
-        <div className="mb-4 flex items-center justify-between">
-          <span
-            className="t-chain rounded-[var(--radius-chip)] border px-2.5 py-1 text-xs font-bold"
-            style={{
-              backgroundColor: `color-mix(in oklab, ${ink} 13%, transparent)`,
-              borderColor: `color-mix(in oklab, ${ink} 26%, transparent)`,
-              color: ink,
-            }}
-          >
-            $1.00 / case
-          </span>
-          <span className="t-chain text-xs text-slate-400">{deck.remaining} sealed</span>
-        </div>
+      <span
+        className="t-label absolute left-5 top-4 text-[0.625rem]"
+        style={{ color: ink, letterSpacing: "0.1em" }}
+      >
+        {deck.empty ? "emptied" : (best?.name ?? "sealed")}
+      </span>
+      <span className="t-chain absolute right-5 top-4 text-xs text-slate-400">
+        {deck.remaining} sealed
+      </span>
 
+      <div>
         <div className="relative my-4 flex justify-center">
           <span
             aria-hidden
@@ -135,18 +132,43 @@ function DeckCard({ deck, onInspect }: { deck: DeckInfo; onInspect: () => void }
             size={188}
             className="relative z-10"
           />
+          <span
+            className="t-chain absolute bottom-1 left-1/2 -translate-x-1/2 rounded border px-3 py-1 text-xs font-extrabold"
+            style={{
+              background: "rgb(0 0 0 / 0.45)",
+              borderColor: `color-mix(in oklab, ${ink} 30%, transparent)`,
+              color: ink,
+            }}
+          >
+            $1.00
+          </span>
         </div>
 
-        <h2 className="t-black text-center text-2xl" style={{ color: ink }}>
-          {deck.empty ? "Emptied" : (best?.name ?? "Sealed")}
+        <h2 className="t-black flex items-baseline justify-center gap-2 text-center text-2xl" style={{ color: ink }}>
+          <span>{deck.empty ? "Emptied" : (best?.name ?? "Sealed")}</span>
+          <span className="t-chain text-sm font-bold text-[var(--color-ink-dim)]">#{deck.id}</span>
         </h2>
 
-        <p className="mt-2 min-h-[48px] text-center text-xs leading-relaxed text-slate-400">
+        {!deck.empty && oneIn > 0 && (
+          <p className="mt-2 flex justify-center">
+            <span
+              className="t-chain rounded-full border px-3 py-1 text-sm font-extrabold"
+              style={{
+                borderColor: `color-mix(in oklab, ${ink} 30%, transparent)`,
+                background: `color-mix(in oklab, ${ink} 8%, transparent)`,
+                color: ink,
+              }}
+            >
+              1 in {oneIn} pays
+            </span>
+          </p>
+        )}
+
+        <p className="mt-3 min-h-[48px] text-center text-xs leading-relaxed text-slate-400">
           {deck.empty ? (
             "Every case in this deck has been opened."
           ) : (
             <>
-              {oneIn > 0 ? `1 in ${oneIn} cases pay something. ` : ""}
               Best case {top > 0 ? `+${top} tickets` : "the vault"}.{" "}
               {deck.vaultUpTo > 0
                 ? "One case in the deck opens the vault and takes all of it."
@@ -175,10 +197,13 @@ function DeckCard({ deck, onInspect }: { deck: DeckInfo; onInspect: () => void }
         <Link
           href={`/case/${deck.id}`}
           className="t-label flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-[var(--radius-control)] py-3 shadow-lg transition-all hover:brightness-110"
+          //
           style={{
-            backgroundColor: deck.empty ? "#1e293b" : ink,
-            color: deck.empty ? "#7c9083" : "var(--color-on-accent)",
-            boxShadow: deck.empty ? undefined : `0 0 15px color-mix(in oklab, ${ink} 26%, transparent)`,
+            background: deck.empty
+              ? "var(--color-raised)"
+              : "linear-gradient(135deg, var(--color-accent), var(--color-accent-press))",
+            color: deck.empty ? "var(--color-ink-faint)" : "var(--color-on-accent)",
+            boxShadow: deck.empty ? undefined : "var(--glow-accent)",
           }}
         >
           <Sparkles className="h-4 w-4 fill-current" />
