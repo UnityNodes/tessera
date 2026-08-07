@@ -217,7 +217,7 @@ async function ensureConnected(page) {
     const scene = (
       await page
         .getByRole("dialog", { name: /Opening a case/ })
-        .getByText(/^(Grout|Shard|Denarius|Aureus|Porphyry|The Vault|empty)$/)
+        .getByText(/^(Grout|TESA|Denarius|Aureus|Porphyry|The Vault|empty)$/)
         .first()
         .textContent()
     ).trim();

@@ -79,7 +79,7 @@ export function specFor(weight: number): TierSpec {
   //
   if (weight > 0) {
     return {
-      name: "Shard",
+      name: "TESA",
       note: `${WEIGHT_PER_TICKET} make a ticket`,
       tint: "color-mix(in oklab, var(--color-tier-shard) 9%, var(--color-surface))",
       ink: "var(--color-tier-shard)",

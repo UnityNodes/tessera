@@ -8,15 +8,20 @@ import type { Rarity } from "@/lib/deck";
  *
  */
 
-const ART: Record<Rarity, { src: string; open: string; filter?: string }> = {
+/**
+ *
+ */
+const ART: Record<Rarity, { src: string; open: string; filter?: string; bare?: boolean }> = {
   //
   sealed: {
-    src: "/chests/sealed.webp",
+    bare: true,
+    src: "/chests/sealed-bare.webp",
     open: "/chests/sealed-open.webp",
     filter: "saturate(0.14) brightness(0.95)",
   },
   grout: {
-    src: "/chests/sealed.webp",
+    bare: true,
+    src: "/chests/sealed-bare.webp",
     open: "/chests/sealed-open.webp",
     filter: "saturate(0.1) brightness(0.72)",
   },
@@ -26,9 +31,10 @@ const ART: Record<Rarity, { src: string; open: string; filter?: string }> = {
     filter: "saturate(0.75) brightness(0.78)",
   },
   denarius: { src: "/chests/denarius.webp", open: "/chests/denarius-open.webp" },
-  aureus: { src: "/chests/sealed.webp", open: "/chests/sealed-open.webp" },
+  aureus: { bare: true, src: "/chests/sealed-bare.webp", open: "/chests/sealed-open.webp" },
   porphyry: {
-    src: "/chests/sealed.webp",
+    bare: true,
+    src: "/chests/sealed-bare.webp",
     open: "/chests/sealed-open.webp",
     filter: "hue-rotate(72deg) saturate(1.3)",
   },
@@ -62,6 +68,7 @@ export function Chest({
 }) {
   const art = ART[rarity];
   const glow = "drop-shadow(0 0 calc(var(--glow, 0) * 26px) var(--metal))";
+  const masked = !(art.bare && !open);
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
@@ -81,8 +88,8 @@ export function Chest({
         maxWidth: "100%",
         height: "auto",
         filter: art.filter ? `${art.filter} ${glow}` : glow,
-        maskImage: MASK,
-        WebkitMaskImage: MASK,
+        maskImage: masked ? MASK : undefined,
+        WebkitMaskImage: masked ? MASK : undefined,
         animation: drift ? "crate-hover 4.4s ease-in-out infinite" : undefined,
       }}
     />

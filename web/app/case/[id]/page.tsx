@@ -31,6 +31,7 @@ import {
   slotsPerTier,
   bestTier,
   ticketsFromWeight,
+  WEIGHT_PER_TICKET,
   isVault,
   isShard,
   type DeckShape,
@@ -78,6 +79,9 @@ export default function CasePage() {
   const vault = useVault(refresh);
 
   const weight = heldWeight(inventory.data);
+  const tesa = (inventory.data ?? []).filter(
+    (sl) => sl.value != null && !sl.spent && !sl.locked && isShard(specOf(sl.value, shape)),
+  ).length;
   const toRedeem = pickForRedeem(inventory.data);
   const bonusTickets = ticketsFromWeight(weight);
 
@@ -336,9 +340,28 @@ export default function CasePage() {
           <PoolGrid size={deck.size} drawn={deck.drawn} ink={ink} />
         </section>
 
-        {(bonusTickets > 0 || stake.open || stake.bankedWeight > 0) && (
+        {(bonusTickets > 0 || tesa > 0 || stake.open || stake.bankedWeight > 0) && (
           <section className="slab p-6 sm:p-8">
-            <p className="t-label mb-4">your bonus</p>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <p className="t-label">your bonus</p>
+              {tesa > 0 && (
+                <span
+                  className="t-chain flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-extrabold"
+                  style={{
+                    borderColor: "color-mix(in oklab, var(--color-tier-shard) 35%, transparent)",
+                    background: "color-mix(in oklab, var(--color-tier-shard) 8%, transparent)",
+                    color: "var(--color-tier-shard)",
+                  }}
+                >
+                  {tesa} TESA
+                  <span className="text-[var(--color-ink-faint)]">
+                    {tesa % WEIGHT_PER_TICKET === 0
+                      ? "· a ticket ready"
+                      : `· ${WEIGHT_PER_TICKET - (tesa % WEIGHT_PER_TICKET)} to a ticket`}
+                  </span>
+                </span>
+              )}
+            </div>
             <StakePanel
               stake={stake}
               toRedeem={toRedeem}
