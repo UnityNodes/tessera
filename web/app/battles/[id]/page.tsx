@@ -9,6 +9,7 @@ import { ChevronLeft, Trophy, Swords } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Roll } from "@/components/Roll";
 import { Chest } from "@/components/Chest";
+import { StartHere } from "@/components/StartHere";
 import { useDeck } from "@/hooks/useDeck";
 import { usePool } from "@/hooks/usePool";
 import { useBattle } from "@/hooks/useBattles";
@@ -121,6 +122,7 @@ export default function BattlePage() {
             />
           ) : (
             <OpenSeat
+              ready={Boolean(address) && game.canAfford}
               canJoin={Boolean(address) && !iAmIn && game.canAfford && Boolean(deck) && !deck!.empty}
               busy={fight.busy}
               onJoin={() => void fight.join(game.needsApproval)}
@@ -239,25 +241,31 @@ function Side({
 }
 
 function OpenSeat({
+  ready,
   canJoin,
   busy,
   onJoin,
 }: {
+  ready: boolean;
   canJoin: boolean;
   busy: boolean;
   onJoin: () => void;
 }) {
   return (
     <div className="grid place-items-center rounded-[var(--radius-window)] border border-dashed border-slate-700 bg-slate-900/40 p-8">
-      <div className="text-center">
+      <div className="w-full max-w-xs text-center">
         <p className="t-label">open seat</p>
-        <p className="mt-2 max-w-xs text-slate-400">
+        <p className="mt-2 text-slate-400">
           Your dollar buys you a real ticket either way. Only the bonus is on the table.
         </p>
-        <div className="mt-5">
-          <Button disabled={!canJoin || busy} onClick={onJoin}>
-            {busy ? "…" : "Take the seat • $1"}
-          </Button>
+        <div className="mt-5 text-left">
+          {ready ? (
+            <Button block className="py-4" disabled={!canJoin || busy} onClick={onJoin}>
+              {busy ? "…" : "Take the seat • $1"}
+            </Button>
+          ) : (
+            <StartHere what="A seat" />
+          )}
         </div>
       </div>
     </div>

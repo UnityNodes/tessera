@@ -6,6 +6,7 @@ import { useAccount } from "wagmi";
 import { Swords, Plus, Play, Users } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Chest } from "@/components/Chest";
+import { StartHere } from "@/components/StartHere";
 import { useDeck } from "@/hooks/useDeck";
 import { useBattleList, type Battle } from "@/hooks/useBattles";
 import { bestTier } from "@/lib/deck";
@@ -134,39 +135,38 @@ export default function BattlesPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-slate-800 pt-4">
-              <div>
-                <span className="t-label block">your entry</span>
-                <span className="t-chain text-xl font-extrabold text-[var(--color-accent-hover)]">
-                  $1.00
-                </span>
-                <span className="t-chain block text-[11px] text-slate-500">
-                  and it still buys your ticket
+            <div className="border-t border-slate-800 pt-4">
+              <div className="mb-4 flex items-baseline justify-between gap-4">
+                <span className="t-label">your entry</span>
+                <span className="text-right">
+                  <span className="t-chain text-xl font-extrabold text-[var(--color-accent-hover)]">
+                    $1.00
+                  </span>
+                  <span className="t-chain block text-[11px] text-slate-500">
+                    and it still buys your ticket
+                  </span>
                 </span>
               </div>
 
-              <Button
-                disabled={!canPlay || battles.busy || Boolean(mine)}
-                loading={battles.busy}
-                onClick={() => chosen && void battles.create(chosen.id, game.needsApproval)}
-              >
-                <Play className="h-4 w-4 fill-slate-950" />
-                Start battle
-              </Button>
+              {!address || !game.canAfford ? (
+                <StartHere what="A battle" />
+              ) : mine ? (
+                <p className="text-sm text-slate-400">
+                  You already have a battle on the table. Settle it before opening another.
+                </p>
+              ) : (
+                <Button
+                  block
+                  className="py-4"
+                  disabled={!canPlay || battles.busy}
+                  loading={battles.busy}
+                  onClick={() => chosen && void battles.create(chosen.id, game.needsApproval)}
+                >
+                  <Play className="h-4 w-4 fill-slate-950" />
+                  Start battle
+                </Button>
+              )}
             </div>
-
-            {!address ? (
-              <p className="text-sm text-slate-500">Connect a wallet to open a battle.</p>
-            ) : !game.canAfford ? (
-              <p className="text-sm text-slate-500">
-                You need $1 in test dollars, mint some with the{" "}
-                <span className="text-[var(--color-accent-hover)]">+</span> in the header.
-              </p>
-            ) : mine ? (
-              <p className="text-sm text-slate-500">
-                You already have a battle on the table. Settle it before opening another.
-              </p>
-            ) : null}
           </div>
 
           <div className="space-y-4 lg:col-span-7">
@@ -185,6 +185,7 @@ export default function BattlesPage() {
                   key={String(b.id)}
                   battle={b}
                   me={me}
+                  ready={Boolean(address) && game.canAfford}
                   canPlay={canPlay && !mine}
                   busy={battles.busy}
                   onJoin={() => void battles.join(b.id, game.needsApproval)}
@@ -201,12 +202,14 @@ export default function BattlesPage() {
 function Row({
   battle,
   me,
+  ready,
   canPlay,
   busy,
   onJoin,
 }: {
   battle: Battle;
   me?: string;
+  ready: boolean;
   canPlay: boolean;
   busy: boolean;
   onJoin: () => void;
@@ -257,11 +260,13 @@ function Row({
           {label}
         </span>
 
-        {battle.waiting && !isMine && (
+        {battle.waiting && !isMine && (ready ? (
           <Button size="sm" disabled={!canPlay || busy} onClick={onJoin}>
             Join • $1
           </Button>
-        )}
+        ) : (
+          <StartHere what="A seat" compact />
+        ))}
         <Link href={`/battles/${battle.id}`}>
           <Button size="sm" variant="ghost">
             {battle.resolved ? "Result" : "Watch"}

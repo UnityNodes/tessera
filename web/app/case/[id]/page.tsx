@@ -16,6 +16,7 @@ import { PoolCounter } from "@/components/PoolCounter";
 import { PoolGrid } from "@/components/PoolGrid";
 import { MegapotPanel } from "@/components/MegapotPanel";
 import { StakePanel } from "@/components/StakePanel";
+import { StartHere } from "@/components/StartHere";
 import { useDeck } from "@/hooks/useDeck";
 import { useOpenCase } from "@/hooks/useOpenCase";
 import { useInventory, useRefreshInventory, heldWeight, pickForRedeem } from "@/hooks/useInventory";
@@ -236,16 +237,10 @@ export default function CasePage() {
               </div>
 
               <div className="mt-2">
-                {!isConnected ? (
-                  <p className="text-slate-400">Connect a wallet to open a case.</p>
-                ) : deck.empty ? (
+                {deck.empty ? (
                   <p className="text-slate-400">Every case in this season has been opened.</p>
-                ) : !game.canAfford ? (
-                  <p className="text-slate-400">
-                    You need $1 in test dollars, mint some with the{" "}
-                    <span className="text-[var(--color-accent-hover)]">+</span> in the header, they
-                    are free.
-                  </p>
+                ) : !isConnected || !game.canAfford ? (
+                  <StartHere what="A case" />
                 ) : (
                   <>
                     <Button
