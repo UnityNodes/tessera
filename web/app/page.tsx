@@ -25,70 +25,76 @@ export default function Home() {
 
   return (
     <div className="flex w-full flex-col">
-      <section className="relative w-full overflow-hidden border-b border-slate-800/60 bg-gradient-to-b from-[#0c130e] via-[#0a0f0a] to-[#070b07] px-4 py-12 lg:px-8 lg:py-20 2xl:px-14">
+      <section className="relative w-full overflow-hidden px-4 pb-14 pt-12 text-center lg:px-8 lg:pt-16">
         <div className="pointer-events-none absolute right-1/4 top-0 h-96 w-96 rounded-full bg-[rgb(57_255_136_/_0.07)] blur-3xl" />
         <div className="pointer-events-none absolute bottom-0 left-1/4 h-96 w-96 rounded-full bg-[rgb(31_207_108_/_0.06)] blur-3xl" />
 
-        <div className="relative z-10 mx-auto grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
-          <div className="flex flex-col items-start space-y-6 lg:col-span-7">
-            <h1 className="t-black text-4xl text-white sm:text-5xl lg:text-6xl 2xl:text-7xl">
-              A finite pool, drawn
-              <br />
-              without{" "}
-              <span className="text-[var(--color-accent-hover)] drop-shadow-[0_0_20px_rgba(57,255,136,0.35)]">
-                replacement.
-              </span>
-            </h1>
+        <div className="relative z-10 mx-auto flex max-w-[1320px] flex-col items-center gap-6">
+          <p
+            className="t-label rounded-full border px-4 py-1.5 text-[0.6875rem]"
+            style={{
+              borderColor: "color-mix(in oklab, var(--color-tier-vault) 35%, transparent)",
+              background: "color-mix(in oklab, var(--color-tier-vault) 6%, transparent)",
+              color: "var(--color-tier-vault)",
+            }}
+          >
+            every case = 1 real Megapot ticket
+          </p>
 
-            <p className="max-w-2xl text-lg leading-relaxed text-slate-400 lg:text-xl">
-              A case costs $1 and buys you a real Megapot lottery ticket, the same one sold on
-              megapot.io, bought in the transaction that opens the case. What is inside was
-              shuffled once, before anyone opened one, and is drawn in order. A prize someone else
-              takes is gone for everybody.
-            </p>
+          <h1 className="t-black text-4xl text-white sm:text-5xl lg:text-6xl 2xl:text-7xl">
+            A finite pool, drawn
+            <br />
+            without{" "}
+            <span className="text-[var(--color-accent-hover)] drop-shadow-[0_0_20px_rgba(57,255,136,0.35)]">
+              replacement.
+            </span>
+          </h1>
 
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Link href={`/case/${first?.id ?? 0}`}>
-                <Button className="px-8 py-4 text-base">
-                  <Sparkles className="h-5 w-5 fill-slate-950" />
-                  Open a case • $1
-                </Button>
-              </Link>
-              <Link href="/battles">
-                <Button variant="quiet" className="px-8 py-4 text-base">
-                  <Swords className="h-5 w-5 text-[var(--color-accent-hover)]" />
-                  Battles
-                  {battles.open.length > 0 ? ` • ${battles.open.length} waiting` : ""}
-                </Button>
-              </Link>
-            </div>
+          <p className="max-w-2xl text-lg leading-relaxed text-slate-400">
+            A case costs $1 and buys you a real Megapot lottery ticket, the same one sold on
+            megapot.io, bought in the transaction that opens the case. What is inside was
+            shuffled once, before anyone opened one, and is drawn in order. A prize someone else
+            takes is gone for everybody.
+          </p>
 
-            <p className="t-chain pt-2 text-sm text-slate-500">
-              {game.remaining} of {total || ", "} slots still sealed, across every deck
-            </p>
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+            <Link href={`/case/${first?.id ?? 0}`}>
+              <Button className="px-8 py-4 text-base">
+                <Sparkles className="h-5 w-5 fill-[var(--color-on-accent)]" />
+                Open a case • $1
+              </Button>
+            </Link>
+            <Link href="/battles">
+              <Button variant="battle" className="px-8 py-4 text-base">
+                <Swords className="h-5 w-5" />
+                Battles
+                {battles.open.length > 0 ? ` • ${battles.open.length} waiting` : ""}
+              </Button>
+            </Link>
           </div>
 
-          <div className="relative flex items-center justify-center lg:col-span-5">
-            <div className="pointer-events-none absolute -top-20 left-1/2 h-[350px] w-72 -translate-x-1/2 -skew-x-12 bg-gradient-to-b from-[rgb(57_255_136_/_0.22)] via-[rgb(57_255_136_/_0.05)] to-transparent blur-xl" />
 
-            <Link
-              href={`/case/${first?.id ?? 0}`}
-              aria-label="Open a case"
-              className="group relative"
-            >
-              <div className="absolute bottom-6 left-1/2 h-16 w-64 -translate-x-1/2 rounded-full bg-[rgb(57_255_136_/_0.26)] blur-2xl transition-all group-hover:bg-[rgb(57_255_136_/_0.42)]" />
-              <Chest
-                rarity="sealed"
-                size={384}
-                className="relative z-10 max-w-[min(100%,24rem)] transition-transform duration-500 group-hover:scale-105"
-              />
-            </Link>
+          <div className="mt-8 grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
+            <StatCard
+              value={String(game.drawn)}
+              label="opened so far"
+              tone="var(--color-accent)"
+            />
+            <StatCard
+              value={`${game.remaining} of ${total || ", "}`}
+              label="still sealed, across every deck"
+            />
+            <StatCard
+              value={`$${Number(formatUnits(game.vault, 6)).toFixed(2)}`}
+              label="waiting in the vaults"
+              tone="var(--color-tier-vault)"
+            />
           </div>
         </div>
       </section>
 
       <section className="w-full border-b border-slate-800/60 bg-[var(--color-section)] px-4 py-16 lg:px-8 2xl:px-14">
-        <div className="mx-auto flex flex-col items-center">
+        <div className="mx-auto flex max-w-[1320px] flex-col items-center">
           <h2 className="t-inscription mb-10 text-center text-2xl font-extrabold text-white lg:text-3xl">
             deck progress
           </h2>
@@ -96,7 +102,7 @@ export default function Home() {
           {game.decks.length === 0 ? (
             <p className="py-10 text-center text-slate-400">Reading the chain…</p>
           ) : (
-            <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="grid w-full gap-6 [grid-template-columns:repeat(auto-fit,minmax(17rem,1fr))]">
               {game.decks.map((d) => (
                 <DeckCard key={d.id} deck={d} />
               ))}
@@ -106,7 +112,7 @@ export default function Home() {
       </section>
 
       <section className="w-full border-b border-slate-800/60 bg-[var(--color-section-alt)] px-4 py-16 lg:px-8 2xl:px-14">
-        <div className="mx-auto flex flex-col items-center">
+        <div className="mx-auto flex max-w-[1320px] flex-col items-center">
           <div className="mb-12 max-w-2xl text-center">
             <h2 className="t-display text-3xl text-white">
               How the ticket, the pool and the vault fit together
@@ -144,7 +150,7 @@ export default function Home() {
       </section>
 
       <section className="w-full bg-[var(--color-section-deep)] px-4 py-14 lg:px-8 2xl:px-14">
-        <div className="mx-auto flex flex-col items-center">
+        <div className="mx-auto flex max-w-[1320px] flex-col items-center">
           <div className="mb-8 flex items-center gap-2">
             <Award className="h-6 w-6" style={{ color: "var(--color-tier-aureus)" }} />
             <h3 className="t-inscription text-xl font-extrabold text-white">
@@ -162,6 +168,31 @@ export default function Home() {
 /**
  *
  */
+/**
+ *
+ */
+function StatCard({ value, label, tone }: { value: string; label: string; tone?: string }) {
+  return (
+    <div
+      className="rounded-[14px] border px-6 py-5 text-center"
+      style={{
+        background: "var(--color-surface)",
+        borderColor: tone
+          ? `color-mix(in oklab, ${tone} 16%, transparent)`
+          : "rgb(255 255 255 / 0.08)",
+      }}
+    >
+      <div
+        className="t-chain text-2xl font-extrabold leading-none sm:text-3xl"
+        style={{ color: tone ?? "var(--color-ink)" }}
+      >
+        {value}
+      </div>
+      <div className="t-label mt-2 text-[0.625rem]">{label}</div>
+    </div>
+  );
+}
+
 function DeckCard({ deck }: { deck: DeckInfo }) {
   const tiers = slotsPerTier(deck);
   const best = bestTier(deck);
@@ -170,6 +201,12 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
   const prizes = tiers.filter((t) => t.weight > 0).reduce((n, t) => n + t.count, 0);
   const paying = prizes + deck.vaultUpTo;
   const oneIn = paying > 0 ? Math.max(1, Math.round(deck.size / paying)) : 0;
+
+  const rank = (t: (typeof tiers)[number]) =>
+    isVault(t.spec) ? Number.MAX_SAFE_INTEGER : t.spec.tickets;
+  const ladder = [...tiers]
+    .filter((t) => t.weight > 0 || isVault(t.spec))
+    .sort((a, b) => rank(b) - rank(a));
 
   const ink = deck.empty ? "var(--color-tier-grout)" : (best?.ink ?? "var(--color-accent)");
   const sealedPercent = deck.size > 0 ? Math.max(1, (deck.remaining / deck.size) * 100) : 0;
@@ -197,9 +234,33 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
           />
         </div>
 
-        <h3 className="t-black text-2xl tracking-wide" style={{ color: ink }}>
-          {deck.empty ? "Emptied" : (best?.name ?? "Sealed")}
+        <h3
+          className="t-black flex flex-wrap items-baseline justify-center gap-2 text-2xl tracking-wide"
+          style={{ color: ink }}
+        >
+          <span>{deck.empty ? "Emptied" : (best?.name ?? "Sealed")}</span>
+          <span className="t-chain text-sm font-bold text-[var(--color-ink-dim)]">
+            #{deck.id}
+          </span>
         </h3>
+
+        {!deck.empty && (
+          <ul className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+            {ladder.map((t, i) => (
+              <li key={i} className="flex items-center gap-1.5">
+                <span
+                  aria-hidden
+                  className="h-1.5 w-1.5 shrink-0 rounded-full"
+                  style={{ background: t.spec.ink }}
+                />
+                <span className="t-chain text-[0.6875rem] font-bold text-slate-400">
+                  {t.count}
+                </span>
+                <span className="text-[0.6875rem] text-slate-500">{t.spec.name}</span>
+              </li>
+            ))}
+          </ul>
+        )}
 
         <p className="min-h-[72px] px-2 text-sm leading-relaxed text-slate-400">
           {deck.empty ? (

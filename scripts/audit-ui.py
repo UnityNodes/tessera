@@ -97,7 +97,13 @@ with sync_playwright() as p:
     # : 238 of 400 slots still sealed, across every
     # deck.
     # , .
-    hero = page.locator("text=/slots still sealed, across every deck/").first.inner_text()
+    # ,
+    # : 401 of 600, . .
+    hero = (
+        page.locator("text=/still sealed, across every deck/")
+        .first.locator("xpath=..")
+        .inner_text()
+    )
     same("= ", t["remaining"], whole(num(hero)))
     same("= ", t["size"], whole(num(hero.split("of")[1])))
     for d in EXPECTED["decks"]:
