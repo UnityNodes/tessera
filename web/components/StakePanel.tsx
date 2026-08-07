@@ -11,7 +11,6 @@ import type { Slot } from "@/hooks/useInventory";
 export function StakePanel({
   stake,
   toRedeem,
-  weight,
   decided,
   decidingInBattle,
   onRedeem,
@@ -21,7 +20,6 @@ export function StakePanel({
 }: {
   stake: ReturnType<typeof useStake>;
   toRedeem: Slot[];
-  weight: number;
   decided?: { value: number; signatures: `0x${string}`[] };
   decidingInBattle?: boolean;
   onRedeem: () => void;
@@ -102,7 +100,10 @@ export function StakePanel({
 
   if (toRedeem.length === 0) return null;
 
-  const tickets = Math.floor(weight / WEIGHT_PER_TICKET);
+  //
+  //
+  const picked = toRedeem.reduce((n, s) => n + s.weight, 0);
+  const tickets = Math.floor(picked / WEIGHT_PER_TICKET);
   const needed = ticketPrice * BigInt(tickets);
   const canPay = treasury >= needed;
   const shortBy = canPay ? 0n : needed - treasury;
@@ -123,7 +124,7 @@ export function StakePanel({
           disabled={busy}
           onClick={() => void stake.stake(toRedeem)}
         >
-          {busy ? "Staking…" : `Risk ${weight} for ${weight * 2}`}
+          {busy ? "Staking…" : `Risk ${picked} for ${picked * 2}`}
         </Button>
       </div>
       {!canPay && (
@@ -137,7 +138,7 @@ export function StakePanel({
       <p className="mt-3 text-sm text-slate-500">
         Risking stakes the bonus, never your money, the dollar you paid already
         bought a real ticket. Your next case decides it: anything at all doubles
-        the {weight}, an empty slot burns it.
+        the {picked}, an empty slot burns it.
       </p>
       {stake.budgetLeft > 0 && (
         <p className="t-label mt-2">

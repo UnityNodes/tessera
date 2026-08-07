@@ -342,7 +342,6 @@ export default function CasePage() {
             <StakePanel
               stake={stake}
               toRedeem={toRedeem}
-              weight={weight}
               decided={
                 decidingSlot?.value != null && decidingSlot.signatures && !decidingSlot.locked
                   ? { value: decidingSlot.value, signatures: decidingSlot.signatures }

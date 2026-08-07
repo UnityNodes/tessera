@@ -72,9 +72,11 @@ const erc20 = parseAbi([
   }
 
   const decks = Number(await read("deckCount"));
-  console.log(`${decks} decks`);
 
-  for (let d = 0; d < decks; d++) {
+  const only = process.env.DECK ? [Number(process.env.DECK)] : [...Array(decks).keys()];
+  console.log(`${decks} decks, : ${only.join(", ")}`);
+
+  for (const d of only) {
     for (let i = 0; i < OPENS; i++) {
       const info = await read("deckAt", [d]);
       if (info.drawn >= info.size) break;
