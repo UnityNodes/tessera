@@ -223,7 +223,8 @@ export function useBattle(id: bigint | undefined, onSettled?: () => void) {
     enabled: Boolean(handleA && handleB),
     staleTime: Infinity,
     queryFn: async () => {
-      const [a, b] = await revealHandles([handleA!, handleB!]);
+      const [a, b] = await revealHandles([handleA!, handleB!], { waitForAll: true });
+      if (!a || !b) throw new Error("covalidators have not turned both cards over yet");
       return { a, b };
     },
   });

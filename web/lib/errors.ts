@@ -266,7 +266,10 @@ export function explain(err: unknown): Explained {
   }
 
   if (err instanceof Error) {
-    if (/not found, it might not have been processed/i.test(err.message)) {
+    if (
+      /not found, it might not have been processed/i.test(err.message) ||
+      /covalidators? (did not|have not)/i.test(err.message)
+    ) {
       return {
         fault: "reveal-timeout",
         title: "The covalidators are taking longer than usual",

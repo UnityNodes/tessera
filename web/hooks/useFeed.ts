@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { revealHandles } from "@/lib/inco";
+import { present, revealHandles } from "@/lib/inco";
 import { specOf, specFor, weightOf, type DeckShape } from "@/lib/deck";
 import { useOpens, type OpenEvent } from "./useOpens";
 
@@ -34,7 +34,7 @@ export function useFeed(decks: DeckShape[], limit = 44) {
         priority: "background",
         onChunk: (got) => setPartial(new Map(got.map((r) => [r.handle.toLowerCase(), r.value]))),
       }).catch(() => []);
-      return new Map(out.map((r) => [r.handle.toLowerCase(), r.value]));
+      return new Map(present(out).map((r) => [r.handle.toLowerCase(), r.value]));
     },
   });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { revealHandles } from "@/lib/inco";
+import { present, revealHandles } from "@/lib/inco";
 import { weightOf, slotsPerTier, type DeckShape } from "@/lib/deck";
 import { useOpens } from "./useOpens";
 
@@ -39,7 +39,9 @@ export function usePool(deck: DeckShape, drawn: number, deckId: number) {
     enabled: deck.size > 0 && deck.tiers.length > 0,
     staleTime: 20_000,
     queryFn: async (): Promise<PoolState> => {
-      const revealed = await revealHandles(handles, { priority: "background" }).catch(() => []);
+      const revealed = present(
+        await revealHandles(handles, { priority: "background" }).catch(() => []),
+      );
 
       const drawnByWeight = new Map<number, number>();
       for (const r of revealed) {

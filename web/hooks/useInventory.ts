@@ -7,7 +7,7 @@ import { useCallback } from "react";
 import type { ContractFunctionParameters } from "viem";
 import { TESSERA_DECK_ABI } from "@/lib/abi";
 import { DECK_ADDRESS } from "@/lib/chain";
-import { revealHandles } from "@/lib/inco";
+import { present, revealHandles } from "@/lib/inco";
 import { weightOf, WEIGHT_PER_TICKET, type DeckShape } from "@/lib/deck";
 
 export interface Slot {
@@ -139,7 +139,7 @@ export function useInventory(decks: DeckShape[]) {
         list.filter((s) => !sealed.has(s.index)).map((s) => s.handle),
         { priority: "background" },
       ).catch(() => []);
-      const byHandle = new Map(revealed.map((r) => [r.handle.toLowerCase(), r]));
+      const byHandle = new Map(present(revealed).map((r) => [r.handle.toLowerCase(), r]));
 
       return list.map((s, i) => {
         const r = byHandle.get(s.handle.toLowerCase());

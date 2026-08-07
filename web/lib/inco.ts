@@ -107,6 +107,13 @@ export function seedRevealed(rows: Revealed[]) {
   if (fresh.length) remember(fresh);
 }
 
+/**
+ *
+ */
+export function present(rows: (Revealed | undefined)[]): Revealed[] {
+  return rows.filter((r): r is Revealed => Boolean(r));
+}
+
 export async function revealHandles(
   handles: string[],
   opts: {
@@ -117,11 +124,15 @@ export async function revealHandles(
      *
      */
     onChunk?: (revealed: Revealed[]) => void;
+    /**
+     *
+     */
+    waitForAll?: boolean;
   } = {},
-): Promise<Revealed[]> {
+): Promise<(Revealed | undefined)[]> {
   const missing = handles.filter((h) => !cache.has(h.toLowerCase()));
   if (missing.length === 0) {
-    return handles.map((h) => cache.get(h.toLowerCase())!);
+    return handles.map((h) => cache.get(h.toLowerCase()));
   }
 
   const background = opts.priority === "background";
@@ -145,11 +156,13 @@ async function pollUntilRevealed(
     signal?: AbortSignal;
     onAttempt?: (n: number, elapsedMs: number) => void;
     onChunk?: (revealed: Revealed[]) => void;
+    waitForAll?: boolean;
   },
-): Promise<Revealed[]> {
+): Promise<(Revealed | undefined)[]> {
   const zap = await warmInco();
   const started = Date.now();
   let attempt = 0;
+  let pending = missing;
 
   for (;;) {
     if (opts.signal?.aborted) throw new Error("aborted");
@@ -157,8 +170,8 @@ async function pollUntilRevealed(
     try {
       //
       const chunks: string[][] = [];
-      for (let i = 0; i < missing.length; i += REVEAL_CHUNK) {
-        chunks.push(missing.slice(i, i + REVEAL_CHUNK));
+      for (let i = 0; i < pending.length; i += REVEAL_CHUNK) {
+        chunks.push(pending.slice(i, i + REVEAL_CHUNK));
       }
 
       let revealed = 0;
@@ -187,7 +200,17 @@ async function pollUntilRevealed(
         opts.onChunk?.(handles.map((h) => cache.get(h.toLowerCase())!).filter(Boolean));
       }
       if (revealed === 0 && lastErr) throw lastErr;
-      return handles.map((h) => cache.get(h.toLowerCase())!).filter(Boolean);
+
+      //
+      const got = handles.map((h) => cache.get(h.toLowerCase()));
+      if (got.every(Boolean)) return got;
+
+      if (!opts.waitForAll) return got;
+      if (Date.now() - started > REVEAL_TIMEOUT_MS) return got;
+      pending = handles.filter((h) => !cache.has(h.toLowerCase()));
+      opts.onAttempt?.(attempt, Date.now() - started);
+      await new Promise((r) => setTimeout(r, REVEAL_POLL_MS));
+      continue;
     } catch (err) {
       const elapsed = Date.now() - started;
       opts.onAttempt?.(attempt, elapsed);

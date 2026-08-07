@@ -61,12 +61,16 @@ export function useOpenCase(onSettled?: () => void) {
 
       const [revealed] = await revealHandles([handle], {
         signal: ctl.signal,
+        waitForAll: true,
         onAttempt: () =>
           setState((s) =>
             s.phase === "revealing" ? { ...s, waitedMs: Date.now() - startedWaiting } : s,
           ),
       });
       if (ctl.signal.aborted) return;
+      if (!revealed) {
+        throw new Error("covalidators did not return the value in time");
+      }
 
       forgetPending();
       setState((s) => ({
