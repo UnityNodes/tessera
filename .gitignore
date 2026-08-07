@@ -22,3 +22,10 @@ dist/
 
 # Stitch ,
 stitch/
+
+# , .
+# (tessera2.zip ),
+# : 12 git
+# , .
+*.zip
+*.mp3
