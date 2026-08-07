@@ -32,6 +32,7 @@ import {
   bestTier,
   ticketsFromWeight,
   isVault,
+  isShard,
   type DeckShape,
 } from "@/lib/deck";
 
@@ -519,6 +520,10 @@ function Result({
               <p className="t-inscription mt-3 text-2xl" style={{ color: spec.ink }}>
                 and the case paid {spec.tickets * 2}, doubled
               </p>
+            ) : isShard(spec) ? (
+              <p className="t-inscription mt-3 text-2xl" style={{ color: spec.ink }}>
+                and the case paid a shard, worth two, doubled
+              </p>
             ) : (
               <p className="mt-3 text-slate-500">
                 The case was empty, and double nothing is nothing. That was the bet.
@@ -536,6 +541,10 @@ function Result({
           {spec.tickets > 0 ? (
             <p className="t-inscription mt-3 text-2xl" style={{ color: spec.ink }}>
               and the case paid {spec.tickets} more
+            </p>
+          ) : isShard(spec) ? (
+            <p className="t-inscription mt-3 text-2xl" style={{ color: spec.ink }}>
+              and the case paid a shard, five make a ticket
             </p>
           ) : (
             <p className="mt-3 text-slate-500">The case was empty. Most of them are.</p>

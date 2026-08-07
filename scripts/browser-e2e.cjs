@@ -142,7 +142,9 @@ async function ensureConnected(page) {
     console.log("✓ ");
   }
 
-  const firstCase = await page.locator("a[href^='/case/']").first().getAttribute("href");
+  const firstCase = process.env.DECK
+    ? `/case/${process.env.DECK}`
+    : await page.locator("a[href^='/case/']").first().getAttribute("href");
   await page.goto(URL.replace(/\/+$/, "") + firstCase, { waitUntil: "domcontentloaded" });
   console.log(`  ${firstCase}`);
 
@@ -162,6 +164,8 @@ async function ensureConnected(page) {
     try {
       await Promise.race([
         page.getByText(/covalidators/).first().waitFor({ timeout: 90000 }),
+        //
+        page.getByText(/click anywhere to continue/).first().waitFor({ timeout: 90000 }),
         failed.first().waitFor({ timeout: 90000 }).then(() => {
           throw new Error("RPC ");
         }),
@@ -213,7 +217,7 @@ async function ensureConnected(page) {
     const scene = (
       await page
         .getByRole("dialog", { name: /Opening a case/ })
-        .getByText(/^(Grout|Denarius|Aureus|Porphyry|The Vault|empty)$/)
+        .getByText(/^(Grout|Shard|Denarius|Aureus|Porphyry|The Vault|empty)$/)
         .first()
         .textContent()
     ).trim();
