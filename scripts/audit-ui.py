@@ -43,6 +43,25 @@ def same(name, expected, got, unit=""):
     check(name, expected == got, f"{expected}{unit}, {got}{unit}")
 
 
+# : .
+MISSING = -10**9
+
+
+def whole(value):
+    """int num(), .
+
+    `int(num(x) or -1)`. Python 0.0 ,
+    -1, :
+    0 drawn, .
+
+    . ,
+    : 0 cases left, 0 still sealed
+    . , ,
+    -, .
+    """
+    return MISSING if value is None else int(value)
+
+
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
     ctx = browser.new_context(viewport={"width": 1600, "height": 1000})
@@ -67,11 +86,11 @@ with sync_playwright() as p:
     print("\n── ──")
     go("/")
     t = EXPECTED["totals"]
-    same("cases opened= drawn ", t["drawn"], int(label_value("cases opened") or -1))
-    same("players= ", t["players"], int(label_value("players") or -1))
+    same("cases opened= drawn ", t["drawn"], whole(label_value("cases opened")))
+    same("players= ", t["players"], whole(label_value("players")))
     left = page.locator("div", has=page.get_by_text("cases left", exact=True)).last.inner_text()
-    same("cases left= ", t["remaining"], int(num(left.split("in")[0]) or -1))
-    same("in N= ", t["decks"], int(num(left.split("in")[1]) or -1))
+    same("cases left= ", t["remaining"], whole(num(left.split("in")[0])))
+    same("in N= ", t["decks"], whole(num(left.split("in")[1])))
 
     # ── ─────────────────────────────────────────
     print("\n── ──")
@@ -79,13 +98,13 @@ with sync_playwright() as p:
     # deck.
     # , .
     hero = page.locator("text=/slots still sealed, across every deck/").first.inner_text()
-    same("= ", t["remaining"], int(num(hero) or -1))
-    same("= ", t["size"], int(num(hero.split("of")[1]) or -1))
+    same("= ", t["remaining"], whole(num(hero)))
+    same("= ", t["size"], whole(num(hero.split("of")[1])))
     for d in EXPECTED["decks"]:
         card = page.locator(f"a[href='/case/{d['id']}']").last
         txt = card.inner_text()
         sealed = num(re.search(r"Still sealed:\s*([\d\s,]+)", txt).group(1))
-        same(f"#{d['id']}: still sealed", d["remaining"], int(sealed or -1))
+        same(f"#{d['id']}: still sealed", d["remaining"], whole(sealed))
         if d["hasVault"]:
             vault = re.search(r"Vault:\s*\$([\d.,]+)", txt)
             # :
@@ -104,24 +123,24 @@ with sync_playwright() as p:
     for d in EXPECTED["decks"]:
         go(f"/case/{d['id']}")
         head = page.locator("text=/of \\d+ still sealed/").first.inner_text()
-        got = int(num(head.split("of")[0]) or -1)
+        got = whole(num(head.split("of")[0]))
         same(f"#{d['id']}: N of M still sealed", d["remaining"], got)
-        size = int(num(head.split("of")[1]) or -1)
+        size = whole(num(head.split("of")[1]))
         same(f"#{d['id']}: ", d["size"], size)
 
         grid = page.get_by_role("img", name=re.compile(r"slots still sealed")).get_attribute(
             "aria-label"
         )
-        same(f"#{d['id']}: ", d["remaining"], int(num(grid) or -1))
+        same(f"#{d['id']}: ", d["remaining"], whole(num(grid)))
 
         strip = page.locator("text=/\\d+ drawn · \\d+ sealed/").first.inner_text()
-        same(f"#{d['id']}: ()", d["drawn"], int(num(strip) or -1))
+        same(f"#{d['id']}: ()", d["drawn"], whole(num(strip)))
 
     # ── ────────────────────────────────────────────────────────────
     print("\n── ──")
     go("/battles")
     allt = page.locator("div", has=page.get_by_text("all time", exact=True)).last.inner_text()
-    same("all time= ", EXPECTED["battles"], int(num(allt.replace("all time", "")) or -1))
+    same("all time= ", EXPECTED["battles"], whole(num(allt.replace("all time", ""))))
 
     # ── ───────────────────────────────────────────────────────────
     print("\n── ──")
