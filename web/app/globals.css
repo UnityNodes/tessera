@@ -49,6 +49,10 @@
   --radius-panel: 16px;
   --radius-window: 24px;
 
+  --glow-accent: 0 0 25px rgb(6 182 212 / 0.45);
+  --glow-accent-lift: 0 0 35px rgb(6 182 212 / 0.65);
+  --glow-accent-soft: 0 0 10px rgb(6 182 212 / 0.4);
+
   --ease-stone: cubic-bezier(0.16, 0.84, 0.28, 1);
   --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);

@@ -106,7 +106,7 @@ export default function BattlesPage() {
                         onClick={() => setPick(d.id)}
                         className={`flex cursor-pointer flex-col items-center gap-1 rounded-[var(--radius-control)] border p-3 transition-all ${
                           on
-                            ? "border-[var(--color-accent)] bg-slate-800 text-white shadow-[0_0_10px_rgba(6,182,212,0.3)]"
+                            ? "border-[var(--color-accent)] bg-slate-800 text-white shadow-[var(--glow-accent-soft)]"
                             : "border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200"
                         }`}
                       >

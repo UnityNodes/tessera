@@ -31,6 +31,16 @@ const ART: Record<Rarity, { src: string; open: string; filter?: string }> = {
 
 const MASK = "radial-gradient(closest-side, #000 56%, transparent 92%)";
 
+/**
+ *
+ *
+ */
+function sized(src: string, size: number) {
+  if (size <= 80) return src.replace(".webp", "-sm.webp");
+  if (size <= 192) return src.replace(".webp", "-md.webp");
+  return src;
+}
+
 export function Chest({
   rarity = "sealed",
   size = 160,
@@ -50,12 +60,14 @@ export function Chest({
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={open ? art.open : art.src}
+      src={sized(open ? art.open : art.src, size)}
       alt=""
       aria-hidden
       data-tier={rarity}
       width={size}
       height={size}
+      loading={size <= 192 ? "lazy" : "eager"}
+      decoding="async"
       className={className}
       style={{
         display: "block",

@@ -88,7 +88,7 @@ function Pill({
       onClick={onClick}
       className={`t-label flex min-h-11 cursor-pointer items-center whitespace-nowrap rounded-[var(--radius-chip)] px-3.5 py-1.5 transition-all sm:min-h-0 ${
         on
-          ? "bg-[var(--color-accent)] text-slate-950 shadow-[0_0_10px_rgba(6,182,212,0.4)]"
+          ? "bg-[var(--color-accent)] text-slate-950 shadow-[var(--glow-accent-soft)]"
           : "text-slate-400 hover:text-white"
       }`}
     >

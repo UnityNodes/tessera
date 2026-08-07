@@ -21,8 +21,8 @@ export const chiselSkin = (size: Size = "md") =>
   `${size === "sm" ? `${TOUCH}px-4 py-2 text-xs` : "px-6 py-4 text-base"} ` +
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] " +
   "font-extrabold tracking-wide bg-[var(--color-accent)] text-slate-950 " +
-  "shadow-[0_0_25px_rgba(6,182,212,0.45)] transition-all duration-200 " +
-  "hover:bg-[var(--color-accent-hover)] hover:shadow-[0_0_35px_rgba(6,182,212,0.65)]";
+  "shadow-[var(--glow-accent)] transition-all duration-200 " +
+  "hover:bg-[var(--color-accent-hover)] hover:shadow-[var(--glow-accent-lift)]";
 
 /**
  *
@@ -47,8 +47,8 @@ export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
     chisel:
       `${pad} font-extrabold tracking-wide ` +
       "bg-[var(--color-accent)] text-slate-950 " +
-      "shadow-[0_0_25px_rgba(6,182,212,0.45)] " +
-      "hover:bg-[var(--color-accent-hover)] hover:shadow-[0_0_35px_rgba(6,182,212,0.65)] hover:scale-[1.02] " +
+      "shadow-[var(--glow-accent)] " +
+      "hover:bg-[var(--color-accent-hover)] hover:shadow-[var(--glow-accent-lift)] hover:scale-[1.02] " +
       "active:scale-[0.99] " +
       "disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none",
     quiet:

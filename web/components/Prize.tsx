@@ -9,6 +9,9 @@ import { isVault, type TierSpec } from "@/lib/deck";
 
 const MASK = "radial-gradient(closest-side, #000 52%, transparent 96%)";
 
+const sized = (src: string, size: number) =>
+  size <= 192 ? src.replace(".webp", "-md.webp") : src;
+
 export function Prize({
   spec,
   paid,
@@ -34,7 +37,7 @@ export function Prize({
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={vaultWon ? "/prizes/vault.webp" : "/prizes/ticket.webp"}
+        src={sized(vaultWon ? "/prizes/vault.webp" : "/prizes/ticket.webp", size)}
         alt=""
         width={size}
         className="block"

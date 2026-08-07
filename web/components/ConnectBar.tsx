@@ -24,7 +24,7 @@ export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
     return (
       <details className="group/w relative">
         <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-          <span className="flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] bg-[var(--color-accent)] px-4 py-2 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all hover:bg-[var(--color-accent-hover)] hover:shadow-[0_0_25px_rgba(6,182,212,0.6)] sm:min-h-0">
+          <span className="flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] bg-[var(--color-accent)] px-4 py-2 text-xs font-bold text-slate-950 shadow-[var(--glow-accent)] transition-all hover:bg-[var(--color-accent-hover)] hover:shadow-[var(--glow-accent-lift)] sm:min-h-0">
             <Wallet className="h-4 w-4" />
             {isPending ? "Connecting…" : "Connect wallet"}
           </span>

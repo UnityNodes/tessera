@@ -4,6 +4,10 @@ audit-chain.cjs ,
 : ,
 .
 
+audit-chain.
+, , .
+audit.sh .
+
     SHOT_DIR=/tmp python3 audit-ui.py [url]
 """
 

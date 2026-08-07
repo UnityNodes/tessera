@@ -40,7 +40,7 @@ export function Contents({ deck, pool }: { deck: DeckShape; pool?: PoolState }) 
               onClick={() => setOnly(k)}
               className={`t-label flex min-h-11 cursor-pointer items-center rounded-[var(--radius-chip)] px-4 py-1.5 transition-all sm:min-h-0 ${
                 only === k
-                  ? "bg-[var(--color-accent)] text-slate-950 shadow-[0_0_10px_rgba(6,182,212,0.4)]"
+                  ? "bg-[var(--color-accent)] text-slate-950 shadow-[var(--glow-accent-soft)]"
                   : "text-slate-400 hover:text-white"
               }`}
             >
