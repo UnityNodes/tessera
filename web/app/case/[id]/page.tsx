@@ -254,6 +254,7 @@ export default function CasePage() {
                       <ForfeitAction
                         disabled={busy}
                         vault={deck.vault}
+                        ticketPrice={game.ticketPrice}
                         onClick={() =>
                           open.open({ deckId, needsApproval: game.needsApproval, risk: true })
                         }
@@ -425,12 +426,16 @@ export default function CasePage() {
 function ForfeitAction({
   disabled,
   vault,
+  ticketPrice,
   onClick,
 }: {
   disabled: boolean;
   vault: bigint;
+  ticketPrice: bigint;
   onClick: () => void;
 }) {
+  //
+  const toVault = ticketPrice - ticketPrice / BigInt(WEIGHT_PER_TICKET);
   const ink = "var(--color-tier-vault)";
   return (
     <div className="mt-3">
@@ -449,10 +454,12 @@ function ForfeitAction({
         Risk it · give the ticket up
       </Button>
       <p className="mt-2.5 text-[0.9375rem] leading-relaxed text-slate-300">
-        Same $1, but no Megapot ticket for you, it goes into the vault instead, which is now at{" "}
-        <span style={{ color: ink }}>${Number(formatUnits(vault, 6)).toFixed(2)}</span>. In
-        exchange whatever you draw is{" "}
-        <span className="text-slate-200">worth double</span>. Most cases are still empty, and
+        No Megapot ticket for you this time. Of your $1,{" "}
+        <span style={{ color: ink }}>${Number(formatUnits(toVault, 6)).toFixed(2)}</span> goes
+        straight into the vault, now at{" "}
+        <span style={{ color: ink }}>${Number(formatUnits(vault, 6)).toFixed(2)}</span>, and the
+        rest funds the prize budget. In exchange whatever you draw is{" "}
+        <span className="text-slate-200">worth double</span>. Most cases carry no bonus, and
         double nothing is nothing.
       </p>
     </div>
