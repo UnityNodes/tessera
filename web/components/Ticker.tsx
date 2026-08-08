@@ -78,7 +78,7 @@ function Drop({ item, mine }: { item: FeedItem; mine: boolean }) {
       className="group relative flex h-16 w-16 flex-col items-center justify-between rounded-[var(--radius-control)] border bg-slate-900/80 p-1.5 transition-all hover:scale-105 lg:h-20 lg:w-20"
       style={{
         borderColor: mine ? "var(--color-accent-hover)" : ink,
-        boxShadow: `0 0 12px ${mine ? "rgb(34 211 238 / 0.4)" : "color-mix(in oklab, " + ink + " 26%, transparent)"}`,
+        boxShadow: `0 0 12px ${mine ? "rgb(57 255 136 / 0.4)" : "color-mix(in oklab, " + ink + " 26%, transparent)"}`,
       }}
     >
       <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-[var(--radius-chip)]">

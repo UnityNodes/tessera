@@ -7,6 +7,9 @@ import type { Slot } from "@/hooks/useInventory";
 
 /**
  *
+ *
+ *
+ *
  */
 export function StakePanel({
   stake,
@@ -35,7 +38,7 @@ export function StakePanel({
     return (
       <div className="mt-6">
         <p className="mb-3 text-sm" style={{ color: "var(--color-tier-aureus)" }}>
-          You won. {stake.bankedWeight} weight banked, {" "}
+          You won. {stake.bankedWeight} TESA banked, {" "}
           {Math.floor(stake.bankedWeight / WEIGHT_PER_TICKET)} real ticket
           {Math.floor(stake.bankedWeight / WEIGHT_PER_TICKET) > 1 ? "s" : ""} waiting.
         </p>
@@ -60,8 +63,8 @@ export function StakePanel({
     if (!stake.ready) {
       return (
         <p className="mt-6 text-sm text-slate-400">
-          <span className="t-chain font-bold text-slate-100">{stake.stakedWeight}</span>{" "}
-          weight is riding on your next case. Open one to find out.
+          <span className="t-chain font-bold text-slate-100">{stake.stakedWeight} TESA</span>{" "}
+          are riding on your next case. Open one to find out.
         </p>
       );
     }
@@ -69,7 +72,7 @@ export function StakePanel({
       <div className="mt-6">
         <p className="mb-3 text-sm text-slate-400">
           Your next case is drawn. It decides the{" "}
-          <span className="t-chain font-bold text-slate-100">{stake.stakedWeight}</span> you
+          <span className="t-chain font-bold text-slate-100">{stake.stakedWeight} TESA</span> you
           staked.
         </p>
         <Button
@@ -128,7 +131,7 @@ export function StakePanel({
           disabled={busy}
           onClick={() => void stake.stake(toRedeem)}
         >
-          {busy ? "Staking…" : `Risk ${picked} for ${picked * 2}`}
+          {busy ? "Staking…" : `Risk ${picked} TESA for ${picked * 2}`}
         </Button>
       </div>
       {!canPay && (
@@ -146,7 +149,7 @@ export function StakePanel({
       </p>
       {stake.budgetLeft > 0 && (
         <p className="t-label mt-2">
-          season prize budget left: {stake.budgetLeft} weight
+          season prize budget left: {stake.budgetLeft} TESA
         </p>
       )}
     </div>

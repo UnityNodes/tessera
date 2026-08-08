@@ -1,11 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useAccount } from "wagmi";
 import { Chest } from "@/components/Chest";
+import { StakePanel } from "@/components/StakePanel";
 import { useDeck } from "@/hooks/useDeck";
-import { useInventory, heldWeight } from "@/hooks/useInventory";
+import { useInventory, useRefreshInventory, heldWeight, pickForRedeem } from "@/hooks/useInventory";
+import { useRefreshOpens } from "@/hooks/useOpens";
+import { useRedeem } from "@/hooks/useRedeem";
+import { useStake } from "@/hooks/useStake";
 import { useMegapot } from "@/hooks/useMegapot";
 import { useBattleList } from "@/hooks/useBattles";
 import { specOf, isShard, isVault, ticketsFromWeight, WEIGHT_PER_TICKET } from "@/lib/deck";
@@ -21,6 +25,15 @@ export default function ProfilePage() {
   const megapot = useMegapot();
   const battles = useBattleList();
   const inventory = useInventory(game.decks);
+  const refreshInventory = useRefreshInventory();
+  const refreshOpens = useRefreshOpens();
+
+  const refresh = useCallback(async () => {
+    await Promise.all([game.refetch(), refreshInventory(), refreshOpens(), megapot.refetch()]);
+  }, [game, refreshInventory, refreshOpens, megapot]);
+
+  const redeem = useRedeem(refresh);
+  const stake = useStake(refresh);
 
   const shapeOf = useMemo(
     () => (deckId: number) => {
@@ -32,6 +45,10 @@ export default function ProfilePage() {
 
   const slots = (inventory.data ?? []).filter((s) => s.value != null && !s.spent);
   const weight = heldWeight(inventory.data);
+  const toRedeem = pickForRedeem(inventory.data);
+  const decidingSlot = stake.open
+    ? inventory.data?.find((s) => s.index === stake.decidingSlot)
+    : undefined;
   const tesa = slots.filter((s) => !s.locked && isShard(specOf(s.value!, shapeOf(s.deckId)))).length;
   const mine = battles.all.filter(
     (b) =>
@@ -89,6 +106,51 @@ export default function ProfilePage() {
           />
           <Stat value={String(mine.length)} label="battles fought" />
         </div>
+
+
+        {(ticketsFromWeight(weight) > 0 || tesa > 0 || stake.open || stake.bankedWeight > 0) && (
+          <section className="slab p-6 sm:p-8">
+            <p className="t-label mb-1">what you can claim</p>
+            <p className="text-sm text-slate-400">
+              Five TESA make one real Megapot ticket. A Denarius slot is worth five on its own, a
+              top-tier slot twenty-five.
+            </p>
+            <StakePanel
+              stake={stake}
+              toRedeem={toRedeem}
+              decided={
+                decidingSlot?.value != null && decidingSlot.signatures && !decidingSlot.locked
+                  ? { value: decidingSlot.value, signatures: decidingSlot.signatures }
+                  : undefined
+              }
+              decidingInBattle={Boolean(decidingSlot?.locked)}
+              onRedeem={() => redeem.redeem(toRedeem)}
+              redeeming={redeem.state.phase === "signing" || redeem.state.phase === "confirming"}
+              treasury={game.treasury}
+              ticketPrice={game.ticketPrice}
+              treasuryPerOpen={game.treasuryPerOpen}
+            />
+            {redeem.state.phase === "done" && (
+              <p className="mt-4 text-sm text-[var(--color-accent-hover)]">
+                Claimed. The game bought you {redeem.state.tickets ?? 1} more real ticket
+                {(redeem.state.tickets ?? 1) > 1 ? "s" : ""}.
+              </p>
+            )}
+            {redeem.state.error && (
+              <p className="mt-4 text-sm text-[var(--color-danger)]">{redeem.state.error.title}</p>
+            )}
+            {toRedeem.length === 0 && tesa > 0 && !stake.open && (
+              <p className="mt-4 text-sm text-slate-500">
+                Not a full ticket yet. {WEIGHT_PER_TICKET - (weight % WEIGHT_PER_TICKET)} more TESA
+                and this turns into a real ticket, {" "}
+                <Link href="/case" className="text-[var(--color-accent-hover)] hover:underline">
+                  the catalog says which decks still have them
+                </Link>
+                .
+              </p>
+            )}
+          </section>
+        )}
 
         <section>
           <p className="t-label mb-4">every slot you drew</p>

@@ -269,6 +269,18 @@ async function ensureConnected(page) {
     console.log(`  ${held.trim()}`);
   }
 
+  //
+  await page.goto(URL.replace(/\/+$/, "") + "/profile", { waitUntil: "domcontentloaded" });
+  await page.getByText(/every slot you drew/i).waitFor({ timeout: 30000 });
+  const shelf = await page.locator("main").innerText();
+  const held = Number((shelf.match(/(\d+)\s*\n?\s*TESA/i) || [])[1] || 0);
+  const owed = Number((shelf.match(/(\d+)\s*\n?\s*BONUS TICKETS/i) || [])[1] || 0);
+  console.log(`✓ TESA ${held}, ${owed}`);
+  if ((held > 0 || owed > 0) && !/what you can claim/i.test(shelf)) {
+    throw new Error(", ");
+  }
+  await shot(page, "e2e-shelf");
+
   if (failed.length) {
     const byUrl = {};
     for (const f of failed) byUrl[f] = (byUrl[f] || 0) + 1;

@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useAccount } from "wagmi";
 import { Chest } from "@/components/Chest";
+import { Tally } from "@/components/ui/Tally";
 import { useDeck } from "@/hooks/useDeck";
 import { useStandings } from "@/hooks/useStandings";
 import { addressUrl } from "@/lib/chain";
@@ -24,13 +25,16 @@ export default function LeaderboardPage() {
   return (
     <div className="w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
       <div className="mx-auto flex max-w-[900px] flex-col gap-6">
-        <div className="border-b border-slate-800 pb-6">
-          <h1 className="t-page text-white">Standings</h1>
-          <p className="mt-2 max-w-2xl text-[0.9375rem] text-slate-400">
-            Counted from the chain, not kept by it. Every open is a public event with the
-            player&apos;s address, and every revealed slot is a public value, so this table is
-            arithmetic anyone can repeat, from the same data the pool counter uses.
-          </p>
+        <div className="flex flex-wrap items-end justify-between gap-5 border-b border-slate-800 pb-6">
+          <div>
+            <h1 className="t-page text-white">Standings</h1>
+            <p className="mt-2 max-w-2xl text-[0.9375rem] text-slate-400">
+              Counted from the chain, not kept by it. Every open is a public event with the
+              player&apos;s address, and every revealed slot is a public value, so this table is
+              arithmetic anyone can repeat, from the same data the pool counter uses.
+            </p>
+          </div>
+          <Tally label="players" value={rows.length} />
         </div>
 
         {rows.length === 0 ? (
@@ -104,7 +108,7 @@ export default function LeaderboardPage() {
         )}
 
         <p className="text-xs text-slate-500">
-          Sorted by the weight won, not by cases opened, the second is only money spent, and
+          Sorted by the TESA won, not by cases opened, the second is only money spent, and
           putting it first would make this a table of spending. Slots the covalidators have not
           returned yet are counted as opens but not as prizes.
         </p>

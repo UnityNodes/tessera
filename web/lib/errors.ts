@@ -79,19 +79,19 @@ const BY_NAME: Partial<Record<DeckError, Explained>> = {
   WorthlessSlot: {
     fault: "worthless-slot",
     title: "One of those slots is empty",
-    next: "Only slots that carry weight can be redeemed. Grout stays in the inventory.",
+    next: "Only slots worth at least 1 TESA can be redeemed. Grout stays on the shelf.",
     retryable: false,
   },
   ShardAlreadySpent: {
     fault: "shard-spent",
-    title: "One of those shards is already spent",
-    next: "A shard burns when redeemed. Pick five unspent ones.",
+    title: "One of those slots is already spent",
+    next: "A slot burns when it is redeemed. Pick ones you have not spent.",
     retryable: false,
   },
   TreasuryEmpty: {
     fault: "treasury-empty",
     title: "The game has not earned a ticket yet",
-    next: "Prizes come out of referral fees. It takes ten opens to fund one ticket.",
+    next: "Prizes are funded by the referral fee the game earns, and half of that fee goes to the vaults. Nothing expires, the ticket lands once enough cases have been opened, by anyone.",
     retryable: false,
   },
   BadAttestation: {
@@ -103,13 +103,13 @@ const BY_NAME: Partial<Record<DeckError, Explained>> = {
   NotEnoughWeight: {
     fault: "not-enough-weight",
     title: "That is not a full ticket's worth yet",
-    next: "Five weight makes a ticket. A shard is one, a top-tier slot is twenty-five.",
+    next: "Five TESA make a ticket. A TESA slot is worth one, a top-tier slot twenty-five.",
     retryable: false,
   },
   BudgetExhausted: {
     fault: "budget-exhausted",
     title: "This season has paid out everything it was built to pay",
-    next: "The contract cannot hand out more weight than its decks were cut with. That ceiling is code, not policy.",
+    next: "The contract cannot hand out more TESA than its decks were cut with. That ceiling is code, not policy.",
     retryable: false,
   },
 

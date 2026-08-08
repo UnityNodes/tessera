@@ -7,7 +7,7 @@ import { Sparkles, Eye, X } from "lucide-react";
 import { Chest } from "@/components/Chest";
 import { TierPlate } from "@/components/ui/TierPlate";
 import { useDeck, type DeckInfo } from "@/hooks/useDeck";
-import { slotsPerTier, bestTier, VAULT_SPEC, type TierSpec } from "@/lib/deck";
+import { slotsPerTier, bestTier, isShard, VAULT_SPEC, type TierSpec } from "@/lib/deck";
 
 /**
  *
@@ -99,11 +99,12 @@ function Pill({
 }
 
 function DeckCard({ deck, onInspect }: { deck: DeckInfo; onInspect: () => void }) {
-  const { best, top, oneIn } = read(deck);
+  const { best, top, oneIn, tesa } = read(deck);
   const ink = deck.empty ? "var(--color-tier-grout)" : (best?.ink ?? "var(--color-accent)");
 
   return (
     <div
+      data-deck={deck.id}
       className="relative flex flex-col justify-between rounded-[20px] border px-6 pb-6 pt-8 transition-all hover:scale-[1.02]"
       style={{
         background: "var(--color-surface)",
@@ -174,6 +175,18 @@ function DeckCard({ deck, onInspect }: { deck: DeckInfo; onInspect: () => void }
             </>
           )}
         </p>
+
+        {!deck.empty && (
+          <p className="mt-2 text-center text-xs">
+            {tesa > 0 ? (
+              <span style={{ color: "var(--color-tier-shard)" }}>
+                {tesa} TESA still in the deck · five make a ticket
+              </span>
+            ) : (
+              <span className="text-slate-500">no TESA in this deck</span>
+            )}
+          </p>
+        )}
 
         {deck.vaultUpTo > 0 && (
           <p className="t-chain mt-2 text-center text-xs" style={{ color: "var(--color-tier-vault)" }}>
@@ -280,11 +293,17 @@ function Inspector({ deck, onClose }: { deck: DeckInfo; onClose: () => void }) {
   );
 }
 
-function read(deck: DeckInfo): { best?: TierSpec; top: number; oneIn: number } {
+function read(deck: DeckInfo): { best?: TierSpec; top: number; oneIn: number; tesa: number } {
   const tiers = slotsPerTier(deck);
   const best = bestTier(deck);
   const top = tiers.reduce((n, t) => Math.max(n, t.spec.tickets), 0);
   const prizes = tiers.filter((t) => t.weight > 0).reduce((n, t) => n + t.count, 0);
   const paying = prizes + deck.vaultUpTo;
-  return { best, top, oneIn: paying > 0 ? Math.max(1, Math.round(deck.size / paying)) : 0 };
+  const tesa = tiers.filter((t) => isShard(t.spec)).reduce((n, t) => n + t.count, 0);
+  return {
+    best,
+    top,
+    oneIn: paying > 0 ? Math.max(1, Math.round(deck.size / paying)) : 0,
+    tesa,
+  };
 }

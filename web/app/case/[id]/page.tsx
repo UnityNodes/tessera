@@ -558,7 +558,7 @@ function Result({
               </p>
             ) : isShard(spec) ? (
               <p className="t-inscription mt-3 text-2xl" style={{ color: spec.ink }}>
-                and the case paid a shard, worth two, doubled
+                and the case paid 1 TESA, worth two, doubled
               </p>
             ) : (
               <p className="mt-3 text-slate-500">
@@ -580,7 +580,7 @@ function Result({
             </p>
           ) : isShard(spec) ? (
             <p className="t-inscription mt-3 text-2xl" style={{ color: spec.ink }}>
-              and the case paid a shard, five make a ticket
+              and the case paid 1 TESA, five make a ticket
             </p>
           ) : (
             <p className="mt-3 text-slate-500">The case was empty. Most of them are.</p>

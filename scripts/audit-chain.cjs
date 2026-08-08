@@ -276,6 +276,18 @@ const usd = (v) => `$${(Number(v) / 1e6).toFixed(2)}`;
         vaultBankedUsd: (Number(d.vault) / 1e6).toFixed(2),
         vaultUsd: (Number(d.vault + coming) / 1e6).toFixed(2),
         hasVault: d.vaultUpTo > 0,
+        //
+        tesa: (() => {
+          let prev = 0;
+          let n = 0;
+          for (const t of d.tiers) {
+            const inTier = t.upTo - prev;
+            const vaultHere = Math.max(0, Math.min(t.upTo, d.vaultUpTo) - prev);
+            if (t.weight === 1) n += inTier - vaultHere;
+            prev = t.upTo;
+          }
+          return n;
+        })(),
       };
     }),
     totals: {

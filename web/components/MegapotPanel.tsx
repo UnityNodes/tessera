@@ -41,7 +41,7 @@ export function MegapotPanel({ mp }: { mp: ReturnType<typeof useMegapot> }) {
       <DataRow
         name="draw"
         value={mp.stalled ? "stalled" : new Date(mp.endsAt).toUTCString().slice(5, 22)}
-        ink={mp.stalled ? "var(--color-accent-hover)" : "var(--color-ink)"}
+        ink={mp.stalled ? "var(--color-ink-dim)" : "var(--color-ink)"}
       />
 
       {mp.hasWinnings ? (

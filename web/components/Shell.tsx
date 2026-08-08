@@ -4,13 +4,12 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { formatUnits } from "viem";
-import { Lock, PlusCircle, ChevronDown } from "lucide-react";
+import { Lock, PlusCircle, ChevronDown, Ticket } from "lucide-react";
 import { ConnectBar } from "./ConnectBar";
 import { Ticker } from "./Ticker";
 import { Counter } from "./ui/Counter";
 import { useDeck } from "@/hooks/useDeck";
 import { useFeed } from "@/hooks/useFeed";
-import { useOpens } from "@/hooks/useOpens";
 import { useMegapot } from "@/hooks/useMegapot";
 import { useMint } from "@/hooks/useMint";
 import { addressUrl, DECK_ADDRESS } from "@/lib/chain";
@@ -18,21 +17,20 @@ import { addressUrl, DECK_ADDRESS } from "@/lib/chain";
 /**
  *
  *
+ *
  */
 export function Shell({ children }: { children: React.ReactNode }) {
   const game = useDeck();
   const shapes = useMemo(() => game.decks.map((d) => d), [game.decks]);
   const feed = useFeed(shapes);
-  const opens = useOpens();
   const megapot = useMegapot();
   const { mint, minting, canMint } = useMint(game.refetch);
 
-  const playerCount = new Set((opens.data ?? []).map((o) => o.player.toLowerCase())).size;
   const firstOpen = game.decks.find((d) => !d.empty)?.id ?? 0;
 
   return (
     <div className="relative z-[1] flex min-h-screen flex-col">
-      <header className="sticky top-0 z-[var(--z-sticky)] border-b border-slate-800/80 bg-[rgb(10_14_23_/_0.9)] px-4 py-3 backdrop-blur-md lg:px-8 2xl:px-14">
+      <header className="sticky top-0 z-[var(--z-sticky)] border-b border-slate-800/80 bg-[color-mix(in_oklab,var(--color-header)_92%,transparent)] px-4 py-3 backdrop-blur-md lg:px-8 2xl:px-14">
         <div className="mx-auto flex flex-col items-center justify-between gap-3 md:flex-row">
           <div className="flex w-full min-w-0 items-center justify-between gap-3 md:w-auto md:gap-8">
             <Link href="/" className="group flex shrink-0 items-center gap-2">
@@ -94,22 +92,15 @@ export function Shell({ children }: { children: React.ReactNode }) {
               />
             </span>
 
+            <TicketsChip
+              tickets={Math.round(megapot.tickets)}
+              caseHref={`/case/${firstOpen}#megapot`}
+            />
+
             <ConnectBar onMinted={game.refetch} />
           </div>
         </div>
       </header>
-
-      <div className="relative z-[var(--z-stats)] w-full border-b border-slate-800/60 bg-[var(--color-stats)] px-4 py-4 lg:px-8 2xl:px-14">
-        <div className="mx-auto grid grid-cols-2 gap-4 md:grid-cols-4">
-          <Stat label="cases opened" value={game.drawn} />
-          <Stat label="players" value={playerCount} />
-          <Stat label="cases left" value={game.remaining} suffix={` in ${game.decks.length}`} />
-          <TicketsStat
-            tickets={Math.round(megapot.tickets)}
-            caseHref={`/case/${firstOpen}#megapot`}
-          />
-        </div>
-      </div>
 
       <div className="relative z-[var(--z-feed)] w-full border-b border-slate-800/80 bg-[var(--color-bg)] px-4 py-3 lg:px-8 2xl:px-14">
         <div className="mx-auto flex flex-col gap-2">
@@ -179,27 +170,20 @@ function Tab({ href, children }: { href: string; children: React.ReactNode }) {
 /**
  *
  *
+ *
  */
-function TicketsStat({ tickets, caseHref }: { tickets: number; caseHref: string }) {
+function TicketsChip({ tickets, caseHref }: { tickets: number; caseHref: string }) {
   return (
-    <details className="group/t relative flex flex-col">
+    <details className="group/t relative">
       <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-        <span className="t-label flex items-center gap-1.5">
-          your tickets
-          <ChevronDown className="h-3 w-3 transition-transform duration-200 group-open/t:rotate-180" />
-        </span>
-        <span className="mt-0.5 flex items-center gap-2">
+        <span className="flex items-center gap-2 rounded-[var(--radius-chip)] border border-slate-800 bg-slate-900/90 px-3 py-1.5">
+          <Ticket className="h-3.5 w-3.5 text-[var(--color-accent-hover)]" />
           <Counter
             value={tickets}
-            className="t-chain text-2xl font-extrabold leading-tight tracking-tight lg:text-3xl"
-            style={{
-              color: "var(--color-accent-hover)",
-              textShadow: "0 0 24px rgb(34 211 238 / 0.5)",
-            }}
+            className="t-chain text-xs font-bold leading-none text-[var(--color-accent-hover)]"
           />
-          <span className="rounded border border-[rgb(57_255_136_/_0.3)] bg-[rgb(57_255_136_/_0.1)] px-1.5 py-0.5 text-[10px] uppercase text-[var(--color-accent-hover)]">
-            vault chance
-          </span>
+          <span className="t-label text-[0.5625rem]">megapot</span>
+          <ChevronDown className="h-3 w-3 text-slate-500 transition-transform duration-200 group-open/t:rotate-180" />
         </span>
       </summary>
 
@@ -223,22 +207,6 @@ function TicketsStat({ tickets, caseHref }: { tickets: number; caseHref: string 
         </Link>
       </div>
     </details>
-  );
-}
-
-/**
- *
- */
-function Stat({ label, value, suffix }: { label: string; value: number; suffix?: string }) {
-  return (
-    <div className="flex flex-col border-r border-slate-800/80 pr-4 last:border-r-0">
-      <span className="t-label">{label}</span>
-      <Counter
-        value={value}
-        suffix={suffix}
-        className="t-chain mt-0.5 text-2xl font-extrabold leading-tight tracking-tight text-slate-100 lg:text-3xl"
-      />
-    </div>
   );
 }
 

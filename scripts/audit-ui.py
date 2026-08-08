@@ -78,19 +78,28 @@ with sync_playwright() as p:
         page.wait_for_timeout(settle)
 
     def label_value(label):
-        """."""
-        el = page.locator("div", has=page.get_by_text(label, exact=True)).last
-        return num(el.inner_text().replace(label, ""))
+        """.
 
-    # ── ────────────────────────────────────────────────
+        ,
+        . ,
+        ; .
+
+        inner_text ,
+        text-transform DOM ,
+        .
+        """
+        el = page.get_by_text(label, exact=True).first.locator("xpath=..")
+        return num(re.sub(re.escape(label), "", el.inner_text(), flags=re.I))
+
+    # ── ────────────────────────────────────────────────────
+    #
+    # :
+    # , .
+    # , .
     print("\n── ──")
     go("/")
     t = EXPECTED["totals"]
-    same("cases opened= drawn ", t["drawn"], whole(label_value("cases opened")))
-    same("players= ", t["players"], whole(label_value("players")))
-    left = page.locator("div", has=page.get_by_text("cases left", exact=True)).last.inner_text()
-    same("cases left= ", t["remaining"], whole(num(left.split("in")[0])))
-    same("in N= ", t["decks"], whole(num(left.split("in")[1])))
+    same("opened so far= drawn ", t["drawn"], whole(label_value("opened so far")))
 
     # ── ─────────────────────────────────────────
     print("\n── ──")
@@ -157,6 +166,35 @@ with sync_playwright() as p:
 
         strip = page.locator("text=/\\d+ drawn · \\d+ sealed/").first.inner_text()
         same(f"#{d['id']}: ()", d["drawn"], whole(num(strip)))
+
+    # ── ────────────────────────────────────────
+    print("\n── ──")
+    go("/case")
+    decks_seen = page.locator("h1").first.inner_text()
+    same("N decks= ", t["decks"], whole(num(decks_seen.split("catalog")[-1])))
+
+    # TESA ,
+    # . :
+    # ,
+    # , .
+    for d in EXPECTED["decks"]:
+        card = page.locator(f"[data-deck='{d['id']}']").last.inner_text()
+        if d["remaining"] == 0:
+            continue
+        if d["tesa"] > 0:
+            m = re.search(r"([\d\s,]+)\s+TESA still in the deck", card)
+            same(f"#{d['id']}: TESA ", d["tesa"], whole(num(m.group(1)) if m else None))
+        else:
+            check(
+                f"#{d['id']}: , TESA ",
+                "no TESA in this deck" in card,
+                "no TESA in this deck",
+            )
+
+    # , :
+    # , : .
+    go("/leaderboard")
+    same("players= ", t["players"], whole(label_value("players")))
 
     # ── ────────────────────────────────────────────────────────────
     print("\n── ──")
