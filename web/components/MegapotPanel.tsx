@@ -59,14 +59,14 @@ export function MegapotPanel({ mp }: { mp: ReturnType<typeof useMegapot> }) {
           )}
         </div>
       ) : mp.stalled ? (
-        <p className="mt-5 border-t border-slate-800 pt-4 text-sm text-slate-400">
+        <p className="mt-5 border-t border-slate-800 pt-4 text-sm leading-relaxed text-slate-300">
           Megapot&apos;s testnet draw is frozen, <span className="t-chain">runJackpot()</span>{" "}
           reverts even for its owner, so no winner is picked here. Your ticket is a real
           purchase against the real contract; it just has nothing to play in on Sepolia.
           On Base mainnet the same contract draws every day.
         </p>
       ) : (
-        <p className="mt-5 border-t border-slate-800 pt-4 text-sm text-slate-400">
+        <p className="mt-5 border-t border-slate-800 pt-4 text-sm leading-relaxed text-slate-300">
           Nothing to withdraw yet. If your ticket wins, the button to claim it appears
           right here, you never have to leave.
         </p>

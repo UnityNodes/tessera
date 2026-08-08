@@ -12,8 +12,7 @@ import { Tally } from "@/components/ui/Tally";
 import { TierPlate } from "@/components/ui/TierPlate";
 import { Case } from "@/components/Case";
 import { OpenTheatre } from "@/components/OpenTheatre";
-import { Contents } from "@/components/Contents";
-import { PoolCounter } from "@/components/PoolCounter";
+import { Drops } from "@/components/Drops";
 import { PoolGrid } from "@/components/PoolGrid";
 import { MegapotPanel } from "@/components/MegapotPanel";
 import { StakePanel } from "@/components/StakePanel";
@@ -30,8 +29,8 @@ import { useVault } from "@/hooks/useVault";
 import {
   specOf,
   slotsPerTier,
-  bestTier,
   ticketsFromWeight,
+  deckFace,
   WEIGHT_PER_TICKET,
   isVault,
   isShard,
@@ -116,14 +115,14 @@ export default function CasePage() {
   }
 
   const tiers = slotsPerTier(deck);
-  const best = bestTier(deck);
-  const ink = deck.empty ? "var(--color-tier-grout)" : (best?.ink ?? "var(--color-accent)");
+  const face = deckFace(deck);
+  const ink = deck.empty ? "var(--color-tier-grout)" : face.ink;
   const prizes = tiers.filter((t) => t.weight > 0).reduce((n, t) => n + t.count, 0);
   const paying = prizes + deck.vaultUpTo;
   const oneIn = paying > 0 ? Math.max(1, Math.round(deck.size / paying)) : 0;
 
   return (
-    <div className="w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
+    <div className="w-full bg-[var(--color-section)] px-4 py-6 lg:px-8 2xl:px-14">
       <OpenTheatre
         open={open.state}
         deck={shape}
@@ -132,8 +131,8 @@ export default function CasePage() {
         onClose={open.reset}
       />
 
-      <div className="mx-auto flex max-w-[1320px] flex-col gap-6">
-        <div className="flex flex-col justify-between gap-6 border-b border-slate-800 pb-6 md:flex-row md:items-end">
+      <div className="mx-auto flex max-w-[1320px] flex-col gap-5">
+        <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-4 md:flex-row md:items-end">
           <div>
             <Link
               href="/case"
@@ -143,14 +142,14 @@ export default function CasePage() {
               all cases
             </Link>
             <h1 className="t-page mt-2 flex flex-wrap items-baseline gap-3 text-white">
-              <span>{deck.empty ? "Emptied" : (best?.name ?? "Sealed")} case</span>
+              <span>{deck.empty ? "Emptied" : face.name} case</span>
               <span className="t-chain text-lg font-bold text-[var(--color-ink-dim)]">
                 #{deck.id}
               </span>
             </h1>
-            <p className="mt-2 max-w-xl text-[0.9375rem] text-slate-400">
-              A dollar buys a real Megapot ticket, and the case comes on top. The deck is finite
-              and drawn without replacement, whatever someone else took is gone for you too.
+            <p className="mt-1.5 max-w-xl text-base leading-snug text-slate-200">
+              A dollar buys a real Megapot ticket, the case comes on top. Finite deck, drawn
+              without replacement: what someone else took is gone for you too.
             </p>
           </div>
 
@@ -161,19 +160,20 @@ export default function CasePage() {
           </div>
         </div>
 
-        <section className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        <section className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+          <div className="flex flex-col gap-4">
           <div
             className="frame relative flex w-full flex-col"
             style={{ borderColor: `color-mix(in oklab, ${ink} 20%, transparent)` }}
           >
             <span className="absolute left-5 top-5 z-10">
-              <TierPlate name={deck.empty ? "emptied" : (best?.name ?? "sealed")} ink={ink} />
+              <TierPlate name={deck.empty ? "emptied" : face.name} ink={ink} />
             </span>
             <span className="t-chain absolute right-5 top-5 z-10 text-xs text-slate-400">
               {deck.remaining} sealed
             </span>
 
-            <div className="relative grid place-items-center px-6 pb-4 pt-16 sm:px-10">
+            <div className="relative grid place-items-center px-6 pb-1 pt-12 sm:px-8">
               <span
                 aria-hidden
                 className="pointer-events-none absolute inset-x-12 inset-y-6 rounded-full opacity-20 blur-3xl"
@@ -186,7 +186,7 @@ export default function CasePage() {
                   deck={shape}
                   risk={open.state.risk}
                   vault={deck.vault}
-                  size={380}
+                  size={300}
                   onClick={
                     canOpen
                       ? () => open.open({ deckId, needsApproval: game.needsApproval })
@@ -208,8 +208,8 @@ export default function CasePage() {
               </div>
             </div>
 
-            <div className="border-t border-slate-800/70 p-5 sm:p-6">
-              <div className="min-h-[5rem]">
+            <div className="border-t border-slate-800/70 p-5">
+              <div className="min-h-[3.5rem]">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={open.state.phase + (open.state.value ?? "")}
@@ -225,7 +225,7 @@ export default function CasePage() {
 
               <div className="mt-3">
                 {deck.empty ? (
-                  <p className="text-slate-400">Every case in this season has been opened.</p>
+                  <p className="text-base text-slate-200">Every case in this deck has been opened.</p>
                 ) : !isConnected || !game.canAfford ? (
                   <StartHere what="A case" />
                 ) : (
@@ -305,12 +305,7 @@ export default function CasePage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
-            <div className="slab p-5">
-              <PoolCounter deck={shape} drawn={deck.drawn} pool={pool.data} />
-            </div>
-
-            {deck.vaultUpTo > 0 && (
+          {deck.vaultUpTo > 0 && (
               <div
                 className="slab p-5"
                 style={{
@@ -335,18 +330,24 @@ export default function CasePage() {
                 />
               </div>
             )}
-
           </div>
-        </section>
 
-        <section className="px-1 py-2">
-          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-3">
-            <span className="t-label">the deck, one cell per case</span>
-            <span className="t-chain text-xs text-slate-500">
-              {deck.drawn} drawn · {deck.remaining} sealed
-            </span>
+          <div className="flex flex-col gap-4">
+
+            <div className="slab p-5">
+              <Drops deck={shape} drawn={deck.drawn} pool={pool.data} />
+            </div>
+
+            <div className="px-1">
+              <div className="mb-2 flex flex-wrap items-baseline justify-between gap-3">
+                <span className="t-label">the deck, one cell per case</span>
+                <span className="t-chain text-xs text-slate-400">
+                  {deck.drawn} drawn · {deck.remaining} sealed
+                </span>
+              </div>
+              <PoolGrid size={deck.size} drawn={deck.drawn} ink={ink} />
+            </div>
           </div>
-          <PoolGrid size={deck.size} drawn={deck.drawn} ink={ink} />
         </section>
 
         {(bonusTickets > 0 || tesa > 0 || stake.open || stake.bankedWeight > 0) && (
@@ -399,18 +400,20 @@ export default function CasePage() {
           </section>
         )}
 
-        <section className="slab mt-4 p-6 sm:p-8">
-          <p className="t-label mb-6 flex items-center gap-2">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            case drops &amp; what is left of them
-          </p>
-          <Contents deck={shape} pool={pool.data} />
-        </section>
-
-        <section id="megapot" className="slab scroll-mt-24 p-6 sm:p-8">
-          <p className="t-label mb-4">your Megapot, from here</p>
-          <MegapotPanel mp={megapot} />
-        </section>
+        <details id="megapot" className="slab scroll-mt-24 p-5">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+            <span className="t-label flex items-center gap-2">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              your Megapot, from here
+            </span>
+            <span className="text-sm text-slate-300">
+              the jackpot your tickets are in, open ▾
+            </span>
+          </summary>
+          <div className="mt-5">
+            <MegapotPanel mp={megapot} />
+          </div>
+        </details>
       </div>
     </div>
   );
@@ -445,7 +448,7 @@ function ForfeitAction({
       >
         Risk it · give the ticket up
       </Button>
-      <p className="mt-2.5 text-sm leading-snug text-slate-500">
+      <p className="mt-2.5 text-[0.9375rem] leading-relaxed text-slate-300">
         Same $1, but no Megapot ticket for you, it goes into the vault instead, which is now at{" "}
         <span style={{ color: ink }}>${Number(formatUnits(vault, 6)).toFixed(2)}</span>. In
         exchange whatever you draw is{" "}
@@ -490,7 +493,7 @@ function VaultStatus({
           {label}
         </span>
       </span>
-      <p className="mt-2 text-sm text-slate-500">{note}</p>
+      <p className="mt-2 text-[0.9375rem] text-slate-300">{note}</p>
     </>
   );
 }
@@ -505,7 +508,7 @@ function Result({
   open: ReturnType<typeof useOpenCase>["state"];
   deck: DeckShape;
 }) {
-  const dim = "text-slate-400";
+  const dim = "text-base leading-relaxed text-slate-200";
 
   switch (open.phase) {
     case "approving":

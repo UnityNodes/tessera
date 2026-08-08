@@ -29,7 +29,7 @@ export function StartHere({
     return (
       <div className={compact ? "relative" : undefined}>
         {!compact && (
-          <p className="mb-3 text-sm text-slate-400">
+          <p className="mb-3 text-[0.9375rem] leading-relaxed text-slate-200">
             {what} costs $1 and buys you a real Megapot lottery ticket. On this testnet the dollars
             are free.
           </p>
@@ -65,7 +65,7 @@ export function StartHere({
   return (
     <div>
       {!compact && (
-        <p className="mb-3 text-sm text-slate-400">
+        <p className="mb-3 text-[0.9375rem] leading-relaxed text-slate-200">
           You need $1 to play. Base Sepolia dollars are free and mint straight to your wallet, the
           money is fake, the ticket contract is not.
         </p>

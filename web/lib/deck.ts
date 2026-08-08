@@ -162,3 +162,12 @@ export function slotsPerTier(deck: DeckShape): { spec: TierSpec; count: number; 
   if (rest > 0) out.push({ spec: specFor(0), count: rest, weight: 0 });
   return out;
 }
+
+/**
+ *
+ *
+ */
+export function deckFace(deck: DeckShape & { drawn?: number }): TierSpec {
+  if (deck.vaultUpTo > 0) return VAULT_SPEC;
+  return bestTier(deck) ?? specFor(0);
+}

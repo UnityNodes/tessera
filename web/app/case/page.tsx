@@ -10,6 +10,7 @@ import { useDeck, type DeckInfo } from "@/hooks/useDeck";
 import {
   slotsPerTier,
   bestTier,
+  deckFace,
   isShard,
   ticketsLabel,
   type TierSpec,
@@ -106,7 +107,8 @@ function Pill({
 
 function DeckCard({ deck, onInspect }: { deck: DeckInfo; onInspect: () => void }) {
   const { best, top, oneIn, tesa } = read(deck);
-  const ink = deck.empty ? "var(--color-tier-grout)" : (best?.ink ?? "var(--color-accent)");
+  const face = deckFace(deck);
+  const ink = deck.empty ? "var(--color-tier-grout)" : face.ink;
 
   return (
     <div
@@ -119,7 +121,7 @@ function DeckCard({ deck, onInspect }: { deck: DeckInfo; onInspect: () => void }
       }}
     >
       <span className="absolute left-5 top-4">
-        <TierPlate name={deck.empty ? "emptied" : (best?.name ?? "sealed")} ink={ink} />
+        <TierPlate name={deck.empty ? "emptied" : face.name} ink={ink} />
       </span>
       <span className="t-chain absolute right-5 top-5 text-xs text-slate-400">
         {deck.remaining} sealed
@@ -133,7 +135,7 @@ function DeckCard({ deck, onInspect }: { deck: DeckInfo; onInspect: () => void }
             style={{ background: ink }}
           />
           <Chest
-            rarity={deck.empty ? "grout" : (best?.rarity ?? "sealed")}
+            rarity={deck.empty ? "grout" : face.rarity}
             size={188}
             className="relative z-10"
           />
@@ -150,7 +152,7 @@ function DeckCard({ deck, onInspect }: { deck: DeckInfo; onInspect: () => void }
         </div>
 
         <h2 className="t-black flex items-baseline justify-center gap-2 text-center text-2xl" style={{ color: ink }}>
-          <span>{deck.empty ? "Emptied" : (best?.name ?? "Sealed")}</span>
+          <span>{deck.empty ? "Emptied" : face.name}</span>
           <span className="t-chain text-sm font-bold text-[var(--color-ink-dim)]">#{deck.id}</span>
         </h2>
 
