@@ -228,7 +228,7 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
           ) : (
             <DeckHero
               deck={deck}
-              size={132}
+              size={150}
               className="relative z-10 transition-transform duration-300 group-hover:scale-105"
             />
           )}

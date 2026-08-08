@@ -127,19 +127,21 @@ function DeckCard({ deck, onInspect }: { deck: DeckInfo; onInspect: () => void }
       </span>
 
       <div>
-        <div className="relative my-4 flex justify-center">
+        <div className="relative my-4 flex flex-col items-center gap-2.5">
           <span
             aria-hidden
-            className="absolute inset-x-10 inset-y-2 rounded-full opacity-25 blur-2xl"
+            className="absolute inset-x-6 top-0 h-[7.5rem] rounded-full opacity-25 blur-2xl"
             style={{ background: ink }}
           />
-          {deck.empty ? (
-            <Chest rarity="grout" size={150} className="relative z-10" />
-          ) : (
-            <DeckHero deck={deck} size={140} className="relative z-10" />
-          )}
+          <div className="relative z-10 flex h-[7.5rem] w-full items-end justify-center">
+            {deck.empty ? (
+              <Chest rarity="grout" size={112} />
+            ) : (
+              <DeckHero deck={deck} size={116} />
+            )}
+          </div>
           <span
-            className="t-chain absolute bottom-1 left-1/2 -translate-x-1/2 rounded border px-3 py-1 text-xs font-extrabold"
+            className="t-chain relative z-10 rounded border px-3 py-1 text-xs font-extrabold"
             style={{
               background: "rgb(0 0 0 / 0.45)",
               borderColor: `color-mix(in oklab, ${ink} 30%, transparent)`,

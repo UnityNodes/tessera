@@ -26,16 +26,19 @@ export function DeckHero({
     return <Chest rarity="grout" size={size} className={className} />;
   }
 
+  const base = size * (ladder.length <= 2 ? 1 : ladder.length === 3 ? 0.84 : 0.66);
+  const lap = ladder.length > 4 ? 0.45 : ladder.length > 2 ? 0.25 : 0.1;
+
   return (
-    <div className={`flex items-end justify-center ${className ?? ""}`}>
+    <div className={`flex max-w-full items-end justify-center ${className ?? ""}`}>
       {ladder.map((t, i) => {
-        const step = Math.max(size * 0.46, size - i * size * 0.13);
+        const step = Math.max(base * 0.5, base - i * base * 0.13);
         return (
           <span
             key={i}
-            className="relative flex flex-col items-center"
+            className="relative flex shrink-0 flex-col items-center"
             style={{
-              marginLeft: i === 0 ? 0 : -step * (ladder.length > 3 ? 0.3 : 0.12),
+              marginLeft: i === 0 ? 0 : -step * lap,
               zIndex: ladder.length - i,
             }}
             title={`${t.count} × ${t.spec.name}`}

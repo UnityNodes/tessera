@@ -8,7 +8,6 @@ import type { Rarity } from "@/lib/deck";
  *
  *
  *
- *
  */
 
 /**
@@ -48,7 +47,13 @@ const ART: Record<Rarity, { src: string; open: string; filter?: string; bare?: b
     open: "/chests/sealed-open.webp",
     filter: "hue-rotate(72deg) saturate(1.3)",
   },
-  vault: { src: "/chests/aureus.webp", open: "/chests/aureus-open.webp" },
+  //
+  vault: {
+    bare: true,
+    src: "/chests/sealed-bare.webp",
+    open: "/chests/sealed-open.webp",
+    filter: "hue-rotate(-160deg) saturate(1.6) brightness(1.12)",
+  },
 };
 
 const MASK = "radial-gradient(closest-side, #000 56%, transparent 92%)";

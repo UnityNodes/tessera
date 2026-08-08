@@ -12,6 +12,9 @@ import { Counter } from "./ui/Counter";
 import { useDeck } from "@/hooks/useDeck";
 import { useFeed } from "@/hooks/useFeed";
 import { useMegapot } from "@/hooks/useMegapot";
+import { useInventory } from "@/hooks/useInventory";
+import { Chest } from "./Chest";
+import { specOf, isShard, WEIGHT_PER_TICKET } from "@/lib/deck";
 import { useMint } from "@/hooks/useMint";
 import { addressUrl, DECK_ADDRESS } from "@/lib/chain";
 
@@ -27,6 +30,21 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const feed = useFeed(shapes);
   const megapot = useMegapot();
   const { mint, minting, canMint } = useMint(game.refetch);
+
+  const inventory = useInventory(game.decks);
+  const tesa = (inventory.data ?? []).filter(
+    (s) =>
+      s.value != null &&
+      !s.spent &&
+      !s.locked &&
+      isShard(
+        specOf(s.value, {
+          size: game.decks[s.deckId]?.size ?? 0,
+          tiers: game.decks[s.deckId]?.tiers ?? [],
+          vaultUpTo: game.decks[s.deckId]?.vaultUpTo ?? 0,
+        }),
+      ),
+  ).length;
 
   const firstOpen = game.decks.find((d) => !d.empty)?.id ?? 0;
 
@@ -95,6 +113,30 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 style={{ color: "var(--color-tier-vault)" }}
               />
             </span>
+
+            {isConnected && tesa > 0 && (
+              <Link
+                href="/profile"
+                title="Your TESA, five make a real ticket"
+                className="flex items-center gap-1.5 rounded-[var(--radius-chip)] border px-2.5 py-1 transition-colors hover:brightness-125"
+                style={{
+                  borderColor: "color-mix(in oklab, var(--color-tier-shard) 40%, transparent)",
+                  background: "color-mix(in oklab, var(--color-tier-shard) 8%, transparent)",
+                }}
+              >
+                <Chest rarity="shard" size={18} />
+                <span
+                  className="t-chain text-xs font-bold leading-none"
+                  style={{ color: "var(--color-tier-shard)" }}
+                >
+                  {tesa}
+                </span>
+                <span className="t-label text-[0.5625rem]">
+                  TESA · {WEIGHT_PER_TICKET - (tesa % WEIGHT_PER_TICKET) || WEIGHT_PER_TICKET} to a
+                  ticket
+                </span>
+              </Link>
+            )}
 
             {isConnected && (
               <TicketsChip
