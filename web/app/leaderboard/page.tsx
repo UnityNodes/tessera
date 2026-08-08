@@ -25,8 +25,8 @@ export default function LeaderboardPage() {
     <div className="w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
       <div className="mx-auto flex max-w-[900px] flex-col gap-6">
         <div className="border-b border-slate-800 pb-6">
-          <h1 className="t-display text-3xl text-white">Standings</h1>
-          <p className="mt-2 max-w-2xl text-sm text-slate-400">
+          <h1 className="t-page text-white">Standings</h1>
+          <p className="mt-2 max-w-2xl text-[0.9375rem] text-slate-400">
             Counted from the chain, not kept by it. Every open is a public event with the
             player&apos;s address, and every revealed slot is a public value, so this table is
             arithmetic anyone can repeat, from the same data the pool counter uses.

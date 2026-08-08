@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useAccount } from "wagmi";
 import { motion } from "motion/react";
-import { ChevronLeft, Trophy, Swords } from "lucide-react";
+import { ChevronLeft, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { StatusPill } from "@/components/ui/StatusPill";
+import { TierPlate } from "@/components/ui/TierPlate";
 import { Roll } from "@/components/Roll";
 import { Chest } from "@/components/Chest";
 import { StartHere } from "@/components/StartHere";
@@ -56,8 +58,16 @@ export default function BattlePage() {
   const specA = cards ? specOf(cards.a.value, shape) : undefined;
   const specB = cards ? specOf(cards.b.value, shape) : undefined;
 
-  const settledA = specA && specB ? power(specA) > power(specB) : undefined;
-  const settledB = specA && specB ? power(specB) > power(specA) : undefined;
+  //
+  const outcomeA =
+    specA && specB
+      ? power(specA) === power(specB)
+        ? "draw"
+        : power(specA) > power(specB)
+          ? "won"
+          : "lost"
+      : undefined;
+  const outcomeB = outcomeA === "won" ? "lost" : outcomeA === "lost" ? "won" : outcomeA;
 
   if (!battle) {
     return (
@@ -72,7 +82,8 @@ export default function BattlePage() {
   return (
     <div className="w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
       <div className="mx-auto flex max-w-[1100px] flex-col space-y-6">
-        <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-5 md:flex-row md:items-end">
+
+        <div className="flex flex-col justify-between gap-5 border-b border-slate-800 pb-6 md:flex-row md:items-end">
           <div>
             <Link
               href="/battles"
@@ -81,22 +92,22 @@ export default function BattlePage() {
               <ChevronLeft className="h-3 w-3" />
               all battles
             </Link>
-            <h1 className="t-black mt-1 flex flex-wrap items-center gap-3 text-2xl text-white">
-              <Swords className="h-6 w-6 text-[var(--color-accent-hover)]" />
-              Battle #{String(battle.id)}
-              <span className="t-chain rounded-[var(--radius-chip)] border border-[rgb(57_255_136_/_0.3)] bg-[rgb(57_255_136_/_0.1)] px-2.5 py-1 text-xs font-normal text-[var(--color-accent-hover)]">
+            <h1 className="t-page mt-2 flex flex-wrap items-baseline gap-3 text-white">
+              <span>Battle #{String(battle.id)}</span>
+              <span className="t-chain text-lg font-bold text-[var(--color-ink-dim)]">
                 deck #{battle.deckId}
               </span>
             </h1>
+            <p className="mt-2 max-w-xl text-[0.9375rem] text-slate-400">
+              {battle.resolved
+                ? "Settled on chain. Both cards are public, and so is the arithmetic that decided them."
+                : battle.joined
+                  ? "Both cards are on the table. Neither was readable until the second player had paid."
+                  : "The creator's card is sealed until someone pays to face it, not even they can read it."}
+            </p>
           </div>
 
-          <p className="t-label max-w-md md:text-right">
-            {battle.resolved
-              ? "settled on chain"
-              : battle.joined
-                ? "both cards are on the table"
-                : "the creator's card is sealed until someone pays to face it"}
-          </p>
+          <StatusPill status={battle.resolved ? "done" : battle.joined ? "live" : "waiting"} />
         </div>
 
         <section className="grid gap-6 lg:grid-cols-2">
@@ -106,7 +117,7 @@ export default function BattlePage() {
             value={cards?.a.value}
             running={battle.joined}
             sealed={!battle.joined}
-            won={settledA}
+            outcome={outcomeA}
             deck={shape}
             pool={pool.data}
           />
@@ -116,7 +127,7 @@ export default function BattlePage() {
               spec={specB}
               value={cards?.b.value}
               running
-              won={settledB}
+              outcome={outcomeB}
               deck={shape}
               pool={pool.data}
             />
@@ -160,7 +171,13 @@ export default function BattlePage() {
 
           {battle.joined && !battle.resolved && cards && (
             <div className="mx-auto mt-5 max-w-md">
-              <Button block className="py-4" disabled={fight.busy} onClick={() => void fight.resolve()}>
+              <Button
+                block
+                variant="battle"
+                className="py-4"
+                disabled={fight.busy}
+                onClick={() => void fight.resolve()}
+              >
                 {fight.busy ? "Settling…" : "Settle the battle"}
               </Button>
               <p className="mt-2 text-center text-sm text-slate-500">
@@ -182,7 +199,10 @@ export default function BattlePage() {
   );
 }
 
+type Outcome = "won" | "lost" | "draw";
+
 /**
+ *
  *
  */
 function Side({
@@ -191,7 +211,7 @@ function Side({
   value,
   running,
   sealed,
-  won,
+  outcome,
   deck,
   pool,
 }: {
@@ -200,30 +220,56 @@ function Side({
   value?: number;
   running: boolean;
   sealed?: boolean;
-  won?: boolean;
+  outcome?: Outcome;
   deck: DeckShape;
   pool?: ReturnType<typeof usePool>["data"];
 }) {
+  const won = outcome === "won";
+  const edge = won
+    ? "rgb(57 255 136 / 0.45)"
+    : outcome
+      ? "var(--edge)"
+      : spec
+        ? `color-mix(in oklab, ${spec.ink} 25%, transparent)`
+        : "var(--edge)";
+
   return (
     <div
-      className={`relative flex flex-col overflow-hidden rounded-[var(--radius-window)] border transition-all ${
-        won
-          ? "border-amber-500 bg-gradient-to-b from-amber-950/60 to-slate-900 shadow-[0_0_30px_rgba(245,158,11,0.3)]"
-          : "border-slate-800 bg-slate-950/80"
-      }`}
+      data-card={spec ? spec.name : sealed ? "sealed" : "pending"}
+      className="relative flex flex-col overflow-hidden rounded-[20px] border transition-all"
+      style={{
+        borderColor: edge,
+        background: won
+          ? "linear-gradient(180deg, rgb(57 255 136 / 0.09), var(--color-surface) 62%)"
+          : "var(--color-surface)",
+        boxShadow: won ? "0 0 30px rgb(57 255 136 / 0.18)" : undefined,
+        opacity: outcome === "lost" ? 0.7 : 1,
+      }}
     >
-      {won && (
-        <span className="t-label absolute left-1/2 top-3 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full bg-amber-500 px-3 py-1 text-slate-950 shadow-lg">
-          <Trophy className="h-3.5 w-3.5" />
-          takes both
+      {outcome && (
+        <span className="absolute left-1/2 top-3 z-20 -translate-x-1/2">
+          <StatusPill status={outcome === "draw" ? "done" : outcome}>
+            {outcome === "won" ? (
+              <>
+                <Trophy className="h-3.5 w-3.5" />
+                Takes both
+              </>
+            ) : outcome === "draw" ? (
+              "Draw"
+            ) : undefined}
+          </StatusPill>
         </span>
       )}
 
-      <div className="relative flex items-center justify-between border-b border-slate-800 px-5 py-3">
-        <span className="t-chain text-sm text-slate-300">{title}</span>
-        <span className="t-label" style={{ color: spec ? spec.ink : "var(--color-ink-faint)" }}>
-          {spec ? (spec.tickets > 0 ? `+${spec.tickets} · ${spec.name}` : spec.name) : "sealed"}
-        </span>
+      <div
+        className="relative flex items-center justify-between gap-3 border-b px-5 py-3.5"
+        style={{ borderColor: "var(--edge)" }}
+      >
+        <span className="t-addr min-w-0 truncate text-sm font-bold text-slate-200">{title}</span>
+        <TierPlate
+          name={spec ? (spec.tickets > 0 ? `+${spec.tickets} · ${spec.name}` : spec.name) : "sealed"}
+          ink={spec ? spec.ink : "var(--color-tier-sealed)"}
+        />
       </div>
 
       <div className="relative flex min-h-[13rem] items-center justify-center px-4 py-6">
@@ -252,7 +298,13 @@ function OpenSeat({
   onJoin: () => void;
 }) {
   return (
-    <div className="grid place-items-center rounded-[var(--radius-window)] border border-dashed border-slate-700 bg-slate-900/40 p-8">
+    <div
+      className="grid place-items-center rounded-[20px] border border-dashed p-8"
+      style={{
+        borderColor: "color-mix(in oklab, var(--color-danger) 30%, transparent)",
+        background: "color-mix(in oklab, var(--color-danger) 3%, var(--color-surface))",
+      }}
+    >
       <div className="w-full max-w-xs text-center">
         <p className="t-label">open seat</p>
         <p className="mt-2 text-slate-400">
@@ -260,7 +312,8 @@ function OpenSeat({
         </p>
         <div className="mt-5 text-left">
           {ready ? (
-            <Button block className="py-4" disabled={!canJoin || busy} onClick={onJoin}>
+            // reserved for Battles and combat states».
+            <Button block variant="battle" className="py-4" disabled={!canJoin || busy} onClick={onJoin}>
               {busy ? "…" : "Take the seat • $1"}
             </Button>
           ) : (

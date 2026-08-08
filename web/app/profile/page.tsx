@@ -55,7 +55,7 @@ export default function ProfilePage() {
       <div className="mx-auto flex max-w-[1100px] flex-col gap-8">
         <div className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-800 pb-6">
           <div>
-            <h1 className="t-display text-3xl text-white">Your shelf</h1>
+            <h1 className="t-page text-white">Your shelf</h1>
             <a
               href={addressUrl(address!)}
               target="_blank"

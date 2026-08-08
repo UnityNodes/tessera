@@ -8,8 +8,9 @@ import { formatUnits } from "viem";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronLeft, Sparkles, Lock, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { Tally } from "@/components/ui/Tally";
+import { TierPlate } from "@/components/ui/TierPlate";
 import { Case } from "@/components/Case";
-import { Chest } from "@/components/Chest";
 import { OpenTheatre } from "@/components/OpenTheatre";
 import { Contents } from "@/components/Contents";
 import { PoolCounter } from "@/components/PoolCounter";
@@ -132,71 +133,79 @@ export default function CasePage() {
       />
 
       <div className="mx-auto flex max-w-[1320px] flex-col gap-6">
-        <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-5 md:flex-row md:items-center">
-          <div className="flex items-center gap-4">
-            <Chest
-              rarity={deck.empty ? "grout" : (best?.rarity ?? "sealed")}
-              size={56}
-              className="shrink-0"
-            />
-            <div>
-              <Link
-                href="/case"
-                className="t-label inline-flex items-center gap-1 hover:text-[var(--color-accent-hover)]"
-              >
-                <ChevronLeft className="h-3 w-3" />
-                all cases
-              </Link>
-              <h1 className="t-black mt-1 flex flex-wrap items-center gap-2 text-2xl text-white">
-                <span>{deck.empty ? "Emptied" : (best?.name ?? "Sealed")} case</span>
-                <span
-                  className="t-chain rounded-[var(--radius-chip)] border px-2 py-0.5 text-xs"
-                  style={{
-                    backgroundColor: `color-mix(in oklab, ${ink} 13%, transparent)`,
-                    borderColor: `color-mix(in oklab, ${ink} 26%, transparent)`,
-                    color: ink,
-                  }}
-                >
-                  $1.00
-                </span>
-              </h1>
-              <p className="t-chain mt-0.5 text-xs text-slate-400">
-                deck #{deck.id} · drawn without replacement
-                {oneIn > 0 ? ` · 1 in ${oneIn} pays` : ""}
-              </p>
-            </div>
+        <div className="flex flex-col justify-between gap-6 border-b border-slate-800 pb-6 md:flex-row md:items-end">
+          <div>
+            <Link
+              href="/case"
+              className="t-label inline-flex items-center gap-1 hover:text-[var(--color-accent-hover)]"
+            >
+              <ChevronLeft className="h-3 w-3" />
+              all cases
+            </Link>
+            <h1 className="t-page mt-2 flex flex-wrap items-baseline gap-3 text-white">
+              <span>{deck.empty ? "Emptied" : (best?.name ?? "Sealed")} case</span>
+              <span className="t-chain text-lg font-bold text-[var(--color-ink-dim)]">
+                #{deck.id}
+              </span>
+            </h1>
+            <p className="mt-2 max-w-xl text-[0.9375rem] text-slate-400">
+              A dollar buys a real Megapot ticket, and the case comes on top. The deck is finite
+              and drawn without replacement, whatever someone else took is gone for you too.
+            </p>
           </div>
 
-          <p className="t-chain text-sm text-slate-400">
-            <span
-              className="text-4xl font-extrabold text-white"
-              style={{ textShadow: "0 0 34px rgb(255 255 255 / 0.18)" }}
-            >
-              {deck.remaining}
-            </span>{" "}
-            of {deck.size} still sealed
-          </p>
+          <div className="flex items-end gap-7">
+            <Tally label="still sealed" value={deck.remaining} note={`of ${deck.size}`} />
+            <Tally label="drawn" value={deck.drawn} />
+            {oneIn > 0 && <Tally label="pays" value={`1 in ${oneIn}`} />}
+          </div>
         </div>
 
         <section className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-          <div className="frame relative flex w-full flex-col">
-            <div className="relative grid place-items-center px-6 pb-4 pt-8 sm:px-10">
+          <div
+            className="frame relative flex w-full flex-col"
+            style={{ borderColor: `color-mix(in oklab, ${ink} 20%, transparent)` }}
+          >
+            <span className="absolute left-5 top-5 z-10">
+              <TierPlate name={deck.empty ? "emptied" : (best?.name ?? "sealed")} ink={ink} />
+            </span>
+            <span className="t-chain absolute right-5 top-5 z-10 text-xs text-slate-400">
+              {deck.remaining} sealed
+            </span>
+
+            <div className="relative grid place-items-center px-6 pb-4 pt-16 sm:px-10">
               <span
                 aria-hidden
                 className="pointer-events-none absolute inset-x-12 inset-y-6 rounded-full opacity-20 blur-3xl"
                 style={{ background: ink }}
               />
-              <Case
-                phase={open.state.phase === "done" ? "opened" : "idle"}
-                value={open.state.value}
-                deck={shape}
-                risk={open.state.risk}
-                vault={deck.vault}
-                size={380}
-                onClick={
-                  canOpen ? () => open.open({ deckId, needsApproval: game.needsApproval }) : undefined
-                }
-              />
+              <div className="relative">
+                <Case
+                  phase={open.state.phase === "done" ? "opened" : "idle"}
+                  value={open.state.value}
+                  deck={shape}
+                  risk={open.state.risk}
+                  vault={deck.vault}
+                  size={380}
+                  onClick={
+                    canOpen
+                      ? () => open.open({ deckId, needsApproval: game.needsApproval })
+                      : undefined
+                  }
+                />
+                {open.state.phase === "idle" && !deck.empty && (
+                  <span
+                    className="t-chain absolute bottom-1 left-1/2 -translate-x-1/2 rounded border px-3 py-1 text-xs font-extrabold"
+                    style={{
+                      background: "rgb(0 0 0 / 0.45)",
+                      borderColor: `color-mix(in oklab, ${ink} 30%, transparent)`,
+                      color: ink,
+                    }}
+                  >
+                    $1.00
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="border-t border-slate-800/70 p-5 sm:p-6">
@@ -305,8 +314,8 @@ export default function CasePage() {
               <div
                 className="slab p-5"
                 style={{
-                  borderColor: "rgb(236 72 153 / 0.35)",
-                  boxShadow: "0 0 25px rgb(236 72 153 / 0.12)",
+                  borderColor: "color-mix(in oklab, var(--color-tier-vault) 32%, transparent)",
+                  boxShadow: "0 0 25px color-mix(in oklab, var(--color-tier-vault) 12%, transparent)",
                 }}
               >
                 <span className="t-label flex items-center gap-2" style={{ color: "var(--color-tier-vault)" }}>
@@ -427,8 +436,12 @@ function ForfeitAction({
         variant="quiet"
         disabled={disabled}
         onClick={onClick}
-        className="!border-[rgb(236_72_153_/_0.45)] hover:!border-[var(--color-tier-vault)] hover:!bg-[rgb(236_72_153_/_0.12)] hover:!text-[var(--color-tier-vault)]"
-        style={{ color: ink }}
+        className="hover:!brightness-110"
+        style={{
+          color: ink,
+          background: "color-mix(in oklab, var(--color-tier-vault) 8%, transparent)",
+          borderColor: "color-mix(in oklab, var(--color-tier-vault) 40%, transparent)",
+        }}
       >
         Risk it · give the ticket up
       </Button>

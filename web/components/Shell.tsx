@@ -79,9 +79,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <span
               className="flex items-center gap-2 rounded-[var(--radius-chip)] border px-3 py-1.5"
               style={{
-                borderColor: "rgb(236 72 153 / 0.3)",
-                background: "rgb(15 23 42 / 0.9)",
-                boxShadow: "0 0 12px rgb(236 72 153 / 0.12)",
+                borderColor: "color-mix(in oklab, var(--color-tier-vault) 30%, transparent)",
+                background: "var(--color-surface)",
+                boxShadow: "0 0 12px color-mix(in oklab, var(--color-tier-vault) 12%, transparent)",
               }}
             >
               <Lock className="h-3.5 w-3.5" style={{ color: "var(--color-tier-vault)" }} />

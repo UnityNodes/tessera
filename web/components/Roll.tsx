@@ -85,7 +85,7 @@ export function Roll({
   const [frozen, setFrozen] = useState<{ value: number; strip: TierSpec[] } | null>(null);
 
   if (landedValue != null && frozen?.value !== landedValue) {
-    setFrozen({ value: landedValue, strip: built });
+    setFrozen({ value: landedValue, strip: withLanded(built, specOf(landedValue, deck)) });
   } else if (landedValue == null && frozen !== null) {
     setFrozen(null);
   }
@@ -159,6 +159,7 @@ export function Roll({
 
   return (
     <div
+      data-roll
       className="relative w-full overflow-hidden"
       style={{
         height: ITEM + 36,
@@ -217,6 +218,7 @@ function Item({ spec }: { spec: TierSpec }) {
   return (
     <div
       data-roll-item
+      data-tier-name={spec.name}
       className="relative shrink-0 overflow-hidden rounded-[var(--radius-control)] bg-slate-900"
       style={{
         width: ITEM,
@@ -274,7 +276,12 @@ function buildStrip(deck: DeckShape, pool?: PoolState): TierSpec[] {
 
   const CYCLE = 12;
   for (const p of perCycle) for (let i = 0; i < p.times; i++) cycle.push(p.spec);
-  while (cycle.length < CYCLE) cycle.push(grout);
+
+  //
+  //
+  const EMPTY_TIMES = 4;
+  const empties = Math.max(EMPTY_TIMES, CYCLE - cycle.length);
+  for (let i = 0; i < empties; i++) cycle.push(grout);
 
   const spread: TierSpec[] = new Array(cycle.length);
   let at = 0;
@@ -286,5 +293,16 @@ function buildStrip(deck: DeckShape, pool?: PoolState): TierSpec[] {
 
   const out: TierSpec[] = [];
   while (out.length < LENGTH) out.push(...spread);
-  return out.slice(0, LENGTH);
+  return out;
+}
+
+/**
+ *
+ *
+ */
+function withLanded(strip: TierSpec[], landed: TierSpec): TierSpec[] {
+  if (strip.some((s) => s.name === landed.name)) return strip;
+  const out = [...strip];
+  for (let i = 0; i < out.length; i += 12) out[i] = landed;
+  return out;
 }

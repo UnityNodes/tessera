@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatUnits } from "viem";
 import { Sparkles, Eye, X } from "lucide-react";
 import { Chest } from "@/components/Chest";
+import { TierPlate } from "@/components/ui/TierPlate";
 import { useDeck, type DeckInfo } from "@/hooks/useDeck";
 import { slotsPerTier, bestTier, VAULT_SPEC, type TierSpec } from "@/lib/deck";
 
@@ -27,20 +28,20 @@ export default function CasesPage() {
     <div className="w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
       <div className="mx-auto flex max-w-[1320px] flex-col space-y-8">
         <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-6 md:flex-row md:items-center">
-          <div>
-            <h1 className="t-display flex flex-wrap items-center gap-3 text-3xl text-white">
+          <div className="min-w-0 max-w-2xl">
+            <h1 className="t-page flex flex-wrap items-baseline gap-3 text-white">
               <span>Case deck catalog</span>
-              <span className="t-chain rounded-full border border-[rgb(57_255_136_/_0.3)] bg-[rgb(57_255_136_/_0.2)] px-2.5 py-1 text-xs font-normal text-[var(--color-accent-bright)]">
+              <span className="t-chain text-lg font-bold text-[var(--color-ink-dim)]">
                 {game.decks.length} {game.decks.length === 1 ? "deck" : "decks"}
               </span>
             </h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-2 text-[0.9375rem] text-slate-400">
               Every case costs $1 and buys a real lottery ticket, that part never changes. What
               the decks disagree on is the case itself: how often it pays, and how much.
             </p>
           </div>
 
-          <div className="scrollbar-none flex max-w-full items-center gap-2 self-start overflow-x-auto rounded-[var(--radius-control)] border border-slate-800 bg-slate-900 p-1.5 md:self-auto">
+          <div className="scrollbar-none flex max-w-full shrink-0 items-center gap-2 self-start overflow-x-auto rounded-[var(--radius-control)] border border-slate-800 bg-slate-900 p-1.5 md:self-auto">
             <Pill on={filter === "all"} onClick={() => setFilter("all")}>
               all decks
             </Pill>
@@ -110,13 +111,10 @@ function DeckCard({ deck, onInspect }: { deck: DeckInfo; onInspect: () => void }
         boxShadow: `0 0 25px color-mix(in oklab, ${ink} 14%, transparent)`,
       }}
     >
-      <span
-        className="t-label absolute left-5 top-4 text-[0.625rem]"
-        style={{ color: ink, letterSpacing: "0.1em" }}
-      >
-        {deck.empty ? "emptied" : (best?.name ?? "sealed")}
+      <span className="absolute left-5 top-4">
+        <TierPlate name={deck.empty ? "emptied" : (best?.name ?? "sealed")} ink={ink} />
       </span>
-      <span className="t-chain absolute right-5 top-4 text-xs text-slate-400">
+      <span className="t-chain absolute right-5 top-5 text-xs text-slate-400">
         {deck.remaining} sealed
       </span>
 

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useAccount } from "wagmi";
 import { Swords, Plus, Play, Users } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { StatusPill } from "@/components/ui/StatusPill";
+import { Tally } from "@/components/ui/Tally";
 import { Chest } from "@/components/Chest";
 import { StartHere } from "@/components/StartHere";
 import { useDeck } from "@/hooks/useDeck";
@@ -39,11 +41,8 @@ export default function BattlesPage() {
       <div className="mx-auto flex max-w-[1100px] flex-col space-y-8">
         <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-6 md:flex-row md:items-center">
           <div className="max-w-2xl">
-            <h1 className="t-display flex items-center gap-3 text-3xl text-white">
-              <Swords className="h-8 w-8 text-[var(--color-accent-hover)]" />
-              <span>Case battles arena</span>
-            </h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <h1 className="t-page text-white">Case battles arena</h1>
+            <p className="mt-2 text-[0.9375rem] text-slate-400">
               Two cases open at once and the better card takes both prizes. Neither card can be
               read until both players have paid, not even by the one who opened the battle.
             </p>
@@ -51,7 +50,7 @@ export default function BattlesPage() {
 
           <div className="flex items-center gap-6">
             <Tally label="waiting" value={battles.open.length} />
-            <Tally label="live" value={battles.live.length} ink="var(--color-accent-hover)" />
+            <Tally label="live" value={battles.live.length} ink="var(--color-danger-soft)" />
             <Tally label="all time" value={battles.total} />
           </div>
         </div>
@@ -112,7 +111,7 @@ export default function BattlesPage() {
                         onClick={() => setPick(d.id)}
                         className={`flex cursor-pointer flex-col items-center gap-1 rounded-[var(--radius-control)] border p-3 transition-all ${
                           on
-                            ? "border-[var(--color-accent)] bg-slate-800 text-white shadow-[var(--glow-accent-soft)]"
+                            ? "border-[rgb(255_45_85_/_0.4)] bg-[rgb(255_45_85_/_0.08)] text-white"
                             : "border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200"
                         }`}
                       >
@@ -120,7 +119,7 @@ export default function BattlesPage() {
                         <span className="truncate text-xs font-bold">
                           {best?.name ?? "Sealed"}
                         </span>
-                        <span className="t-chain text-[10px] text-[var(--color-accent-hover)]">
+                        <span className="t-chain text-[10px] text-slate-400">
                           {d.remaining} left
                         </span>
                       </button>
@@ -142,9 +141,7 @@ export default function BattlesPage() {
               <div className="mb-4 flex items-baseline justify-between gap-4">
                 <span className="t-label">your entry</span>
                 <span className="text-right">
-                  <span className="t-chain text-xl font-extrabold text-[var(--color-accent-hover)]">
-                    $1.00
-                  </span>
+                  <span className="t-chain text-xl font-extrabold text-white">$1.00</span>
                   <span className="t-chain block text-[11px] text-slate-500">
                     and it still buys your ticket
                   </span>
@@ -158,14 +155,16 @@ export default function BattlesPage() {
                   You already have a battle on the table. Settle it before opening another.
                 </p>
               ) : (
+                // Cases, wins). Red is reserved for Battles and combat
                 <Button
                   block
+                  variant="battle"
                   className="py-4"
                   disabled={!canPlay || battles.busy}
                   loading={battles.busy}
                   onClick={() => chosen && void battles.create(chosen.id, game.needsApproval)}
                 >
-                  <Play className="h-4 w-4 fill-slate-950" />
+                  <Play className="h-4 w-4 fill-current" />
                   Start battle
                 </Button>
               )}
@@ -219,15 +218,16 @@ function Row({
 }) {
   const isMine = battle.a.toLowerCase() === me || battle.b.toLowerCase() === me;
 
-  const [label, ink] = battle.resolved
-    ? ["done", "var(--color-ink-faint)"]
+  const status = battle.resolved ? "done" : battle.joined ? "live" : "waiting";
+  const ink = battle.resolved
+    ? "var(--color-ink-faint)"
     : battle.joined
-      ? ["live", "var(--color-danger)"]
-      : ["waiting", "var(--color-ink-dim)"];
+      ? "var(--color-danger-soft)"
+      : "var(--color-tier-vault)";
 
   return (
     <div
-      className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-panel)] border p-5 transition-colors"
+      className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-panel)] border p-4 transition-colors sm:p-5"
       style={{ background: "var(--color-surface)", borderColor: "var(--edge)" }}
     >
       <div className="flex min-w-0 items-center gap-4">
@@ -254,20 +254,11 @@ function Row({
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-3">
-        <span
-          className="t-label"
-          style={{
-            color: ink,
-            animation:
-              battle.joined && !battle.resolved ? "marker-live 1.8s ease-in-out infinite" : undefined,
-          }}
-        >
-          {label}
-        </span>
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        <StatusPill status={status} />
 
         {battle.waiting && !isMine && (ready ? (
-          <Button size="sm" disabled={!canPlay || busy} onClick={onJoin}>
+          <Button size="sm" variant="battle" disabled={!canPlay || busy} onClick={onJoin}>
             Join • $1
           </Button>
         ) : (
@@ -283,20 +274,6 @@ function Row({
   );
 }
 
-function Tally({ label, value, ink }: { label: string; value: number; ink?: string }) {
-  return (
-    <div className="text-right">
-      <span className="t-label block">{label}</span>
-      <span
-        className="t-chain text-2xl font-extrabold leading-tight"
-        style={{ color: ink ?? "var(--color-ink)" }}
-      >
-        {value}
-      </span>
-    </div>
-  );
-}
-
 function Fact({
   icon,
   value,
@@ -308,7 +285,7 @@ function Fact({
 }) {
   return (
     <div className="flex items-center gap-2.5 rounded-[var(--radius-control)] border border-slate-800 bg-slate-950 px-3 py-2.5">
-      <span className="text-[var(--color-accent-hover)]">{icon}</span>
+      <span className="text-slate-400">{icon}</span>
       <span className="min-w-0">
         <span className="block truncate text-xs font-bold text-slate-200">{value}</span>
         <span className="t-chain block truncate text-[10px] text-slate-500">{note}</span>

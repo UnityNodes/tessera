@@ -128,11 +128,27 @@ with sync_playwright() as p:
     print("\n── ──")
     for d in EXPECTED["decks"]:
         go(f"/case/{d['id']}")
-        head = page.locator("text=/of \\d+ still sealed/").first.inner_text()
-        got = whole(num(head.split("of")[0]))
-        same(f"#{d['id']}: N of M still sealed", d["remaining"], got)
-        size = whole(num(head.split("of")[1]))
-        same(f"#{d['id']}: ", d["size"], size)
+        # : , ,
+        # of M. , ,
+        # -, .
+        tally = page.locator("div", has=page.get_by_text("still sealed", exact=True)).last
+        # inner_text , ,
+        # text-transform DOM .
+        # re.I .
+        head = re.search(
+            r"still sealed\s+([\d\s,]+)\s+of\s+([\d\s,]+)", tally.inner_text(), re.I
+        )
+        check(f"#{d['id']}: ", bool(head), "still sealed / N / of M")
+        same(
+            f"#{d['id']}: still sealed",
+            d["remaining"],
+            whole(num(head.group(1)) if head else None),
+        )
+        same(
+            f"#{d['id']}: ",
+            d["size"],
+            whole(num(head.group(2)) if head else None),
+        )
 
         grid = page.get_by_role("img", name=re.compile(r"slots still sealed")).get_attribute(
             "aria-label"
@@ -148,9 +164,54 @@ with sync_playwright() as p:
     allt = page.locator("div", has=page.get_by_text("all time", exact=True)).last.inner_text()
     same("all time= ", EXPECTED["battles"], whole(num(allt.replace("all time", ""))))
 
+    # ── ──────────────────────────────────────────────────────
+    #
+    # , : .
+    # , ,
+    # ,
+    # , Denarius +1.
+    # : grout, .
+    #
+    # : ',
+    # , , .
+    print("\n── ──")
+    UNDER_MARK = """() => {
+      const out = [];
+      document.querySelectorAll('[data-roll]').forEach((reel) => {
+        const card = reel.closest('[data-card]');
+        const box = reel.getBoundingClientRect();
+        const mark = box.left + box.width / 2;
+        let under = null;
+        reel.querySelectorAll('[data-roll-item]').forEach((el) => {
+          const r = el.getBoundingClientRect();
+          if (r.left <= mark && r.right >= mark) under = el.dataset.tierName;
+        });
+        out.push({ named: card ? card.dataset.card : null, under });
+      });
+      return out;
+    }"""
+    seen = 0
+    for bid in range(1, EXPECTED["battles"] + 1):
+        go(f"/battles/{bid}", 4000)
+        for side in page.evaluate(UNDER_MARK):
+            if not side["named"] or side["named"] in ("sealed", "pending") or not side["under"]:
+                continue
+            seen += 1
+            check(
+                f"#{bid}: , ",
+                side["named"] == side["under"],
+                f"{side['named']}, {side['under']}",
+            )
+        if seen >= 2:
+            break
+    check("", seen > 0, f": {seen}")
+
     # ── ───────────────────────────────────────────────────────────
     print("\n── ──")
-    for w in (360, 390, 768, 1440, 1920):
+    # 1280 :
+    # ,
+    # 768 1440 , .
+    for w in (360, 390, 768, 1280, 1440, 1920):
         page.set_viewport_size({"width": w, "height": 900})
         for path in ("/", "/case", "/case/1", "/battles", "/battles/1"):
             go(path, 3500)

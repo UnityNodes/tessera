@@ -173,6 +173,15 @@
     text-wrap: balance;
   }
 
+  .t-page {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 2.125rem;
+    line-height: 1.1;
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+
   .t-black {
     font-family: var(--font-display);
     font-weight: 900;
