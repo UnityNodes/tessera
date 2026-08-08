@@ -8,6 +8,7 @@ import type { Rarity } from "@/lib/deck";
  *
  *
  *
+ *
  */
 
 /**
@@ -27,12 +28,19 @@ const ART: Record<Rarity, { src: string; open: string; filter?: string; bare?: b
     open: "/chests/sealed-open.webp",
     filter: "saturate(0.1) brightness(0.72)",
   },
+  //
   shard: {
-    src: "/chests/denarius.webp",
-    open: "/chests/denarius-open.webp",
-    filter: "saturate(0.75) brightness(0.78)",
+    bare: true,
+    src: "/chests/sealed-bare.webp",
+    open: "/chests/sealed-open.webp",
+    filter: "hue-rotate(-56deg) saturate(0.85) brightness(0.82)",
   },
-  denarius: { src: "/chests/denarius.webp", open: "/chests/denarius-open.webp" },
+  denarius: {
+    bare: true,
+    src: "/chests/sealed-bare.webp",
+    open: "/chests/sealed-open.webp",
+    filter: "hue-rotate(-66deg) saturate(1.15)",
+  },
   aureus: { bare: true, src: "/chests/sealed-bare.webp", open: "/chests/sealed-open.webp" },
   porphyry: {
     bare: true,

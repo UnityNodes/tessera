@@ -158,11 +158,13 @@ export function OpenTheatre({
                       <p
                         className="t-display text-[clamp(2.4rem,6.5vw,4rem)] leading-none"
                         style={{
-                          color: spec.ink,
-                          textShadow: `0 0 70px color-mix(in oklab, ${spec.ink} 65%, transparent)`,
+                          color: won || open.risk ? spec.ink : "var(--color-accent)",
+                          textShadow: `0 0 70px color-mix(in oklab, ${
+                            won || open.risk ? spec.ink : "var(--color-accent)"
+                          } 65%, transparent)`,
                         }}
                       >
-                        {won ? spec.name : "empty"}
+                        {won ? spec.name : open.risk ? "empty" : "+1 real ticket"}
                       </p>
                       <p className="t-inscription mt-3 text-[0.875rem] text-[var(--color-ink-dim)]">
                         {isVault(spec)
@@ -172,8 +174,8 @@ export function OpenTheatre({
                             : won
                             ? `${paid} real ticket${paid > 1 ? "s" : ""}${open.risk ? " · doubled" : ""}`
                             : open.risk
-                              ? "double nothing is nothing, that was the bet"
-                              : "most of them are"}
+                              ? "no ticket, and the case was empty, that was the bet"
+                              : "the case added nothing on top · most do not"}
                       </p>
                       <p className="mt-5 text-[0.9375rem] text-[var(--color-ink-faint)]">
                         click anywhere to continue

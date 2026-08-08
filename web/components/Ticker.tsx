@@ -58,7 +58,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
             {emptySince}
           </span>
           <span className="t-label mt-1 block whitespace-nowrap text-[10px]">
-            empty in a row{riskedSince > 0 ? ` · ${riskedSince} risked` : ""}
+            no bonus in a row{riskedSince > 0 ? ` · ${riskedSince} risked` : ""}
           </span>
         </div>
       )}

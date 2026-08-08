@@ -96,7 +96,7 @@ export function specFor(weight: number): TierSpec {
 
   return {
     name: "Grout",
-    note: "nothing this time",
+    note: "no bonus on top",
     tint: "color-mix(in oklab, var(--color-tier-grout) 8%, var(--color-surface))",
     ink: "var(--color-tier-grout)",
     tickets: 0,

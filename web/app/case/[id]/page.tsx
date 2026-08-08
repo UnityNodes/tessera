@@ -583,7 +583,10 @@ function Result({
               and the case paid 1 TESA, five make a ticket
             </p>
           ) : (
-            <p className="mt-3 text-slate-500">The case was empty. Most of them are.</p>
+            <p className="mt-3 text-slate-500">
+              The case added nothing on top. Most do not, the ticket is the part that always
+              arrives.
+            </p>
           )}
         </div>
       );

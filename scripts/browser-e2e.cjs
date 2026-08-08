@@ -217,11 +217,11 @@ async function ensureConnected(page) {
     const scene = (
       await page
         .getByRole("dialog", { name: /Opening a case/ })
-        .getByText(/^(Grout|TESA|Denarius|Aureus|Porphyry|The Vault|empty)$/)
+        .getByText(/^(Grout|TESA|Denarius|Aureus|Porphyry|The Vault|empty|\+1 real ticket)$/)
         .first()
         .textContent()
     ).trim();
-    gotPrize = scene !== "empty" && scene !== "Grout";
+    gotPrize = !["empty", "Grout", "+1 real ticket"].includes(scene);
     console.log(`⏱ ${ms} ms  →  ${scene}${gotPrize ? "  ★" : ""}`);
     await page.waitForTimeout(2200);
     await shot(page, gotPrize ? "e2e-prize" : `e2e-empty-${round}`);
