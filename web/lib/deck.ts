@@ -41,6 +41,12 @@ export interface TierSpec {
 }
 
 /**
+ * «+1 ticket» / «+5 tickets».
+ *
+ */
+export const ticketsLabel = (n: number) => `+${n} ticket${n === 1 ? "" : "s"}`;
+
+/**
  *
  *
  */
@@ -49,7 +55,7 @@ export function specFor(weight: number): TierSpec {
   if (tickets >= 5) {
     return {
       name: "Porphyry",
-      note: `+${tickets} tickets`,
+      note: ticketsLabel(tickets),
       tint: "color-mix(in oklab, var(--color-tier-porphyry) 9%, var(--color-surface))",
       ink: "var(--color-tier-porphyry)",
       tickets,
@@ -59,7 +65,7 @@ export function specFor(weight: number): TierSpec {
   if (tickets >= 2) {
     return {
       name: "Aureus",
-      note: `+${tickets} tickets`,
+      note: ticketsLabel(tickets),
       tint: "color-mix(in oklab, var(--color-tier-aureus) 9%, var(--color-surface))",
       ink: "var(--color-tier-aureus)",
       tickets,
@@ -69,7 +75,7 @@ export function specFor(weight: number): TierSpec {
   if (tickets === 1) {
     return {
       name: "Denarius",
-      note: "+1 ticket",
+      note: ticketsLabel(1),
       tint: "color-mix(in oklab, var(--color-tier-denarius) 9%, var(--color-surface))",
       ink: "var(--color-tier-denarius)",
       tickets: 1,

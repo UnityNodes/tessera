@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "motion/react";
 import { Chest, ChestWaiting } from "./Chest";
 import { Prize } from "./Prize";
-import { specOf, isVault, type DeckShape } from "@/lib/deck";
+import { specOf, isVault, ticketsLabel, type DeckShape } from "@/lib/deck";
 
 export type CasePhase = "idle" | "waiting" | "opened";
 
@@ -103,7 +103,7 @@ export function Case({ phase, value, deck, size = 340, onClick, risk = false, va
         disabled={!clickable}
         aria-label={
           spec
-            ? `Opened: ${spec.name}${spec.tickets > 0 ? `, ${paid} tickets` : ""}`
+            ? `Opened: ${spec.name}${spec.tickets > 0 ? `, ${ticketsLabel(paid)}` : ""}`
             : clickable
               ? "Open this case"
               : "A sealed case"

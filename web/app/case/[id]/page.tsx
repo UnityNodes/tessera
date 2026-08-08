@@ -157,7 +157,7 @@ export default function CasePage() {
           <div className="flex items-end gap-7">
             <Tally label="still sealed" value={deck.remaining} note={`of ${deck.size}`} />
             <Tally label="drawn" value={deck.drawn} />
-            {oneIn > 0 && <Tally label="pays" value={`1 in ${oneIn}`} />}
+            {oneIn > 0 && <Tally label="pays, as cut" value={`1 in ${oneIn}`} />}
           </div>
         </div>
 

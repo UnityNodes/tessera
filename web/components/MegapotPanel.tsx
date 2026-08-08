@@ -34,7 +34,7 @@ export function MegapotPanel({ mp }: { mp: ReturnType<typeof useMegapot> }) {
 
       <DataRow
         name="your tickets"
-        value={mp.tickets.toFixed(2)}
+        value={String(Math.round(mp.tickets))}
         ink="var(--color-accent-hover)"
       />
       <DataRow name="liquidity behind it" value={usd(mp.liquidityPool)} />

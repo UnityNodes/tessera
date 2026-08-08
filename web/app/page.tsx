@@ -9,7 +9,7 @@ import { Chest } from "@/components/Chest";
 import { useDeck, type DeckInfo } from "@/hooks/useDeck";
 import { useBattleList } from "@/hooks/useBattles";
 import { useFeed } from "@/hooks/useFeed";
-import { slotsPerTier, bestTier, isVault, isShard } from "@/lib/deck";
+import { slotsPerTier, bestTier, isVault, isShard, ticketsLabel } from "@/lib/deck";
 
 /**
  *
@@ -281,7 +281,7 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
           ) : (
             <>
               Best case{" "}
-              <span style={{ color: ink }}>{top > 0 ? `+${top} tickets` : "the vault"}</span>.{" "}
+              <span style={{ color: ink }}>{top > 0 ? ticketsLabel(top) : "the vault"}</span>.{" "}
               {deck.vaultUpTo > 0
                 ? "One case in the deck opens the vault and takes all of it."
                 : "No vault here, this deck pays in tickets only."}
@@ -394,7 +394,7 @@ function Latest({ feed }: { feed: ReturnType<typeof useFeed> }) {
                 ? "the vault"
                 : isShard(it.spec)
                   ? `${it.risk ? 2 : 1} TESA`
-                  : `+${paid} tickets`}
+                  : ticketsLabel(paid)}
             </span>
           </div>
         );

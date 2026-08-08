@@ -7,7 +7,13 @@ import { Sparkles, Eye, X } from "lucide-react";
 import { Chest } from "@/components/Chest";
 import { TierPlate } from "@/components/ui/TierPlate";
 import { useDeck, type DeckInfo } from "@/hooks/useDeck";
-import { slotsPerTier, bestTier, isShard, VAULT_SPEC, type TierSpec } from "@/lib/deck";
+import {
+  slotsPerTier,
+  bestTier,
+  isShard,
+  ticketsLabel,
+  type TierSpec,
+} from "@/lib/deck";
 
 /**
  *
@@ -168,7 +174,7 @@ function DeckCard({ deck, onInspect }: { deck: DeckInfo; onInspect: () => void }
             "Every case in this deck has been opened."
           ) : (
             <>
-              Best case {top > 0 ? `+${top} tickets` : "the vault"}.{" "}
+              Best case {top > 0 ? ticketsLabel(top) : "the vault"}.{" "}
               {deck.vaultUpTo > 0
                 ? "One case in the deck opens the vault and takes all of it."
                 : "No vault here, tickets only."}
@@ -268,12 +274,7 @@ function Inspector({ deck, onClose }: { deck: DeckInfo; onClose: () => void }) {
                   style={{ backgroundColor: t.spec.ink }}
                 />
                 <span className="font-medium text-slate-200">{t.spec.name}</span>
-                {t.spec.tickets > 0 && (
-                  <span className="t-chain text-xs text-slate-500">+{t.spec.tickets} tickets</span>
-                )}
-                {t.spec.name === VAULT_SPEC.name && (
-                  <span className="t-chain text-xs text-slate-500">takes the whole vault</span>
-                )}
+                <span className="t-chain text-xs text-slate-500">{t.spec.note}</span>
               </span>
               <span className="t-chain shrink-0 font-bold text-[var(--color-accent-hover)]">
                 {t.count} of {deck.size}

@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useAccount } from "wagmi";
-import { isVault } from "@/lib/deck";
+import { isVault, ticketsLabel } from "@/lib/deck";
 import { Chest } from "./Chest";
 import type { FeedItem } from "@/hooks/useFeed";
 
@@ -58,7 +58,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
             {emptySince}
           </span>
           <span className="t-label mt-1 block whitespace-nowrap text-[10px]">
-            empty since{riskedSince > 0 ? ` · ${riskedSince} risked` : ""}
+            empty in a row{riskedSince > 0 ? ` · ${riskedSince} risked` : ""}
           </span>
         </div>
       )}
@@ -113,7 +113,7 @@ function Drop({ item, mine }: { item: FeedItem; mine: boolean }) {
         </span>
         <span className="t-chain mt-0.5 text-[11px] font-bold" style={{ color: ink }}>
           {item.spec.name}
-          {paid > 0 ? ` · +${paid} tickets` : ""}
+          {paid > 0 ? ` · ${ticketsLabel(paid)}` : ""}
         </span>
       </div>
     </div>
