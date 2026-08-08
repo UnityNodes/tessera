@@ -258,18 +258,17 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
         )}
 
         {!deck.empty && (
-          <ul className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+          <ul className="flex flex-wrap items-end justify-center gap-2">
             {ladder.map((t, i) => (
-              <li key={i} className="flex items-center gap-1.5">
-                <span
-                  aria-hidden
-                  className="h-1.5 w-1.5 shrink-0 rounded-full"
-                  style={{ background: t.spec.ink }}
-                />
-                <span className="t-chain text-[0.6875rem] font-bold text-slate-400">
-                  {t.count}
+              <li
+                key={i}
+                className="flex w-[3.25rem] flex-col items-center gap-0.5"
+                title={`${t.count} × ${t.spec.name}`}
+              >
+                <Chest rarity={t.spec.rarity} size={34} />
+                <span className="t-chain text-xs font-bold" style={{ color: t.spec.ink }}>
+                  ×{t.count}
                 </span>
-                <span className="text-[0.6875rem] text-slate-500">{t.spec.name}</span>
               </li>
             ))}
           </ul>
