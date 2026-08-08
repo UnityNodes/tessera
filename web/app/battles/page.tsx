@@ -50,7 +50,11 @@ export default function BattlesPage() {
 
           <div className="flex items-center gap-6">
             <Tally label="waiting" value={battles.open.length} />
-            <Tally label="live" value={battles.live.length} ink="var(--color-danger-soft)" />
+            <Tally
+              label="live"
+              value={battles.live.length}
+              ink={battles.live.length > 0 ? "var(--color-danger-soft)" : undefined}
+            />
             <Tally label="all time" value={battles.total} />
           </div>
         </div>
@@ -131,7 +135,7 @@ export default function BattlesPage() {
 
             <div>
               <label className="t-label mb-2 block">2. the table</label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <Fact icon={<Users className="h-4 w-4" />} value="2 players" note="you and one" />
                 <Fact icon={<Swords className="h-4 w-4" />} value="1 card each" note="higher takes both" />
               </div>
@@ -172,7 +176,7 @@ export default function BattlesPage() {
           </div>
 
           <div className="space-y-4 lg:col-span-7">
-            <h2 className="flex items-center justify-between text-xl font-bold text-white">
+            <h2 className="flex flex-wrap items-baseline justify-between gap-2 text-xl font-bold text-white">
               <span>Active public battles</span>
               <span className="t-label">live from the chain</span>
             </h2>

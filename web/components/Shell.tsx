@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAccount } from "wagmi";
 import { formatUnits } from "viem";
 import { Lock, PlusCircle, ChevronDown, Ticket } from "lucide-react";
 import { ConnectBar } from "./ConnectBar";
@@ -20,6 +21,7 @@ import { addressUrl, DECK_ADDRESS } from "@/lib/chain";
  *
  */
 export function Shell({ children }: { children: React.ReactNode }) {
+  const { isConnected } = useAccount();
   const game = useDeck();
   const shapes = useMemo(() => game.decks.map((d) => d), [game.decks]);
   const feed = useFeed(shapes);
@@ -48,6 +50,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-2 lg:gap-3">
+            {isConnected && (
             <span className="flex items-center gap-2 rounded-[var(--radius-chip)] border border-slate-800 bg-slate-900/90 px-3 py-1.5">
               <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-slate-400">
                 TEST
@@ -73,6 +76,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 </button>
               )}
             </span>
+            )}
 
             <span
               className="flex items-center gap-2 rounded-[var(--radius-chip)] border px-3 py-1.5"
@@ -92,10 +96,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
               />
             </span>
 
-            <TicketsChip
-              tickets={Math.round(megapot.tickets)}
-              caseHref={`/case/${firstOpen}#megapot`}
-            />
+            {isConnected && (
+              <TicketsChip
+                tickets={Math.round(megapot.tickets)}
+                caseHref={`/case/${firstOpen}#megapot`}
+              />
+            )}
 
             <ConnectBar onMinted={game.refetch} />
           </div>

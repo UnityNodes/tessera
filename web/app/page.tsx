@@ -9,7 +9,7 @@ import { Chest } from "@/components/Chest";
 import { useDeck, type DeckInfo } from "@/hooks/useDeck";
 import { useBattleList } from "@/hooks/useBattles";
 import { useFeed } from "@/hooks/useFeed";
-import { slotsPerTier, bestTier, isVault } from "@/lib/deck";
+import { slotsPerTier, bestTier, isVault, isShard } from "@/lib/deck";
 
 /**
  *
@@ -390,7 +390,11 @@ function Latest({ feed }: { feed: ReturnType<typeof useFeed> }) {
               </div>
             </div>
             <span className="t-chain shrink-0 text-xs font-bold text-slate-300">
-              {isVault(it.spec) ? "the vault" : `+${paid} tickets`}
+              {isVault(it.spec)
+                ? "the vault"
+                : isShard(it.spec)
+                  ? `${it.risk ? 2 : 1} TESA`
+                  : `+${paid} tickets`}
             </span>
           </div>
         );
