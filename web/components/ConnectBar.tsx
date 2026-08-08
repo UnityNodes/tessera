@@ -3,6 +3,7 @@
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from "wagmi";
 import { Wallet, ShieldCheck, ChevronDown } from "lucide-react";
 import { Button } from "./ui/Button";
+import { Disclosure } from "./ui/Disclosure";
 import { useMint } from "@/hooks/useMint";
 import { CHAIN, addressUrl } from "@/lib/chain";
 
@@ -22,13 +23,14 @@ export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
 
   if (!isConnected) {
     return (
-      <details className="group/w relative">
-        <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-          <span className="flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] bg-[var(--color-accent)] px-4 py-2 text-xs font-bold text-slate-950 shadow-[var(--glow-accent)] transition-all hover:bg-[var(--color-accent-hover)] hover:shadow-[var(--glow-accent-lift)] sm:min-h-0">
+      <Disclosure
+        summary={
+          <span className="flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] bg-[var(--color-accent)] px-4 py-2 text-sm font-bold text-slate-950 shadow-[var(--glow-accent)] transition-all hover:bg-[var(--color-accent-hover)] hover:shadow-[var(--glow-accent-lift)] sm:min-h-0">
             <Wallet className="h-4 w-4" />
             {isPending ? "Connecting…" : "Connect wallet"}
           </span>
-        </summary>
+        }
+      >
         <Panel>
           <p className="t-label mb-2 px-1">choose a wallet</p>
           {connectors.map((c) => (
@@ -42,7 +44,7 @@ export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
             </button>
           ))}
         </Panel>
-      </details>
+      </Disclosure>
     );
   }
 
@@ -55,15 +57,15 @@ export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
   }
 
   return (
-    <details className="group/w relative">
-      <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-        <span className="t-chain flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] border border-[rgb(57_255_136_/_0.4)] bg-slate-800 px-4 py-2 text-xs font-bold text-[var(--color-accent-bright)] transition-colors hover:bg-slate-700 sm:min-h-0">
+    <Disclosure
+      summary={
+        <span className="t-chain flex min-h-11 items-center gap-2 rounded-[var(--radius-chip)] border border-[rgb(57_255_136_/_0.4)] bg-slate-800 px-3 py-2 text-sm font-bold text-[var(--color-accent-bright)] transition-colors hover:bg-slate-700 sm:min-h-0">
           <ShieldCheck className="h-4 w-4 text-[var(--color-accent-hover)]" />
           {short(address!)}
-          <ChevronDown className="h-3 w-3 opacity-60 transition-transform duration-200 group-open/w:rotate-180" />
+          <ChevronDown className="h-3.5 w-3.5 opacity-60 transition-transform duration-200 group-open/d:rotate-180" />
         </span>
-      </summary>
-
+      }
+    >
       <Panel>
         <button
           type="button"
@@ -89,13 +91,13 @@ export function ConnectBar({ onMinted }: { onMinted?: () => void } = {}) {
           Disconnect
         </button>
       </Panel>
-    </details>
+    </Disclosure>
   );
 }
 
 function Panel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="absolute right-0 top-full z-[var(--z-sticky)] mt-2 w-[15rem] rounded-[var(--radius-panel)] border border-slate-800 bg-[var(--color-modal)] p-2 shadow-2xl">
+    <div className="w-[16rem] rounded-[var(--radius-panel)] border border-slate-800 bg-[var(--color-modal)] p-2 shadow-2xl">
       {children}
     </div>
   );

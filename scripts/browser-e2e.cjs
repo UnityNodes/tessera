@@ -130,13 +130,42 @@ async function ensureConnected(page) {
 
   console.log(`✓ ${await ensureConnected(page)}`);
 
+  //
+  {
+    const chip = page.locator("summary", { hasText: /megapot/i }).first();
+    if (await chip.count()) {
+      await chip.click();
+      await page.waitForTimeout(400);
+      await page.mouse.click(250, 520);
+      await page.waitForTimeout(400);
+      const byClick = await page.evaluate(() =>
+        [...document.querySelectorAll("details")].some((d) => d.open),
+      );
+      await chip.click();
+      await page.waitForTimeout(300);
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(300);
+      const byEsc = await page.evaluate(() =>
+        [...document.querySelectorAll("details")].some((d) => d.open),
+      );
+      if (byClick || byEsc) {
+        throw new Error(
+          `: ${byClick ? "" : ""}, ` +
+            `Escape ${byEsc ? "" : ""}`,
+        );
+      }
+      console.log("✓ Escape");
+    }
+  }
+
   const pill = page.locator("span", { hasText: /^TEST\s*\$/ }).first();
   const dollars = Number((await pill.innerText()).replace(/[^\d.]/g, "")) || 0;
   console.log(`  $${dollars.toFixed(2)}`);
   if (dollars < 1) {
-    await page.locator("button[title='Get $20 in test dollars']").click();
+    const faucet = page.locator("button", { hasText: /^Get \$20$/ }).first();
+    await faucet.click();
     await page.waitForFunction(
-      () => !document.querySelector("button[title='Get $20 in test dollars'][disabled]"),
+      () => ![...document.querySelectorAll("button")].some((b) => /Minting/.test(b.textContent || "")),
       { timeout: 90000 },
     );
     console.log("✓ ");

@@ -9,6 +9,7 @@ import { Lock, PlusCircle, ChevronDown, Ticket } from "lucide-react";
 import { ConnectBar } from "./ConnectBar";
 import { Ticker } from "./Ticker";
 import { Counter } from "./ui/Counter";
+import { Disclosure } from "./ui/Disclosure";
 import { useDeck } from "@/hooks/useDeck";
 import { useFeed } from "@/hooks/useFeed";
 import { useMegapot } from "@/hooks/useMegapot";
@@ -67,37 +68,43 @@ export function Shell({ children }: { children: React.ReactNode }) {
             </nav>
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-2 lg:gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             {isConnected && (
-            <span className="flex items-center gap-2 rounded-[var(--radius-chip)] border border-slate-800 bg-slate-900/90 px-3 py-1.5">
-              <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-slate-400">
-                TEST
+              <span className="flex items-center gap-2 rounded-[var(--radius-chip)] border border-slate-800 bg-slate-900/90 px-3 py-2">
+                <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[0.625rem] font-bold tracking-wider text-slate-400">
+                  TEST
+                </span>
+                <Counter
+                  value={Number(formatUnits(game.balance, 6))}
+                  decimals={2}
+                  prefix="$ "
+                  className="t-chain text-sm font-bold leading-none text-slate-100"
+                />
               </span>
-              <Counter
-                value={Number(formatUnits(game.balance, 6))}
-                decimals={2}
-                prefix="$ "
-                className="t-chain text-xs font-bold leading-none text-slate-100"
-              />
-              {canMint && (
-                <button
-                  type="button"
-                  onClick={() => void mint()}
-                  disabled={minting}
-                  title="Get $20 in test dollars"
-                  className="text-[var(--color-accent-hover)] transition-colors hover:text-[var(--color-accent-bright)] disabled:opacity-40"
-                >
-                  <PlusCircle
-                    className="h-4 w-4"
-                    style={minting ? { animation: "spin-loading 1s linear infinite" } : undefined}
-                  />
-                </button>
-              )}
-            </span>
+            )}
+
+            {isConnected && canMint && (
+              <button
+                type="button"
+                onClick={() => void mint()}
+                disabled={minting}
+                className="flex items-center gap-1.5 rounded-[var(--radius-chip)] border px-3 py-2 text-sm font-bold transition-all hover:brightness-115 disabled:opacity-50"
+                style={{
+                  borderColor: "color-mix(in oklab, var(--color-accent) 45%, transparent)",
+                  background: "color-mix(in oklab, var(--color-accent) 10%, transparent)",
+                  color: "var(--color-accent-hover)",
+                }}
+              >
+                <PlusCircle
+                  className="h-4 w-4"
+                  style={minting ? { animation: "spin-loading 1s linear infinite" } : undefined}
+                />
+                {minting ? "Minting…" : "Get $20"}
+              </button>
             )}
 
             <span
-              className="flex items-center gap-2 rounded-[var(--radius-chip)] border px-3 py-1.5"
+              className="flex items-center gap-2 rounded-[var(--radius-chip)] border px-3 py-2"
               style={{
                 borderColor: "color-mix(in oklab, var(--color-tier-vault) 30%, transparent)",
                 background: "var(--color-surface)",
@@ -109,32 +116,29 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 value={Number(formatUnits(game.vault, 6))}
                 decimals={2}
                 prefix="$ "
-                className="t-chain text-xs font-bold leading-none"
+                className="t-chain text-sm font-bold leading-none"
                 style={{ color: "var(--color-tier-vault)" }}
               />
             </span>
 
-            {isConnected && tesa > 0 && (
+            {isConnected && (
               <Link
                 href="/profile"
-                title="Your TESA, five make a real ticket"
-                className="flex items-center gap-1.5 rounded-[var(--radius-chip)] border px-2.5 py-1 transition-colors hover:brightness-125"
+                title="Your TESA, five make one real Megapot ticket"
+                className="flex items-center gap-1.5 rounded-[var(--radius-chip)] border px-3 py-2 transition-all hover:brightness-125"
                 style={{
                   borderColor: "color-mix(in oklab, var(--color-tier-shard) 40%, transparent)",
-                  background: "color-mix(in oklab, var(--color-tier-shard) 8%, transparent)",
+                  background: "color-mix(in oklab, var(--color-tier-shard) 10%, transparent)",
                 }}
               >
-                <Chest rarity="shard" size={18} />
+                <Chest rarity="shard" size={20} />
                 <span
-                  className="t-chain text-xs font-bold leading-none"
+                  className="t-chain text-sm font-bold leading-none"
                   style={{ color: "var(--color-tier-shard)" }}
                 >
                   {tesa}
                 </span>
-                <span className="t-label text-[0.5625rem]">
-                  TESA · {WEIGHT_PER_TICKET - (tesa % WEIGHT_PER_TICKET) || WEIGHT_PER_TICKET} to a
-                  ticket
-                </span>
+                <span className="t-label text-[0.625rem]">TESA</span>
               </Link>
             )}
 
@@ -222,20 +226,20 @@ function Tab({ href, children }: { href: string; children: React.ReactNode }) {
  */
 function TicketsChip({ tickets, caseHref }: { tickets: number; caseHref: string }) {
   return (
-    <details className="group/t relative">
-      <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-        <span className="flex items-center gap-2 rounded-[var(--radius-chip)] border border-slate-800 bg-slate-900/90 px-3 py-1.5">
-          <Ticket className="h-3.5 w-3.5 text-[var(--color-accent-hover)]" />
+    <Disclosure
+      summary={
+        <span className="flex items-center gap-2 rounded-[var(--radius-chip)] border border-slate-800 bg-slate-900/90 px-3 py-2">
+          <Ticket className="h-4 w-4 text-[var(--color-accent-hover)]" />
           <Counter
             value={tickets}
-            className="t-chain text-xs font-bold leading-none text-[var(--color-accent-hover)]"
+            className="t-chain text-sm font-bold leading-none text-[var(--color-accent-hover)]"
           />
-          <span className="t-label text-[0.5625rem]">megapot</span>
-          <ChevronDown className="h-3 w-3 text-slate-500 transition-transform duration-200 group-open/t:rotate-180" />
+          <span className="t-label text-[0.625rem]">megapot</span>
+          <ChevronDown className="h-3.5 w-3.5 text-slate-500 transition-transform duration-200 group-open/d:rotate-180" />
         </span>
-      </summary>
-
-      <div className="slab absolute right-0 top-full z-[var(--z-sticky)] mt-2 w-[min(22rem,calc(100vw-2rem))] bg-[var(--color-modal)] p-5">
+      }
+    >
+      <div className="slab w-[min(22rem,calc(100vw-2rem))] bg-[var(--color-modal)] p-5">
         <p className="text-sm text-slate-400">
           Every case you open buys you one real{" "}
           <span className="font-bold text-slate-100">Megapot</span> lottery ticket. The ticket is
@@ -254,7 +258,7 @@ function TicketsChip({ tickets, caseHref }: { tickets: number; caseHref: string 
           see the jackpot and claim winnings →
         </Link>
       </div>
-    </details>
+    </Disclosure>
   );
 }
 
