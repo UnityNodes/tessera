@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatUnits } from "viem";
 import { Sparkles, Eye, X } from "lucide-react";
 import { Chest } from "@/components/Chest";
+import { DeckHero } from "@/components/DeckHero";
 import { TierPlate } from "@/components/ui/TierPlate";
 import { useDeck, type DeckInfo } from "@/hooks/useDeck";
 import {
@@ -132,11 +133,11 @@ function DeckCard({ deck, onInspect }: { deck: DeckInfo; onInspect: () => void }
             className="absolute inset-x-10 inset-y-2 rounded-full opacity-25 blur-2xl"
             style={{ background: ink }}
           />
-          <Chest
-            rarity={deck.empty ? "grout" : (best?.rarity ?? "sealed")}
-            size={188}
-            className="relative z-10"
-          />
+          {deck.empty ? (
+            <Chest rarity="grout" size={150} className="relative z-10" />
+          ) : (
+            <DeckHero deck={deck} size={140} className="relative z-10" />
+          )}
           <span
             className="t-chain absolute bottom-1 left-1/2 -translate-x-1/2 rounded border px-3 py-1 text-xs font-extrabold"
             style={{

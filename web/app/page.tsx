@@ -6,6 +6,7 @@ import { formatUnits } from "viem";
 import { Sparkles, Swords, Award } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Chest } from "@/components/Chest";
+import { DeckHero } from "@/components/DeckHero";
 import { useDeck, type DeckInfo } from "@/hooks/useDeck";
 import { useBattleList } from "@/hooks/useBattles";
 import { useFeed } from "@/hooks/useFeed";
@@ -202,11 +203,6 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
   const paying = prizes + deck.vaultUpTo;
   const oneIn = paying > 0 ? Math.max(1, Math.round(deck.size / paying)) : 0;
 
-  const rank = (t: (typeof tiers)[number]) =>
-    isVault(t.spec) ? Number.MAX_SAFE_INTEGER : t.spec.tickets;
-  const ladder = [...tiers]
-    .filter((t) => t.weight > 0 || isVault(t.spec))
-    .sort((a, b) => rank(b) - rank(a));
 
   const ink = deck.empty ? "var(--color-tier-grout)" : (best?.ink ?? "var(--color-accent)");
   const sealedPercent = deck.size > 0 ? Math.max(1, (deck.remaining / deck.size) * 100) : 0;
@@ -221,17 +217,21 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
       }}
     >
       <div className="flex flex-col items-center space-y-4 text-center">
-        <div className="relative flex h-48 w-48 items-center justify-center">
+        <div className="relative flex h-40 w-full items-center justify-center">
           <span
             aria-hidden
-            className="absolute inset-0 rounded-full opacity-30 blur-xl transition-opacity group-hover:opacity-60"
+            className="absolute inset-x-6 inset-y-2 rounded-full opacity-30 blur-xl transition-opacity group-hover:opacity-60"
             style={{ background: ink }}
           />
-          <Chest
-            rarity={deck.empty ? "grout" : (best?.rarity ?? "sealed")}
-            size={184}
-            className="relative z-10 transition-transform duration-300 group-hover:scale-110"
-          />
+          {deck.empty ? (
+            <Chest rarity="grout" size={140} className="relative z-10" />
+          ) : (
+            <DeckHero
+              deck={deck}
+              size={132}
+              className="relative z-10 transition-transform duration-300 group-hover:scale-105"
+            />
+          )}
         </div>
 
         <h3
@@ -257,22 +257,6 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
           </p>
         )}
 
-        {!deck.empty && (
-          <ul className="flex flex-wrap items-end justify-center gap-2">
-            {ladder.map((t, i) => (
-              <li
-                key={i}
-                className="flex w-[3.25rem] flex-col items-center gap-0.5"
-                title={`${t.count} × ${t.spec.name}`}
-              >
-                <Chest rarity={t.spec.rarity} size={34} />
-                <span className="t-chain text-xs font-bold" style={{ color: t.spec.ink }}>
-                  ×{t.count}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
 
         <p className="min-h-[72px] px-2 text-sm leading-relaxed text-slate-400">
           {deck.empty ? (
