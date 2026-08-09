@@ -136,6 +136,7 @@ async function ensureConnected(page) {
     if (await chip.count()) {
       await chip.click();
       await page.waitForTimeout(400);
+      await shot(page, "e2e-wallet-panel");
       await page.mouse.click(250, 520);
       await page.waitForTimeout(400);
       const byClick = await page.evaluate(() =>
