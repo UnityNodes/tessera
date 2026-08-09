@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { Tally } from "@/components/ui/Tally";
 import { TierPlate } from "@/components/ui/TierPlate";
 import { Case } from "@/components/Case";
+import { skinOf } from "@/components/Chest";
 import { OpenTheatre } from "@/components/OpenTheatre";
 import { Drops } from "@/components/Drops";
 import { PoolGrid } from "@/components/PoolGrid";
@@ -116,7 +117,10 @@ export default function CasePage() {
 
   const tiers = slotsPerTier(deck);
   const best = bestTier(deck);
-  const ink = deck.empty ? "var(--color-tier-grout)" : (best?.ink ?? "var(--color-accent)");
+  const dress = skinOf(deck.cid);
+  const ink = deck.empty
+    ? "var(--color-tier-grout)"
+    : (dress?.ink ?? best?.ink ?? "var(--color-accent)");
   const prizes = tiers.filter((t) => t.weight > 0).reduce((n, t) => n + t.count, 0);
   const paying = prizes + deck.vaultUpTo;
   const oneIn = paying > 0 ? Math.max(1, Math.round(deck.size / paying)) : 0;
@@ -142,7 +146,7 @@ export default function CasePage() {
               all decks
             </Link>
             <h1 className="t-page mt-2 flex flex-wrap items-baseline gap-3 text-white">
-              <span>{deck.empty ? "Emptied" : (best?.name ?? "Sealed")} case</span>
+              <span>{deck.empty ? "Emptied" : (dress?.name ?? best?.name ?? "Sealed")} case</span>
               <span className="t-chain text-lg font-bold text-[var(--color-ink-dim)]">
                 #{deck.id}
               </span>
@@ -167,7 +171,7 @@ export default function CasePage() {
             style={{ borderColor: `color-mix(in oklab, ${ink} 20%, transparent)` }}
           >
             <span className="absolute left-5 top-5 z-10">
-              <TierPlate name={deck.empty ? "emptied" : (best?.name ?? "sealed")} ink={ink} />
+              <TierPlate name={deck.empty ? "emptied" : (dress?.name ?? best?.name ?? "sealed")} ink={ink} />
             </span>
             <span className="t-chain absolute right-5 top-5 z-10 text-xs text-slate-400">
               {deck.remaining} sealed
@@ -186,6 +190,7 @@ export default function CasePage() {
                   deck={shape}
                   risk={open.state.risk}
                   vault={deck.vault}
+                  skin={deck.cid}
                   size={300}
                   onClick={
                     canOpen

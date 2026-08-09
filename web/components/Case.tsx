@@ -15,6 +15,10 @@ interface Props {
   onClick?: () => void;
   risk?: boolean;
   vault?: bigint;
+  /**
+   *
+   */
+  skin?: string;
 }
 
 /**
@@ -38,7 +42,7 @@ const SHARDS = [
  *
  *
  */
-export function Case({ phase, value, deck, size = 340, onClick, risk = false, vault }: Props) {
+export function Case({ phase, value, deck, size = 340, onClick, risk = false, vault, skin }: Props) {
   const still = useReducedMotion();
   const spec = phase === "opened" && value != null ? specOf(value, deck) : null;
   const clickable = Boolean(onClick) && phase === "idle";
@@ -123,6 +127,7 @@ export function Case({ phase, value, deck, size = 340, onClick, risk = false, va
         >
           <Chest
             rarity={spec ? spec.rarity : "sealed"}
+            skin={spec ? undefined : skin}
             size={size * (spec ? 0.86 : 0.8)}
             drift={!spec}
             open={Boolean(spec)}

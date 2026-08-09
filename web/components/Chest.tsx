@@ -56,6 +56,22 @@ const ART: Record<Rarity, { src: string; open: string; filter?: string; bare?: b
   },
 };
 
+/**
+ *
+ *
+ */
+const SKINS: Record<string, { filter: string; ink: string; name: string }> = {
+  kungfumode: {
+    filter: "hue-rotate(139deg) saturate(1.35) brightness(1.06)",
+    ink: "#ff2d9c",
+    name: "kungfumode",
+  },
+};
+
+export function skinOf(cid: string | undefined) {
+  return cid ? SKINS[cid] : undefined;
+}
+
 const MASK = "radial-gradient(closest-side, #000 56%, transparent 92%)";
 
 /**
@@ -73,12 +89,14 @@ export function Chest({
   size = 160,
   drift = false,
   open = false,
+  skin,
   className,
 }: {
   rarity?: Rarity;
   size?: number;
   drift?: boolean;
   open?: boolean;
+  skin?: string;
   className?: string;
 }) {
   if (rarity === "shard") {
@@ -90,6 +108,7 @@ export function Chest({
   }
 
   const art = ART[rarity];
+  const dress = skinOf(skin);
   const glow = "drop-shadow(0 0 calc(var(--glow, 0) * 26px) var(--metal))";
   const masked = !(art.bare && !open);
 
@@ -100,6 +119,7 @@ export function Chest({
       alt=""
       aria-hidden
       data-tier={rarity}
+      data-skin={skin || undefined}
       width={size}
       height={size}
       loading={size <= 192 ? "lazy" : "eager"}
@@ -110,7 +130,7 @@ export function Chest({
         width: size,
         maxWidth: "100%",
         height: "auto",
-        filter: art.filter ? `${art.filter} ${glow}` : glow,
+        filter: dress ? `${dress.filter} ${glow}` : art.filter ? `${art.filter} ${glow}` : glow,
         maskImage: masked ? MASK : undefined,
         WebkitMaskImage: masked ? MASK : undefined,
         animation: drift ? "crate-hover 4.4s ease-in-out infinite" : undefined,

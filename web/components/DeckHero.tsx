@@ -1,4 +1,4 @@
-import { Chest } from "./Chest";
+import { Chest, skinOf } from "./Chest";
 import { isVault, slotsPerTier, type DeckShape } from "@/lib/deck";
 
 /**
@@ -9,12 +9,22 @@ import { isVault, slotsPerTier, type DeckShape } from "@/lib/deck";
 export function DeckHero({
   deck,
   size = 128,
+  skin,
   className,
 }: {
   deck: DeckShape;
   size?: number;
+  /**
+   *
+   */
+  skin?: string;
   className?: string;
 }) {
+  const dress = skinOf(skin);
+  if (dress) {
+    return <Chest rarity="sealed" skin={skin} size={size} className={className} />;
+  }
+
   const rank = (t: { spec: ReturnType<typeof slotsPerTier>[number]["spec"] }) =>
     isVault(t.spec) ? Number.MAX_SAFE_INTEGER : t.spec.tickets;
 

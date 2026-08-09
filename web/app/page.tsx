@@ -4,7 +4,7 @@ import Link from "next/link";
 import { formatUnits } from "viem";
 import { Sparkles, Swords } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Chest } from "@/components/Chest";
+import { Chest, skinOf } from "@/components/Chest";
 import { DeckHero } from "@/components/DeckHero";
 import { useDeck, type DeckInfo } from "@/hooks/useDeck";
 import { useBattleList } from "@/hooks/useBattles";
@@ -199,7 +199,11 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
 
   const tesa = tiers.filter((t) => isShard(t.spec)).reduce((n, t) => n + t.count, 0);
 
-  const ink = deck.empty ? "var(--color-tier-grout)" : (best?.ink ?? "var(--color-accent)");
+  const dress = skinOf(deck.cid);
+  const ink = deck.empty
+    ? "var(--color-tier-grout)"
+    : (dress?.ink ?? best?.ink ?? "var(--color-accent)");
+  const title = deck.empty ? "Emptied" : (dress?.name ?? best?.name ?? "Sealed");
   const sealedPercent = deck.size > 0 ? Math.max(1, (deck.remaining / deck.size) * 100) : 0;
 
   return (
@@ -225,6 +229,7 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
             <DeckHero
               deck={deck}
               size={150}
+              skin={deck.cid}
               className="relative z-10 transition-transform duration-300 group-hover:scale-105"
             />
           )}
@@ -234,7 +239,7 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
           className="t-black flex flex-wrap items-baseline justify-center gap-2 text-2xl tracking-wide"
           style={{ color: ink }}
         >
-          <span>{deck.empty ? "Emptied" : (best?.name ?? "Sealed")}</span>
+          <span>{title}</span>
           <span className="t-chain text-sm font-bold text-[var(--color-ink-dim)]">
             #{deck.id}
           </span>
