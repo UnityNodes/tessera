@@ -183,6 +183,21 @@ async function ensureConnected(page) {
   for (let round = 1; round <= ROUNDS && !gotPrize; round++) {
     const openBtn = page.getByRole("button", { name: /Open a case|Open another|Approve once/ });
     await openBtn.waitFor({ timeout: 20000 });
+    //
+    await page.evaluate(() => {
+      window.__reach = [];
+      new MutationObserver((recs) => {
+        for (const r of recs) {
+          const v = Number(r.target.getAttribute("data-reach"));
+          if (Number.isFinite(v)) window.__reach.push(v);
+        }
+      }).observe(document.body, {
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["data-reach"],
+      });
+    });
+
     const label = (await openBtn.textContent()).trim();
     console.log(`▶ ${round}/${ROUNDS}  ${label}`);
 
@@ -257,6 +272,12 @@ async function ensureConnected(page) {
 
     const onPage = await page.getByText(/You own|found the vault|No ticket/).first().textContent();
     console.log(`  : ${onPage.trim()}`);
+
+    const reach = await page.evaluate(() => Math.max(0, ...(window.__reach || [])));
+    if (reach > 40) {
+      throw new Error(`${reach} , `);
+    }
+    console.log(`  : ${reach} `);
 
     await page.getByRole("dialog", { name: /Opening a case/ }).click({ position: { x: 8, y: 8 } });
     await page.getByRole("button", { name: /Open a case/ }).waitFor({ timeout: 30000 });

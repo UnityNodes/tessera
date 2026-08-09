@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { animate, useMotionValue, useTransform, motion, useReducedMotion } from "motion/react";
 import {
   slotsPerTier,
@@ -72,6 +72,7 @@ export function Roll({
 }) {
   const still = useReducedMotion();
   const x = useMotionValue(0);
+  const box = useRef<HTMLDivElement>(null);
 
   const key = `${deck.tiers.length}|${deck.vaultUpTo}|${pool?.tiers.map((t) => `${t.weight}:${t.left}`).join(",") ?? ""}`;
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -134,14 +135,16 @@ export function Roll({
     const target = specOf(landedValue, deck).name;
     const len = items.length;
 
-    const norm = (Math.abs(x.get()) / STEP) % len;
-    x.set(-norm * STEP);
-
+    //
     //
     const v = Math.abs(x.getVelocity()) / STEP;
-    const reach = Math.max(3, (v * (SETTLE_MS / 1000)) / DECAY);
 
-    let idx = Math.ceil(norm + reach);
+    //
+    const reach = Math.min(24, Math.max(3, (v * (SETTLE_MS / 1000)) / DECAY));
+
+    const from = Math.abs(x.get()) / STEP;
+
+    let idx = Math.ceil(from + reach);
     for (let i = 0; i < len; i++) {
       if (items[(idx + i) % len].name === target) {
         idx += i;
@@ -149,6 +152,7 @@ export function Roll({
       }
     }
 
+    box.current?.setAttribute("data-reach", String(Math.round(reach)));
     const settle = animate(x, -(idx * STEP), {
       duration: SETTLE_MS / 1000,
       ease: [0.33, 0.66, 0.66, 1],
@@ -159,6 +163,7 @@ export function Roll({
 
   return (
     <div
+      ref={box}
       data-roll
       className="relative w-full overflow-hidden"
       style={{
