@@ -50,6 +50,13 @@ if [ -n "${BATTLE:-}" ]; then
   run "" env BATTLE_UI=1 OPENS=0 node browser-e2e.cjs "$URL"
 fi
 
+# . , :
+#
+# . CREATE=1 .
+if [ -n "${CREATE:-}" ]; then
+  run "" env CREATE_UI=1 OPENS=0 node browser-e2e.cjs "$URL"
+fi
+
 echo
 echo "════════════════════════════════════════════════"
 if [ ${#FAILED[@]} -eq 0 ]; then

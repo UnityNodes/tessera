@@ -60,16 +60,28 @@ const ART: Record<Rarity, { src: string; open: string; filter?: string; bare?: b
  *
  *
  */
-const SKINS: Record<string, { filter: string; ink: string; name: string }> = {
-  kungfumode: {
-    filter: "hue-rotate(139deg) saturate(1.35) brightness(1.06)",
-    ink: "#ff2d9c",
-    name: "kungfumode",
-  },
-};
+const BASE_HUE = 194;
 
-export function skinOf(cid: string | undefined) {
-  return cid ? SKINS[cid] : undefined;
+const NAMED: Record<string, number> = { kungfumode: 333 };
+
+/**
+ *
+ *
+ *
+ */
+export function skinOf(meta: string | undefined) {
+  if (!meta) return undefined;
+  const [name, raw] = meta.split(":");
+  const hue = raw !== undefined ? Number(raw) : NAMED[name];
+  if (!name || !Number.isFinite(hue)) return undefined;
+
+  const turn = (((hue - BASE_HUE) % 360) + 360) % 360;
+  return {
+    name,
+    hue,
+    filter: `hue-rotate(${turn}deg) saturate(1.35) brightness(1.06)`,
+    ink: `hsl(${hue} 100% 59%)`,
+  };
 }
 
 const MASK = "radial-gradient(closest-side, #000 56%, transparent 92%)";

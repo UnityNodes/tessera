@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { formatUnits } from "viem";
-import { Sparkles, Swords } from "lucide-react";
+import { Sparkles, Swords, Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Chest, skinOf } from "@/components/Chest";
 import { DeckHero } from "@/components/DeckHero";
@@ -112,6 +112,18 @@ export default function Home() {
               {game.decks.map((d) => (
                 <DeckCard key={d.id} deck={d} />
               ))}
+              <Link
+                href="/create"
+                className="group flex min-h-[22rem] flex-col items-center justify-center gap-3 rounded-[var(--radius-panel)] border border-dashed border-slate-700 p-6 text-center transition-colors hover:border-[rgb(57_255_136_/_0.5)]"
+              >
+                <Plus className="h-10 w-10 text-slate-500 transition-colors group-hover:text-[var(--color-accent-hover)]" />
+                <span className="t-black text-xl text-slate-300 group-hover:text-white">
+                  Cut your own
+                </span>
+                <span className="max-w-[14rem] text-sm leading-snug text-slate-400">
+                  Name it, colour it, pick what it pays, and take a share of what it earns.
+                </span>
+              </Link>
             </div>
           )}
         </div>

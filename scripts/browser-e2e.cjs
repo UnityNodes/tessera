@@ -23,6 +23,12 @@ const chain = defineChain({ ...baseSepolia, fees: { maxPriorityFeePerGas: parseG
 const wallet = createWalletClient({ chain, transport: http(RPC), account });
 const pub = createPublicClient({ chain, transport: http(RPC) });
 
+const WEB = require("path").join(__dirname, "..", "web");
+const chainSrc = require("fs").readFileSync(require("path").join(WEB, "lib", "chain.ts"), "utf8");
+const DECK = chainSrc.match(/DECK_ADDRESS[^"']*["'](0x[0-9a-fA-F]{40})["']/)[1];
+const abiSrc = require("fs").readFileSync(require("path").join(WEB, "lib", "abi.ts"), "utf8");
+const DECK_ABI = JSON.parse(abiSrc.slice(abiSrc.indexOf("["), abiSrc.lastIndexOf("]") + 1));
+
 async function handle(method, params = []) {
   switch (method) {
     case "eth_requestAccounts":
@@ -401,6 +407,61 @@ async function ensureConnected(page) {
       console.log("✓ ");
       await shot(page, "e2e-battle-opened");
     }
+  }
+
+  //
+  //
+  // CREATE_UI=1.
+  if (process.env.CREATE_UI) {
+    console.log("▶ ");
+    await page.goto(URL.replace(/\/+$/, "") + "/create", { waitUntil: "domcontentloaded" });
+
+    const name = `e2e${Date.now().toString(36).slice(-5)}`;
+    await page.locator("#deck-name").fill(name);
+    await page.locator("button[aria-label^='hue ']").nth(1).click();
+    const hue = Number(
+      (await page.locator("button[aria-label^='hue ']").nth(1).getAttribute("aria-label")).replace(
+        "hue ",
+        "",
+      ),
+    );
+
+    const cut = page.getByRole("button", { name: /^Cut the deck$/ });
+    await cut.waitFor({ timeout: 40000 });
+    await cut.click();
+    await page.waitForURL(/\/case\/\d+$/, { timeout: 180000 });
+    const id = page.url().match(/\/case\/(\d+)$/)[1];
+    console.log(`✓ #${id} `);
+
+    //
+    const readMeta = async () => {
+      for (let i = 0; i < 8; i++) {
+        const got = await pub.readContract({
+          address: DECK,
+          abi: DECK_ABI,
+          functionName: "deckMeta",
+          args: [Number(id)],
+        });
+        if (got) return got;
+        await page.waitForTimeout(2500);
+      }
+      return "";
+    };
+    const meta = await readMeta();
+    if (meta !== `${name}:${hue}`) {
+      throw new Error(`${meta}, ${name}:${hue}`);
+    }
+    const info = await pub.readContract({
+      address: DECK,
+      abi: DECK_ABI,
+      functionName: "deckAt",
+      args: [Number(id)],
+    });
+    if (info.creator.toLowerCase() !== account.address.toLowerCase()) {
+      throw new Error(`${info.creator}, ${account.address}`);
+    }
+    console.log(`✓ ${meta}, , `);
+    await shot(page, "e2e-created");
   }
 
   //
