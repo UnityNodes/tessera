@@ -32,6 +32,10 @@ contract TesseraDeck is ReentrancyGuardTransient {
         uint16 vaultUpTo;
         uint128 vault;
         uint64 unsweptOpens;
+        ///
+        address creator;
+        ///
+        uint16 creatorBps;
     }
 
     Deck[] private decks;
@@ -75,7 +79,31 @@ contract TesseraDeck is ReentrancyGuardTransient {
 
     mapping(bytes32 => bool) public shardSpent;
 
-    event DeckCreated(uint32 indexed deckId, uint16 size, uint16 totalWeight, uint256 feePaid);
+    //
+    //
+
+    mapping(uint32 => string) public deckMeta;
+
+    mapping(address => uint256) public creatorClaimable;
+
+    uint256 public creatorOwed;
+
+    uint256 public customDeckFee = 5e6;
+
+    uint16 public maxCreatorBps = 5000;
+
+    uint16 public minCustomSize = 50;
+
+    event DeckCreated(
+        uint32 indexed deckId,
+        uint16 size,
+        uint16 totalWeight,
+        uint256 feePaid,
+        address indexed creator,
+        uint16 creatorBps
+    );
+    event CreatorPaid(uint32 indexed deckId, address indexed creator, uint256 amount);
+    event CreatorClaimed(address indexed creator, uint256 amount);
     event CaseOpened(
         address indexed player, uint32 indexed deckId, uint16 index, bytes32 handle, uint256 paid
     );
@@ -113,6 +141,8 @@ contract TesseraDeck is ReentrancyGuardTransient {
     error VaultEmpty();
     error ShareTooBig();
     error DeckHasNoVault();
+    error DeckTooSmall(uint16 size, uint16 min);
+    error NothingToClaim();
 
     modifier onlyOwner() {
         if (msg.sender != owner) revert NotOwner();
@@ -140,6 +170,39 @@ contract TesseraDeck is ReentrancyGuardTransient {
         onlyOwner
         returns (uint32 deckId)
     {
+        return _createDeck(n, upTo, weight, vaultSlots, address(0), 0);
+    }
+
+    ///
+    ///
+    ///
+    function createCustomDeck(
+        uint16 n,
+        uint16[] calldata upTo,
+        uint16[] calldata weight,
+        uint16 vaultSlots,
+        uint16 creatorBps,
+        string calldata cid
+    ) external payable returns (uint32 deckId) {
+        if (n < minCustomSize) revert DeckTooSmall(n, minCustomSize);
+        if (creatorBps > maxCreatorBps) revert ShareTooBig();
+
+        if (customDeckFee > 0) {
+            ticketToken.safeTransferFrom(msg.sender, address(this), customDeckFee);
+        }
+
+        deckId = _createDeck(n, upTo, weight, vaultSlots, msg.sender, creatorBps);
+        deckMeta[deckId] = cid;
+    }
+
+    function _createDeck(
+        uint16 n,
+        uint16[] calldata upTo,
+        uint16[] calldata weight,
+        uint16 vaultSlots,
+        address creator,
+        uint16 creatorBps
+    ) internal returns (uint32 deckId) {
         require(n > 0, "n=0");
         if (vaultSlots > n) revert BadTierTable();
         if (upTo.length == 0 || upTo.length != weight.length) revert BadTierTable();
@@ -160,7 +223,16 @@ contract TesseraDeck is ReentrancyGuardTransient {
         // forge-lint: disable-next-line(unsafe-typecast)
         deckId = uint32(decks.length);
         decks.push(
-            Deck({cards: cards, size: n, drawn: 0, vaultUpTo: vaultSlots, vault: 0, unsweptOpens: 0})
+            Deck({
+                cards: cards,
+                size: n,
+                drawn: 0,
+                vaultUpTo: vaultSlots,
+                vault: 0,
+                unsweptOpens: 0,
+                creator: creator,
+                creatorBps: creatorBps
+            })
         );
 
         budgetWeight += totalWeight;
@@ -171,7 +243,17 @@ contract TesseraDeck is ReentrancyGuardTransient {
         }
 
         // forge-lint: disable-next-line(unsafe-typecast)
-        emit DeckCreated(deckId, n, uint16(totalWeight), msg.value);
+        emit DeckCreated(deckId, n, uint16(totalWeight), msg.value, creator, creatorBps);
+    }
+
+    ///
+    function claimCreator() external nonReentrant returns (uint256 amount) {
+        amount = creatorClaimable[msg.sender];
+        if (amount == 0) revert NothingToClaim();
+        creatorClaimable[msg.sender] = 0;
+        creatorOwed -= amount;
+        ticketToken.safeTransfer(msg.sender, amount);
+        emit CreatorClaimed(msg.sender, amount);
     }
 
     function weightOf(uint32 deckId, uint256 value) public view returns (uint16) {
@@ -673,7 +755,7 @@ contract TesseraDeck is ReentrancyGuardTransient {
         claimed = ticketToken.balanceOf(address(this)) - before;
 
         uint256 toVault = (claimed * vaultShareBps) / 10_000;
-        if (toVault > 0) _fillVaults(toVault);
+        _distribute(toVault, claimed - toVault);
 
         emit FeesSwept(claimed);
     }
@@ -681,37 +763,52 @@ contract TesseraDeck is ReentrancyGuardTransient {
     ///
     ///
     ///
-    function _fillVaults(uint256 amount) internal {
-        uint64 total;
+    ///
+    ///
+    function _distribute(uint256 toVault, uint256 toTreasury) internal {
+        uint64 vaultTotal;
         for (uint256 i = 0; i < decks.length; i++) {
-            if (decks[i].vaultUpTo > 0) total += decks[i].unsweptOpens;
-        }
-        if (total == 0) {
-            for (uint256 i = 0; i < decks.length; i++) decks[i].unsweptOpens = 0;
-            unsweptOpens = 0;
-            return;
+            if (decks[i].vaultUpTo > 0) vaultTotal += decks[i].unsweptOpens;
         }
 
-        uint256 given;
-        uint256 last = type(uint256).max;
-        for (uint256 i = 0; i < decks.length; i++) {
-            Deck storage d = decks[i];
-            uint64 opens = d.unsweptOpens;
-            d.unsweptOpens = 0;
-            if (opens == 0 || d.vaultUpTo == 0) continue;
-            uint256 share = (amount * opens) / total;
-            if (share == 0) continue;
-            // forge-lint: disable-next-line(unsafe-typecast)
-            d.vault += uint128(share);
-            given += share;
-            last = i;
-            // forge-lint: disable-next-line(unsafe-typecast)
-            emit VaultGrew(uint32(i), share, d.vault);
+        if (toVault > 0 && vaultTotal > 0) {
+            uint256 given;
+            uint256 last = type(uint256).max;
+            for (uint256 i = 0; i < decks.length; i++) {
+                Deck storage d = decks[i];
+                if (d.unsweptOpens == 0 || d.vaultUpTo == 0) continue;
+                uint256 share = (toVault * d.unsweptOpens) / vaultTotal;
+                if (share == 0) continue;
+                // forge-lint: disable-next-line(unsafe-typecast)
+                d.vault += uint128(share);
+                given += share;
+                last = i;
+                // forge-lint: disable-next-line(unsafe-typecast)
+                emit VaultGrew(uint32(i), share, d.vault);
+            }
+            if (last != type(uint256).max && given < toVault) {
+                // forge-lint: disable-next-line(unsafe-typecast)
+                decks[last].vault += uint128(toVault - given);
+            }
         }
-        if (last != type(uint256).max && given < amount) {
-            // forge-lint: disable-next-line(unsafe-typecast)
-            decks[last].vault += uint128(amount - given);
+
+        //
+        uint64 opensAll = unsweptOpens;
+        if (toTreasury > 0 && opensAll > 0) {
+            for (uint256 i = 0; i < decks.length; i++) {
+                Deck storage d = decks[i];
+                if (d.unsweptOpens == 0 || d.creator == address(0) || d.creatorBps == 0) continue;
+                uint256 earned = (toTreasury * d.unsweptOpens) / opensAll;
+                uint256 cut = (earned * d.creatorBps) / 10_000;
+                if (cut == 0) continue;
+                creatorClaimable[d.creator] += cut;
+                creatorOwed += cut;
+                // forge-lint: disable-next-line(unsafe-typecast)
+                emit CreatorPaid(uint32(i), d.creator, cut);
+            }
         }
+
+        for (uint256 i = 0; i < decks.length; i++) decks[i].unsweptOpens = 0;
         unsweptOpens = 0;
     }
 
@@ -723,9 +820,10 @@ contract TesseraDeck is ReentrancyGuardTransient {
         return _deck(deckId).vault;
     }
 
+    ///
     function spendable() public view returns (uint256) {
         uint256 balance = ticketToken.balanceOf(address(this));
-        uint256 locked = vault();
+        uint256 locked = vault() + creatorOwed;
         return balance > locked ? balance - locked : 0;
     }
 
@@ -761,6 +859,13 @@ contract TesseraDeck is ReentrancyGuardTransient {
     function setVaultShare(uint16 bps) external onlyOwner {
         if (bps > 10_000) revert ShareTooBig();
         vaultShareBps = bps;
+    }
+
+    function setCustomDeckRules(uint256 fee, uint16 maxBps, uint16 minSize) external onlyOwner {
+        if (maxBps > 5000) revert ShareTooBig();
+        customDeckFee = fee;
+        maxCreatorBps = maxBps;
+        minCustomSize = minSize;
     }
 
 
