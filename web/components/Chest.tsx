@@ -62,7 +62,14 @@ const ART: Record<Rarity, { src: string; open: string; filter?: string; bare?: b
  */
 const BASE_HUE = 194;
 
-const NAMED: Record<string, number> = { kungfumode: 333 };
+/**
+ *
+ *
+ *
+ */
+const NAMED: Record<string, { hue: number; src?: string }> = {
+  kungfumode: { hue: 333, src: "/chests/kungfumode.webp" },
+};
 
 /**
  *
@@ -72,14 +79,16 @@ const NAMED: Record<string, number> = { kungfumode: 333 };
 export function skinOf(meta: string | undefined) {
   if (!meta) return undefined;
   const [name, raw] = meta.split(":");
-  const hue = raw !== undefined ? Number(raw) : NAMED[name];
-  if (!name || !Number.isFinite(hue)) return undefined;
+  const own = NAMED[name];
+  const hue = raw !== undefined ? Number(raw) : own?.hue;
+  if (!name || !Number.isFinite(hue as number)) return undefined;
 
-  const turn = (((hue - BASE_HUE) % 360) + 360) % 360;
+  const turn = (((Number(hue) - BASE_HUE) % 360) + 360) % 360;
   return {
     name,
-    hue,
-    filter: `hue-rotate(${turn}deg) saturate(1.35) brightness(1.06)`,
+    hue: Number(hue),
+    src: own?.src,
+    filter: own?.src ? undefined : `hue-rotate(${turn}deg) saturate(1.35) brightness(1.06)`,
     ink: `hsl(${hue} 100% 59%)`,
   };
 }
@@ -127,7 +136,7 @@ export function Chest({
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={sized(open ? art.open : art.src, size)}
+      src={sized(dress?.src && !open ? dress.src : open ? art.open : art.src, size)}
       alt=""
       aria-hidden
       data-tier={rarity}
@@ -142,7 +151,13 @@ export function Chest({
         width: size,
         maxWidth: "100%",
         height: "auto",
-        filter: dress ? `${dress.filter} ${glow}` : art.filter ? `${art.filter} ${glow}` : glow,
+        filter: dress?.filter
+          ? `${dress.filter} ${glow}`
+          : dress?.src
+            ? glow
+            : art.filter
+              ? `${art.filter} ${glow}`
+              : glow,
         maskImage: masked ? MASK : undefined,
         WebkitMaskImage: masked ? MASK : undefined,
         animation: drift ? "crate-hover 4.4s ease-in-out infinite" : undefined,
