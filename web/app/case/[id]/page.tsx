@@ -107,7 +107,7 @@ export default function CasePage() {
   if (!deck) {
     return (
       <div className="w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
-        <p className="py-20 text-center text-slate-400">
+        <p className="py-20 text-center text-slate-300">
           {game.isLoading ? "Reading the chain…" : "No such case."}
         </p>
       </div>
@@ -135,11 +135,11 @@ export default function CasePage() {
         <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-4 md:flex-row md:items-end">
           <div>
             <Link
-              href="/case"
+              href="/#decks"
               className="t-label inline-flex items-center gap-1 hover:text-[var(--color-accent-hover)]"
             >
-              <ChevronLeft className="h-3 w-3" />
-              all cases
+              <ChevronLeft className="h-4 w-4" />
+              all decks
             </Link>
             <h1 className="t-page mt-2 flex flex-wrap items-baseline gap-3 text-white">
               <span>{deck.empty ? "Emptied" : (best?.name ?? "Sealed")} case</span>
@@ -365,7 +365,7 @@ export default function CasePage() {
                   }}
                 >
                   {tesa} TESA
-                  <span className="text-[var(--color-ink-faint)]">
+                  <span className="text-[var(--color-ink-dim)]">
                     {tesa % WEIGHT_PER_TICKET === 0
                       ? "· a ticket ready"
                       : `· ${WEIGHT_PER_TICKET - (tesa % WEIGHT_PER_TICKET)} to a ticket`}
@@ -453,7 +453,7 @@ function ForfeitAction({
       >
         Risk it · give the ticket up
       </Button>
-      <p className="mt-2.5 text-[0.9375rem] leading-relaxed text-slate-300">
+      <p className="mt-2.5 text-sm leading-relaxed text-slate-300">
         No Megapot ticket for you this time. Of your $1,{" "}
         <span style={{ color: ink }}>${Number(formatUnits(toVault, 6)).toFixed(2)}</span> goes
         straight into the vault, now at{" "}
@@ -481,7 +481,7 @@ function VaultStatus({
   const [ink, label, note] = mine
     ? ["var(--color-tier-vault)", "yours to take", "you drew it, claim it below"]
     : taken
-      ? ["var(--color-ink-faint)", "drawn", "it pays out the moment its holder claims it"]
+      ? ["var(--color-ink-dim)", "drawn", "it pays out the moment its holder claims it"]
       : ["var(--color-tier-denarius)", "in pool", `one case in ${remaining} opens it`];
 
   return (
@@ -500,7 +500,7 @@ function VaultStatus({
           {label}
         </span>
       </span>
-      <p className="mt-2 text-[0.9375rem] text-slate-300">{note}</p>
+      <p className="mt-2 text-sm text-slate-300">{note}</p>
     </>
   );
 }
@@ -551,7 +551,7 @@ function Result({
             <p className="t-inscription text-2xl" style={{ color: "var(--color-tier-vault)" }}>
               you found the vault
             </p>
-            <p className="mt-3 text-slate-400">Everything it holds is yours. Claim it below.</p>
+            <p className="mt-3 text-slate-300">Everything it holds is yours. Claim it below.</p>
           </div>
         );
       }
@@ -571,7 +571,7 @@ function Result({
                 and the case paid 1 TESA, worth two, doubled
               </p>
             ) : (
-              <p className="mt-3 text-slate-500">
+              <p className="mt-3 text-slate-400">
                 The case was empty, and double nothing is nothing. That was the bet.
               </p>
             )}
@@ -593,7 +593,7 @@ function Result({
               and the case paid 1 TESA, five make a ticket
             </p>
           ) : (
-            <p className="mt-3 text-slate-500">
+            <p className="mt-3 text-slate-400">
               The case added nothing on top. Most do not, the ticket is the part that always
               arrives.
             </p>
@@ -605,7 +605,7 @@ function Result({
       return (
         <div>
           <p className="text-[var(--color-danger)]">{open.error?.title}</p>
-          {open.error?.next && <p className="mt-1 text-sm text-slate-500">{open.error.next}</p>}
+          {open.error?.next && <p className="mt-1 text-sm text-slate-400">{open.error.next}</p>}
         </div>
       );
     default:

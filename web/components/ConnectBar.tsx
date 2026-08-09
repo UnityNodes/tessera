@@ -97,15 +97,15 @@ export function ConnectBar({
             href={addressUrl(address!)}
             target="_blank"
             rel="noreferrer"
-            className="t-addr mt-1.5 flex items-center gap-2 text-[1.0625rem] font-bold text-slate-100 hover:text-[var(--color-accent-hover)]"
+            className="t-addr mt-1.5 flex items-center gap-2 text-base font-bold text-slate-100 hover:text-[var(--color-accent-hover)]"
           >
             {short(address!)}
             <ExternalLink className="h-[1.125rem] w-[1.125rem] opacity-60" />
           </a>
-          <p className="t-chain mt-1.5 text-[0.8125rem] text-slate-400">{CHAIN.name}</p>
+          <p className="t-chain mt-1.5 text-xs text-slate-400">{CHAIN.name}</p>
         </div>
 
-        <p className="t-label mt-4 px-3.5 text-xs">what you hold</p>
+        <p className="t-label mt-4 px-3.5">what you hold</p>
         <div className="mt-2 space-y-1.5">
           <Row
             icon={<Wallet className="h-[1.375rem] w-[1.375rem]" />}
@@ -133,17 +133,17 @@ export function ConnectBar({
           />
         </div>
 
-        <p className="t-label mt-4 px-3.5 text-xs">what you can do</p>
+        <p className="t-label mt-4 px-3.5">what you can do</p>
         <div className="mt-2">
           <Act href="/profile" icon={<ShieldCheck className="h-5 w-5" />}>
             Your shelf
-            <span className="block text-[0.8125rem] font-normal leading-snug text-slate-400">
+            <span className="block text-xs font-normal leading-snug text-slate-400">
               your slots, and what you can claim
             </span>
           </Act>
           <Act href={megapotHref} icon={<Ticket className="h-5 w-5" />}>
             The jackpot
-            <span className="block text-[0.8125rem] font-normal leading-snug text-slate-400">
+            <span className="block text-xs font-normal leading-snug text-slate-400">
               the Megapot draw your tickets are in
             </span>
           </Act>
@@ -151,12 +151,12 @@ export function ConnectBar({
             type="button"
             onClick={() => void mint()}
             disabled={minting}
-            className="flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[var(--radius-control)] px-3.5 py-2.5 text-left text-[0.9375rem] font-bold text-[var(--color-accent-hover)] transition-colors hover:bg-slate-800 disabled:text-slate-500"
+            className="flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[var(--radius-control)] px-3.5 py-2.5 text-left text-sm font-bold text-[var(--color-accent-hover)] transition-colors hover:bg-slate-800 disabled:text-slate-400"
           >
             <PlusCircle className="h-5 w-5 shrink-0" />
             <span>
               {minting ? "Minting…" : "Get $20 in test dollars"}
-              <span className="block text-[0.8125rem] font-normal leading-snug text-slate-400">
+              <span className="block text-xs font-normal leading-snug text-slate-400">
                 the faucet mints straight to your wallet
               </span>
             </span>
@@ -166,7 +166,7 @@ export function ConnectBar({
         <button
           type="button"
           onClick={() => disconnect()}
-          className="mt-3 flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[var(--radius-control)] border-t border-slate-800 px-3.5 py-3 pt-3.5 text-left text-[0.9375rem] font-bold text-slate-400 transition-colors hover:text-[var(--color-danger)]"
+          className="mt-3 flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[var(--radius-control)] border-t border-slate-800 px-3.5 py-3 pt-3.5 text-left text-sm font-bold text-slate-400 transition-colors hover:text-[var(--color-danger)]"
         >
           <LogOut className="h-5 w-5 shrink-0" />
           Disconnect
@@ -212,11 +212,11 @@ function Row({
         >
           {value}
         </span>
-        <span className="mt-1 block truncate text-[0.875rem] font-bold leading-tight text-slate-200">
+        <span className="mt-1 block truncate text-sm font-bold leading-tight text-slate-200">
           {name}
         </span>
         {note && (
-          <span className="mt-0.5 block text-[0.8125rem] leading-snug text-slate-400">{note}</span>
+          <span className="mt-0.5 block text-xs leading-snug text-slate-400">{note}</span>
         )}
       </span>
     </div>
@@ -235,7 +235,7 @@ function Act({
   return (
     <Link
       href={href}
-      className="flex min-h-11 items-center gap-3 rounded-[var(--radius-control)] px-3.5 py-2.5 text-[0.9375rem] font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)]"
+      className="flex min-h-11 items-center gap-3 rounded-[var(--radius-control)] px-3.5 py-2.5 text-sm font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)]"
     >
       <span className="grid w-5 shrink-0 place-items-center">{icon}</span>
       <span className="min-w-0">{children}</span>

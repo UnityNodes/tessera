@@ -59,10 +59,10 @@ export function Drops({ deck, drawn, pool }: { deck: DeckShape; drawn: number; p
             >
               <Chest rarity={t.spec.rarity} size={34} className="shrink-0" />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-[0.9375rem] font-bold leading-tight" style={{ color: t.spec.ink }}>
+                <span className="block truncate text-sm font-bold leading-tight" style={{ color: t.spec.ink }}>
                   {t.spec.name}
                 </span>
-                <span className="block truncate text-[0.8125rem] leading-tight text-slate-300">
+                <span className="block truncate text-xs leading-tight text-slate-300">
                   {t.spec.note}
                 </span>
               </span>
@@ -71,7 +71,7 @@ export function Drops({ deck, drawn, pool }: { deck: DeckShape; drawn: number; p
                   key={String(left)}
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  style={{ color: gone ? "var(--color-ink-faint)" : "var(--color-ink)" }}
+                  style={{ color: gone ? "var(--color-ink-dim)" : "var(--color-ink)" }}
                 >
                   {left === undefined ? "…" : left}
                 </motion.span>

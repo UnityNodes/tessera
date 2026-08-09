@@ -42,7 +42,7 @@ export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
   const pad =
     size === "sm"
       ? `${TOUCH}px-4 py-2 text-xs`
-      : "px-6 py-3.5 text-[0.9375rem]";
+      : "px-6 py-3.5 text-sm";
 
   const skins: Record<Variant, string> = {
     chisel:

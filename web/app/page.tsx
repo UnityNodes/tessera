@@ -1,26 +1,23 @@
 "use client";
 
-import { useMemo } from "react";
 import Link from "next/link";
 import { formatUnits } from "viem";
-import { Sparkles, Swords, Award } from "lucide-react";
+import { Sparkles, Swords } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Chest } from "@/components/Chest";
 import { DeckHero } from "@/components/DeckHero";
 import { useDeck, type DeckInfo } from "@/hooks/useDeck";
 import { useBattleList } from "@/hooks/useBattles";
-import { useFeed } from "@/hooks/useFeed";
-import { slotsPerTier, bestTier, isVault, isShard, ticketsLabel } from "@/lib/deck";
+import { slotsPerTier, bestTier, isShard, ticketsLabel } from "@/lib/deck";
 
 /**
+ *
  *
  *
  */
 export default function Home() {
   const game = useDeck();
   const battles = useBattleList();
-  const shapes = useMemo(() => game.decks.map((d) => d), [game.decks]);
-  const feed = useFeed(shapes);
   const first = game.decks.find((d) => !d.empty) ?? game.decks[0];
   const total = game.decks.reduce((n, d) => n + d.size, 0);
 
@@ -32,7 +29,7 @@ export default function Home() {
 
         <div className="relative z-10 mx-auto flex max-w-[1320px] flex-col items-center gap-6">
           <p
-            className="t-label rounded-full border px-4 py-1.5 text-[0.6875rem]"
+            className="t-label rounded-full border px-4 py-1.5"
             style={{
               borderColor: "color-mix(in oklab, var(--color-tier-vault) 35%, transparent)",
               background: "color-mix(in oklab, var(--color-tier-vault) 6%, transparent)",
@@ -51,7 +48,7 @@ export default function Home() {
             </span>
           </h1>
 
-          <p className="max-w-2xl text-lg leading-relaxed text-slate-400">
+          <p className="max-w-2xl text-lg leading-relaxed text-slate-300">
             A case costs $1 and buys you a real Megapot lottery ticket, the same one sold on
             megapot.io, bought in the transaction that opens the case. What is inside was
             shuffled once, before anyone opened one, and is drawn in order. A prize someone else
@@ -94,14 +91,22 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="w-full border-b border-slate-800/60 bg-[var(--color-section)] px-4 py-16 lg:px-8 2xl:px-14">
+
+
+      <section
+        id="decks"
+        className="w-full scroll-mt-32 border-b border-slate-800/60 bg-[var(--color-section)] px-4 py-16 lg:px-8 2xl:px-14"
+      >
         <div className="mx-auto flex max-w-[1320px] flex-col items-center">
-          <h2 className="t-inscription mb-10 text-center text-2xl font-extrabold text-white lg:text-3xl">
-            deck progress
+          <h2 className="t-inscription mb-10 flex flex-wrap items-baseline justify-center gap-3 text-center text-2xl font-extrabold text-white lg:text-3xl">
+            <span>the decks</span>
+            <span className="t-chain text-base font-bold normal-case tracking-normal text-[var(--color-ink-dim)]">
+              {game.decks.length} {game.decks.length === 1 ? "deck" : "decks"}
+            </span>
           </h2>
 
           {game.decks.length === 0 ? (
-            <p className="py-10 text-center text-slate-400">Reading the chain…</p>
+            <p className="py-10 text-center text-slate-300">Reading the chain…</p>
           ) : (
             <div className="grid w-full gap-6 [grid-template-columns:repeat(auto-fit,minmax(17rem,1fr))]">
               {game.decks.map((d) => (
@@ -150,18 +155,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="w-full bg-[var(--color-section-deep)] px-4 py-14 lg:px-8 2xl:px-14">
-        <div className="mx-auto flex max-w-[1320px] flex-col items-center">
-          <div className="mb-8 flex items-center gap-2">
-            <Award className="h-6 w-6" style={{ color: "var(--color-tier-aureus)" }} />
-            <h3 className="t-inscription text-xl font-extrabold text-white">
-              latest out of the pool
-            </h3>
-          </div>
 
-          <Latest feed={feed} />
-        </div>
-      </section>
     </div>
   );
 }
@@ -189,7 +183,7 @@ function StatCard({ value, label, tone }: { value: string; label: string; tone?:
       >
         {value}
       </div>
-      <div className="t-label mt-2 text-[0.625rem]">{label}</div>
+      <div className="t-label mt-2">{label}</div>
     </div>
   );
 }
@@ -203,12 +197,14 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
   const paying = prizes + deck.vaultUpTo;
   const oneIn = paying > 0 ? Math.max(1, Math.round(deck.size / paying)) : 0;
 
+  const tesa = tiers.filter((t) => isShard(t.spec)).reduce((n, t) => n + t.count, 0);
 
   const ink = deck.empty ? "var(--color-tier-grout)" : (best?.ink ?? "var(--color-accent)");
   const sealedPercent = deck.size > 0 ? Math.max(1, (deck.remaining / deck.size) * 100) : 0;
 
   return (
     <Link
+      data-deck={deck.id}
       href={`/case/${deck.id}`}
       className="group relative flex flex-col justify-between rounded-[var(--radius-panel)] border bg-slate-900/60 p-6 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-slate-900/90"
       style={{
@@ -258,7 +254,7 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
         )}
 
 
-        <p className="min-h-[72px] px-2 text-sm leading-relaxed text-slate-400">
+        <p className="min-h-[72px] px-2 text-sm leading-relaxed text-slate-300">
           {deck.empty ? (
             "Every case in this deck has been opened."
           ) : (
@@ -271,6 +267,18 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
             </>
           )}
         </p>
+
+        {!deck.empty && (
+          <p className="t-chain text-xs font-bold">
+            {tesa > 0 ? (
+              <span style={{ color: "var(--color-tier-shard)" }}>
+                {tesa} TESA still in the deck · five make a ticket
+              </span>
+            ) : (
+              <span className="text-slate-400">no TESA in this deck</span>
+            )}
+          </p>
+        )}
       </div>
 
       <div className="mt-6 flex flex-col space-y-2 border-t border-slate-800/80 pt-4">
@@ -331,59 +339,7 @@ function Step({
   return (
     <div className="border-t pt-5" style={{ borderColor: `color-mix(in oklab, ${ink} 40%, transparent)` }}>
       <h3 className="text-lg font-bold text-white">{title}</h3>
-      <p className="mt-3 text-sm leading-relaxed text-slate-400">{children}</p>
+      <p className="mt-3 text-sm leading-relaxed text-slate-300">{children}</p>
     </div>
   );
 }
-
-/**
- *
- */
-function Latest({ feed }: { feed: ReturnType<typeof useFeed> }) {
-  const worthy = feed
-    .filter((it) => it.value !== undefined && (it.weight > 0 || isVault(it.spec)))
-    .slice(0, 3);
-
-  if (worthy.length === 0) {
-    return (
-      <p className="text-center text-slate-400">
-        Nothing has come out of the pool yet, every slot is still sealed.
-      </p>
-    );
-  }
-
-  return (
-    <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-3">
-      {worthy.map((it) => {
-        const paid = it.risk ? it.spec.tickets * 2 : it.spec.tickets;
-        return (
-          <div
-            key={it.handle}
-            className="flex items-center justify-between rounded-[var(--radius-control)] border border-slate-800 bg-slate-900/60 p-4"
-          >
-            <div className="flex min-w-0 items-center gap-3">
-              <Chest rarity={it.spec.rarity} size={40} className="shrink-0" />
-              <div className="min-w-0">
-                <span className="t-chain block truncate text-xs text-slate-400">
-                  {short(it.player)}
-                </span>
-                <span className="t-chain block text-sm font-bold" style={{ color: it.spec.ink }}>
-                  {it.spec.name}
-                </span>
-              </div>
-            </div>
-            <span className="t-chain shrink-0 text-xs font-bold text-slate-300">
-              {isVault(it.spec)
-                ? "the vault"
-                : isShard(it.spec)
-                  ? `${it.risk ? 2 : 1} TESA`
-                  : ticketsLabel(paid)}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;

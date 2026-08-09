@@ -27,7 +27,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
   return (
     <div className="flex items-center gap-5">
       {worthy.length === 0 ? (
-        <p className="min-w-0 flex-1 py-3 text-sm text-slate-500">
+        <p className="min-w-0 flex-1 py-3 text-sm text-slate-400">
           {reading ? "Reading what came out of the pool…" : "Nothing has come out of the pool yet."}
         </p>
       ) : (
@@ -57,7 +57,7 @@ export function Ticker({ items }: { items: FeedItem[] }) {
           <span className="t-chain block text-xl font-extrabold leading-none text-slate-400">
             {emptySince}
           </span>
-          <span className="t-label mt-1 block whitespace-nowrap text-[10px]">
+          <span className="t-label mt-1 block whitespace-nowrap">
             no bonus in a row{riskedSince > 0 ? ` · ${riskedSince} risked` : ""}
           </span>
         </div>
@@ -93,7 +93,7 @@ function Drop({ item, mine }: { item: FeedItem; mine: boolean }) {
 
         {paid > 0 && (
           <span
-            className="t-chain absolute -right-1 -top-1 rounded px-1 text-[0.6875rem] font-extrabold leading-none"
+            className="t-chain absolute -right-1 -top-1 rounded px-1 text-xs font-extrabold leading-none"
             style={{
               color: ink,
               background: "rgb(6 10 6 / 0.85)",
@@ -106,7 +106,7 @@ function Drop({ item, mine }: { item: FeedItem; mine: boolean }) {
       </div>
 
       <span
-        className="t-chain block w-full truncate text-center text-[0.625rem] font-bold"
+        className="t-chain block w-full truncate text-center text-xs font-bold"
         style={{ color: ink }}
       >
         {item.spec.name}
@@ -116,10 +116,10 @@ function Drop({ item, mine }: { item: FeedItem; mine: boolean }) {
         <span className="t-chain text-xs font-bold text-slate-200">
           {mine ? "you" : short(item.player)}
         </span>
-        <span className="text-[10px] text-[var(--color-accent-hover)]">
+        <span className="text-xs text-[var(--color-accent-hover)]">
           {item.risk ? "gave the ticket up" : "case opened"}
         </span>
-        <span className="t-chain mt-0.5 text-[11px] font-bold" style={{ color: ink }}>
+        <span className="t-chain mt-0.5 text-xs font-bold" style={{ color: ink }}>
           {item.spec.name}
           {paid > 0 ? ` · ${ticketsLabel(paid)}` : ""}
         </span>

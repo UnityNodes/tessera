@@ -42,7 +42,7 @@ export default function BattlesPage() {
         <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-6 md:flex-row md:items-center">
           <div className="max-w-2xl">
             <h1 className="t-page text-white">Case battles arena</h1>
-            <p className="mt-2 text-[0.9375rem] text-slate-400">
+            <p className="mt-2 text-sm text-slate-300">
               Two cases open at once and the better card takes both prizes. Neither card can be
               read until both players have paid, not even by the one who opened the battle.
             </p>
@@ -63,7 +63,7 @@ export default function BattlesPage() {
           <p className="text-sm text-[var(--color-danger)]">
             {battles.state.error.title}
             {battles.state.error.next && (
-              <span className="block text-slate-500">{battles.state.error.next}</span>
+              <span className="block text-slate-400">{battles.state.error.next}</span>
             )}
           </p>
         )}
@@ -100,7 +100,7 @@ export default function BattlesPage() {
             <div>
               <label className="t-label mb-2 block">1. pick the deck you both draw from</label>
               {playable.length === 0 ? (
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-400">
                   {game.isLoading ? "Reading the chain…" : "Every deck in this season is empty."}
                 </p>
               ) : (
@@ -123,7 +123,7 @@ export default function BattlesPage() {
                         <span className="truncate text-xs font-bold">
                           {best?.name ?? "Sealed"}
                         </span>
-                        <span className="t-chain text-[10px] text-slate-400">
+                        <span className="t-chain text-xs text-slate-400">
                           {d.remaining} left
                         </span>
                       </button>
@@ -146,7 +146,7 @@ export default function BattlesPage() {
                 <span className="t-label">your entry</span>
                 <span className="text-right">
                   <span className="t-chain text-xl font-extrabold text-white">$1.00</span>
-                  <span className="t-chain block text-[11px] text-slate-500">
+                  <span className="t-chain block text-xs text-slate-400">
                     and it still buys your ticket
                   </span>
                 </span>
@@ -155,7 +155,7 @@ export default function BattlesPage() {
               {!address || !game.canAfford ? (
                 <StartHere what="A battle" />
               ) : mine ? (
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-slate-300">
                   You already have a battle on the table. Settle it before opening another.
                 </p>
               ) : (
@@ -182,7 +182,7 @@ export default function BattlesPage() {
             </h2>
 
             {battles.all.length === 0 ? (
-              <p className="rounded-[var(--radius-panel)] border border-slate-800 bg-slate-900/60 p-10 text-center text-slate-400">
+              <p className="rounded-[var(--radius-panel)] border border-slate-800 bg-slate-900/60 p-10 text-center text-slate-300">
                 {battles.loading ? "Reading the chain…" : "No battles yet, open the first one."}
               </p>
             ) : (
@@ -292,7 +292,7 @@ function Fact({
       <span className="text-slate-400">{icon}</span>
       <span className="min-w-0">
         <span className="block truncate text-xs font-bold text-slate-200">{value}</span>
-        <span className="t-chain block truncate text-[10px] text-slate-500">{note}</span>
+        <span className="t-chain block truncate text-xs text-slate-400">{note}</span>
       </span>
     </div>
   );

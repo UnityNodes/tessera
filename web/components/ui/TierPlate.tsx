@@ -13,7 +13,7 @@ export function TierPlate({
 }) {
   return (
     <span
-      className={`t-label inline-block rounded-[6px] px-2.5 py-1 text-[0.6875rem] ${className}`}
+      className={`t-label inline-block rounded-[6px] px-2.5 py-1 ${className}`}
       style={{
         color: ink,
         background: `color-mix(in oklab, ${ink} 9%, transparent)`,

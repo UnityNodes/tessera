@@ -49,7 +49,7 @@ export function StakePanel({
           <p className="mt-3 text-sm text-[var(--color-danger)]">
             {stake.state.error.title}
             {stake.state.error.next && (
-              <span className="block text-slate-500">
+              <span className="block text-slate-400">
                 {stake.state.error.next}
               </span>
             )}
@@ -62,7 +62,7 @@ export function StakePanel({
   if (stake.open) {
     if (!stake.ready) {
       return (
-        <p className="mt-6 text-sm text-slate-400">
+        <p className="mt-6 text-sm text-slate-300">
           <span className="t-chain font-bold text-slate-100">{stake.stakedWeight} TESA</span>{" "}
           are riding on your next case. Open one to find out.
         </p>
@@ -70,7 +70,7 @@ export function StakePanel({
     }
     return (
       <div className="mt-6">
-        <p className="mb-3 text-sm text-slate-400">
+        <p className="mb-3 text-sm text-slate-300">
           Your next case is drawn. It decides the{" "}
           <span className="t-chain font-bold text-slate-100">{stake.stakedWeight} TESA</span> you
           staked.
@@ -89,13 +89,13 @@ export function StakePanel({
                 : "Waiting for the covalidators…"}
         </Button>
         {decidingInBattle && (
-          <p className="mt-3 text-sm text-slate-400">
+          <p className="mt-3 text-sm text-slate-300">
             The case that decides this stake was drawn into a battle. Settle the battle
             first, anyone can, and the loser cannot freeze it by staying away.
           </p>
         )}
         {stake.state.phase === "done" && stake.state.won === false && (
-          <p className="mt-3 text-sm text-slate-400">
+          <p className="mt-3 text-sm text-slate-300">
             Empty. The stake burned, but every ticket you paid for is still yours.
           </p>
         )}
@@ -135,14 +135,14 @@ export function StakePanel({
         </Button>
       </div>
       {!canPay && (
-        <p className="mt-3 text-sm text-slate-400">
+        <p className="mt-3 text-sm text-slate-300">
           The game funds prizes out of the commission it earns, and it is{" "}
           <span className="t-chain">${(Number(shortBy) / 1e6).toFixed(2)}</span> short.
           About {opensLeft} more open{opensLeft > 1 ? "s" : ""}, by anyone, and this
           ticket is yours. Nothing expires.
         </p>
       )}
-      <p className="mt-3 text-sm text-slate-500">
+      <p className="mt-3 text-sm text-slate-400">
         Risking stakes the bonus, never your money, the dollar you paid already
         bought a real ticket. Your next case decides it: anything at all doubles
         the {picked}, an empty slot burns it.

@@ -166,7 +166,7 @@ export function OpenTheatre({
                       >
                         {won ? spec.name : open.risk ? "empty" : "+1 real ticket"}
                       </p>
-                      <p className="t-inscription mt-3 text-[0.875rem] text-[var(--color-ink-dim)]">
+                      <p className="t-inscription mt-3 text-sm text-[var(--color-ink-dim)]">
                         {isVault(spec)
                           ? "everything the vault holds"
                           : isShard(spec)
@@ -177,13 +177,13 @@ export function OpenTheatre({
                               ? "no ticket, and the case was empty, that was the bet"
                               : "the case added nothing on top · most do not"}
                       </p>
-                      <p className="mt-5 text-[0.9375rem] text-[var(--color-ink-faint)]">
+                      <p className="mt-5 text-sm text-[var(--color-ink-dim)]">
                         click anywhere to continue
                       </p>
                     </>
                   ) : (
                     <>
-                      <p className="t-inscription text-[1.125rem] text-[var(--color-ink-dim)]">
+                      <p className="t-inscription text-lg text-[var(--color-ink-dim)]">
                         {open.phase === "confirming"
                           ? open.risk
                             ? "putting your dollar in the vault"

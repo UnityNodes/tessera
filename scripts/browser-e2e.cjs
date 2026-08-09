@@ -319,16 +319,24 @@ async function ensureConnected(page) {
     await back.close();
   }
 
+  //
+  //
   const redeem = page.getByRole("button", { name: /^Take \d+ ticket/ });
+  const unfunded = page.getByRole("button", { name: /^Not funded yet$/ });
   if (await redeem.count()) {
     console.log("▶ ");
     await redeem.click();
     await page.getByText(/bought you \d+ more real ticket/).waitFor({ timeout: 90000 });
     console.log("✓ ");
     await shot(page, "e2e-redeemed");
+  } else if (await unfunded.count()) {
+    const why = await page.getByText(/short\./).first().textContent();
+    if (!/\$\d+\.\d\d/.test(why)) throw new Error(`Not funded yet: ${why}`);
+    console.log(`✓ , ${why.trim().slice(0, 90)}`);
   } else {
-    const held = await page.getByText(/No bonus tickets|real ticket|the vault/).first().textContent();
-    console.log(`  ${held.trim()}`);
+    const chip = page.getByText(/\d+ TESA/).first();
+    if (await chip.count()) console.log(`  ${(await chip.textContent()).trim()}`);
+    else console.log("  ");
   }
 
   //

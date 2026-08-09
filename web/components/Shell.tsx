@@ -57,9 +57,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <span className="t-black text-xl tracking-wide text-white sm:text-2xl">Tessera</span>
             </Link>
 
+
+
             <nav className="scrollbar-none flex min-w-0 items-center gap-1 overflow-x-auto rounded-[var(--radius-control)] border border-slate-800 bg-slate-900/60 p-1">
               <Tab href="/">home</Tab>
-              <Tab href="/case">cases</Tab>
               <Tab href="/battles">battles</Tab>
               <Tab href="/leaderboard">standings</Tab>
             </nav>
@@ -131,7 +132,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
               />
               <span className="t-label">live drops</span>
             </span>
-            <span className="t-chain text-[11px] text-slate-500">
+            <span className="t-chain text-xs text-slate-400">
               straight off Base Sepolia
             </span>
           </div>
@@ -144,7 +145,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <main className="w-full flex-1 bg-[var(--color-section)]">{children}</main>
 
       <footer className="w-full border-t border-slate-800/80 bg-[var(--color-sunk)] px-4 py-8 lg:px-8 2xl:px-14">
-        <div className="mx-auto flex flex-col items-center justify-between gap-4 text-xs text-slate-500 sm:flex-row">
+        <div className="mx-auto flex flex-col items-center justify-between gap-4 text-xs text-slate-400 sm:flex-row">
           <span className="flex flex-wrap items-center justify-center gap-2">
             <span className="font-bold text-slate-300">Tessera Protocol</span>
             <span>•</span>

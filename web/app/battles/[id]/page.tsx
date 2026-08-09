@@ -72,7 +72,7 @@ export default function BattlePage() {
   if (!battle) {
     return (
       <div className="w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
-        <p className="py-20 text-center text-slate-400">
+        <p className="py-20 text-center text-slate-300">
           {id === undefined ? "No such battle." : "Reading the chain…"}
         </p>
       </div>
@@ -98,7 +98,7 @@ export default function BattlePage() {
                 deck #{battle.deckId}
               </span>
             </h1>
-            <p className="mt-2 max-w-xl text-[0.9375rem] text-slate-400">
+            <p className="mt-2 max-w-xl text-sm text-slate-300">
               {battle.resolved
                 ? "Settled on chain. Both cards are public, and so is the arithmetic that decided them."
                 : battle.joined
@@ -145,7 +145,7 @@ export default function BattlePage() {
           <p className="text-center text-sm text-[var(--color-danger)]">
             {fight.state.error.title}
             {fight.state.error.next && (
-              <span className="block text-slate-500">{fight.state.error.next}</span>
+              <span className="block text-slate-400">{fight.state.error.next}</span>
             )}
           </p>
         )}
@@ -160,11 +160,11 @@ export default function BattlePage() {
               settled={battle.resolved}
             />
           ) : battle.joined ? (
-            <p className="text-center text-slate-400">
+            <p className="text-center text-slate-300">
               The covalidators are turning both cards over, a few seconds we do not control.
             </p>
           ) : (
-            <p className="text-center text-slate-400">
+            <p className="text-center text-slate-300">
               Nobody can read either card yet. That is the point: there is no easy fight to pick.
             </p>
           )}
@@ -180,7 +180,7 @@ export default function BattlePage() {
               >
                 {fight.busy ? "Settling…" : "Settle the battle"}
               </Button>
-              <p className="mt-2 text-center text-sm text-slate-500">
+              <p className="mt-2 text-center text-sm text-slate-400">
                 Anyone can settle it, the loser cannot freeze it by staying away.
               </p>
             </div>
@@ -307,7 +307,7 @@ function OpenSeat({
     >
       <div className="w-full max-w-xs text-center">
         <p className="t-label">open seat</p>
-        <p className="mt-2 text-slate-400">
+        <p className="mt-2 text-slate-300">
           Your dollar buys you a real ticket either way. Only the bonus is on the table.
         </p>
         <div className="mt-5 text-left">
@@ -355,7 +355,7 @@ function Verdict({
       className="text-center"
     >
       {draw ? (
-        <p className="text-slate-400">
+        <p className="text-slate-300">
           {pot === 0
             ? "Both empty. Nobody owes anybody, and both players still hold the ticket."
             : "The same card. A draw, and each keeps their own."}
@@ -373,7 +373,7 @@ function Verdict({
             : "you win, but the pot was empty"}
         </p>
       ) : (
-        <p className="text-slate-400">
+        <p className="text-slate-300">
           {pot > 0 ? `Lost the ${pot}.` : "Lost, though there was nothing in the pot."} The ticket
           you paid for is still yours.
         </p>
@@ -405,7 +405,7 @@ function Abandon({
   const left = openedAt * 1000 + TIMEOUT_MS - now;
   if (left > 0) {
     return (
-      <p className="mt-4 text-center text-sm text-slate-500">
+      <p className="mt-4 text-center text-sm text-slate-400">
         If nobody comes, you can take the card back in {Math.ceil(left / 60_000)} min. Nothing to
         refund, the ticket was bought the moment you opened the battle.
       </p>

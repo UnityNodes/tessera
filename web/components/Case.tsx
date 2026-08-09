@@ -150,7 +150,7 @@ export function Case({ phase, value, deck, size = 340, onClick, risk = false, va
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.5 }}
         >
-          <div className="t-inscription text-[0.8125rem]" style={{ color: spec.ink }}>
+          <div className="t-inscription text-xs" style={{ color: spec.ink }}>
             {isVault(spec)
               ? spec.name
               : spec.tickets > 0

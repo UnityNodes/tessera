@@ -59,7 +59,7 @@ export default function ProfilePage() {
   if (!isConnected) {
     return (
       <div className="w-full bg-[var(--color-section)] px-4 py-20 text-center lg:px-8">
-        <p className="text-slate-400">
+        <p className="text-slate-300">
           Connect a wallet to see what is yours. Nothing here is stored by us, it is read from
           the chain against your address.
         </p>
@@ -111,7 +111,7 @@ export default function ProfilePage() {
         {(ticketsFromWeight(weight) > 0 || tesa > 0 || stake.open || stake.bankedWeight > 0) && (
           <section className="slab p-6 sm:p-8">
             <p className="t-label mb-1">what you can claim</p>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-300">
               Five TESA make one real Megapot ticket. A Denarius slot is worth five on its own, a
               top-tier slot twenty-five.
             </p>
@@ -140,11 +140,11 @@ export default function ProfilePage() {
               <p className="mt-4 text-sm text-[var(--color-danger)]">{redeem.state.error.title}</p>
             )}
             {toRedeem.length === 0 && tesa > 0 && !stake.open && (
-              <p className="mt-4 text-sm text-slate-500">
+              <p className="mt-4 text-sm text-slate-400">
                 Not a full ticket yet. {WEIGHT_PER_TICKET - (weight % WEIGHT_PER_TICKET)} more TESA
                 and this turns into a real ticket, {" "}
-                <Link href="/case" className="text-[var(--color-accent-hover)] hover:underline">
-                  the catalog says which decks still have them
+                <Link href="/#decks" className="text-[var(--color-accent-hover)] hover:underline">
+                  every deck says how many it still holds
                 </Link>
                 .
               </p>
@@ -155,7 +155,7 @@ export default function ProfilePage() {
         <section>
           <p className="t-label mb-4">every slot you drew</p>
           {slots.length === 0 ? (
-            <p className="rounded-[var(--radius-panel)] border border-dashed border-[var(--edge)] p-10 text-center text-sm text-slate-500">
+            <p className="rounded-[var(--radius-panel)] border border-dashed border-[var(--edge)] p-10 text-center text-sm text-slate-400">
               {inventory.isLoading
                 ? "Reading the chain…"
                 : "Nothing yet. Every case you open lands here."}
@@ -178,7 +178,7 @@ export default function ProfilePage() {
                     <span className="t-chain text-xs font-bold" style={{ color: spec.ink }}>
                       {spec.name}
                     </span>
-                    <span className="text-[0.625rem] text-slate-500">
+                    <span className="text-xs text-slate-400">
                       deck #{s.deckId}
                       {s.risk ? " · risked" : ""}
                       {s.locked ? " · in a battle" : ""}
@@ -186,7 +186,7 @@ export default function ProfilePage() {
                     {isVault(spec) && (
                       <Link
                         href={`/case/${s.deckId}`}
-                        className="t-chain text-[0.625rem] font-bold text-[var(--color-tier-vault)]"
+                        className="t-chain text-xs font-bold text-[var(--color-tier-vault)]"
                       >
                         open the vault →
                       </Link>
@@ -198,7 +198,7 @@ export default function ProfilePage() {
           )}
         </section>
 
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-400">
           Slots the covalidators have not returned yet are not shown, they exist on chain and
           appear here as soon as their value is readable. A slot committed to an unsettled battle
           stays on the shelf but cannot be spent until the battle is settled.
@@ -223,7 +223,7 @@ function Stat({ value, label, tone }: { value: string; label: string; tone?: str
       >
         {value}
       </div>
-      <div className="t-label mt-2 text-[0.625rem]">{label}</div>
+      <div className="t-label mt-2">{label}</div>
     </div>
   );
 }

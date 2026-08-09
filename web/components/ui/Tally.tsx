@@ -21,7 +21,7 @@ export function Tally({
       >
         {value}
       </span>
-      {note && <span className="t-chain block text-[0.625rem] text-slate-500">{note}</span>}
+      {note && <span className="t-chain block text-xs text-slate-400">{note}</span>}
     </div>
   );
 }

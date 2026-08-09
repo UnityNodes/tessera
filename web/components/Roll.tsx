@@ -240,11 +240,11 @@ function Item({ spec }: { spec: TierSpec }) {
         <Chest rarity={spec.rarity} size={ITEM - 62} />
       </div>
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 to-transparent px-2 pb-2 pt-4 text-center">
-        <div className="truncate text-[0.75rem] font-bold" style={{ color: spec.ink }}>
+        <div className="truncate text-xs font-bold" style={{ color: spec.ink }}>
           {spec.name}
         </div>
         {spec.tickets > 0 && (
-          <div className="t-chain text-[0.8125rem] font-bold" style={{ color: spec.ink }}>
+          <div className="t-chain text-xs font-bold" style={{ color: spec.ink }}>
             +{spec.tickets}
           </div>
         )}

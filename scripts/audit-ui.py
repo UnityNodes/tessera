@@ -115,11 +115,37 @@ with sync_playwright() as p:
     )
     same("= ", t["remaining"], whole(num(hero)))
     same("= ", t["size"], whole(num(hero.split("of")[1])))
+
+    # . ;
+    # .
+    decks_seen = page.locator("#decks h2").first.inner_text()
+    same("N decks= ", t["decks"], whole(num(decks_seen)))
+
     for d in EXPECTED["decks"]:
         card = page.locator(f"a[href='/case/{d['id']}']").last
         txt = card.inner_text()
         sealed = num(re.search(r"Still sealed:\s*([\d\s,]+)", txt).group(1))
         same(f"#{d['id']}: still sealed", d["remaining"], whole(sealed))
+
+        # TESA ,
+        # . :
+        # ,
+        # , .
+        if d["remaining"] > 0:
+            if d["tesa"] > 0:
+                m = re.search(r"([\d\s,]+)\s+TESA still in the deck", txt)
+                same(
+                    f"#{d['id']}: TESA ",
+                    d["tesa"],
+                    whole(num(m.group(1)) if m else None),
+                )
+            else:
+                check(
+                    f"#{d['id']}: , TESA ",
+                    "no TESA in this deck" in txt,
+                    "no TESA in this deck",
+                )
+
         if d["hasVault"]:
             vault = re.search(r"Vault:\s*\$([\d.,]+)", txt)
             # :
@@ -167,29 +193,22 @@ with sync_playwright() as p:
         strip = page.locator("text=/\\d+ drawn · \\d+ sealed/").first.inner_text()
         same(f"#{d['id']}: ()", d["drawn"], whole(num(strip)))
 
-    # ── ────────────────────────────────────────
+    # ── ─────────────────────────────────
     print("\n── ──")
-    go("/case")
-    decks_seen = page.locator("h1").first.inner_text()
-    same("N decks= ", t["decks"], whole(num(decks_seen.split("catalog")[-1])))
-
-    # TESA ,
-    # . :
-    # ,
+    # , :
+    # , 404 -.
     # , .
-    for d in EXPECTED["decks"]:
-        card = page.locator(f"[data-deck='{d['id']}']").last.inner_text()
-        if d["remaining"] == 0:
-            continue
-        if d["tesa"] > 0:
-            m = re.search(r"([\d\s,]+)\s+TESA still in the deck", card)
-            same(f"#{d['id']}: TESA ", d["tesa"], whole(num(m.group(1)) if m else None))
-        else:
-            check(
-                f"#{d['id']}: , TESA ",
-                "no TESA in this deck" in card,
-                "no TESA in this deck",
-            )
+    go("/case")
+    check(
+        "/case , 404",
+        page.url.rstrip("/").endswith("#decks") or page.locator("#decks").count() == 1,
+        f"{page.url}",
+    )
+    check(
+        "cases",
+        page.locator("header nav a[href='/case']").count() == 0,
+        ", ",
+    )
 
     # , :
     # , : .
@@ -244,14 +263,91 @@ with sync_playwright() as p:
             break
     check("", seen > 0, f": {seen}")
 
+    # ── ────────────────────────────────────────────────────────────
+    print("\n── ──")
+    # :
+    # .
+    # , , .
+    #
+    # , , :
+    # , computed font-size computed color
+    # , WCAG.
+    #
+    # :
+    #   12px  ;
+    #   4.5   ;
+    #   3.0   (24px, 18.66px ).
+    #
+    # : disabled, opacity < 0.5,
+    # . ,
+    # .
+    for path in ("/", "/case/1", "/battles", "/leaderboard", "/profile"):
+        go(path, 3000)
+        bad = page.evaluate(
+            r"""
+            () => {
+              const lin = c => { c/=255; return c<=0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4); };
+              const lum = ([r,g,b]) => 0.2126*lin(r) + 0.7152*lin(g) + 0.0722*lin(b);
+              const nums = s => (String(s).match(/[\d.]+/g) || []).map(Number);
+              const bgOf = el => {
+                for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
+                  const st = getComputedStyle(n);
+                  if (st.backgroundImage && st.backgroundImage !== "none") return null;
+                  const c = nums(st.backgroundColor);
+                  if (c.length >= 3 && (c[3] === undefined || c[3] > 0.55)) return c.slice(0, 3);
+                }
+                return [10, 15, 10];
+              };
+              const out = [];
+              for (const el of document.querySelectorAll("body *")) {
+                if (el.closest("[disabled],[aria-disabled='true']")) continue;
+                const own = [...el.childNodes].filter(n => n.nodeType === 3)
+                  .map(n => n.textContent.trim()).join(" ").trim();
+                if (!own) continue;
+                const r = el.getBoundingClientRect();
+                if (r.width < 2 || r.height < 2) continue;
+                const st = getComputedStyle(el);
+                if (st.visibility === "hidden" || st.display === "none") continue;
+                if (parseFloat(st.opacity) < 0.5) continue;
+                const col = nums(st.color);
+                if (col[3] !== undefined && col[3] < 0.55) continue;
+                const size = parseFloat(st.fontSize);
+                const weight = parseInt(st.fontWeight, 10) || 400;
+                if (size < 12) { out.push({ why: "", size, text: own.slice(0, 40) }); continue; }
+                const bg = bgOf(el);
+                if (!bg) continue;
+                const a = lum(col.slice(0,3)) + 0.05, b = lum(bg) + 0.05;
+                const ratio = Math.max(a,b) / Math.min(a,b);
+                const need = (size >= 24 || (size >= 18.66 && weight >= 700)) ? 3.0 : 4.5;
+                if (ratio < need)
+                  out.push({ why: "", size, ratio: Math.round(ratio*100)/100, need, text: own.slice(0, 40) });
+              }
+              return out;
+            }
+            """
+        )
+        detail = ""
+        if bad:
+            f = bad[0]
+            why = f"{f['why']} {round(f['size'], 1)}px"
+            if f["why"] == "":
+                why += f", {f['ratio']} {f['need']}"
+            detail = f"{len(bad)} , {why}: {f['text']!r}"
+        check(f"{path}: ≥ 12px ", not bad, detail)
+
     # ── ───────────────────────────────────────────────────────────
     print("\n── ──")
     # 1280 :
     # ,
     # 768 1440 , .
+    #
+    # /case : /,
+    # . ,
+    # .
+    pages = ("/", "/case/1", "/battles", "/battles/1", "/leaderboard", "/profile")
     for w in (360, 390, 768, 1280, 1440, 1920):
         page.set_viewport_size({"width": w, "height": 900})
-        for path in ("/", "/case", "/case/1", "/battles", "/battles/1"):
+        for path in pages:
             go(path, 3500)
             over = page.evaluate(
                 "() => document.documentElement.scrollWidth - document.documentElement.clientWidth"
@@ -260,7 +356,7 @@ with sync_playwright() as p:
                 check(f"{w}px {path}: ", False, f"{over}px")
                 break
         else:
-            check(f"{w}px: ", True, "5 ")
+            check(f"{w}px: ", True, f"{len(pages)} ")
 
     browser.close()
 

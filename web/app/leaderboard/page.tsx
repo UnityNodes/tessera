@@ -28,7 +28,7 @@ export default function LeaderboardPage() {
         <div className="flex flex-wrap items-end justify-between gap-5 border-b border-slate-800 pb-6">
           <div>
             <h1 className="t-page text-white">Standings</h1>
-            <p className="mt-2 max-w-2xl text-[0.9375rem] text-slate-400">
+            <p className="mt-2 max-w-2xl text-sm text-slate-300">
               Counted from the chain, not kept by it. Every open is a public event with the
               player&apos;s address, and every revealed slot is a public value, so this table is
               arithmetic anyone can repeat, from the same data the pool counter uses.
@@ -38,7 +38,7 @@ export default function LeaderboardPage() {
         </div>
 
         {rows.length === 0 ? (
-          <p className="py-20 text-center text-slate-400">
+          <p className="py-20 text-center text-slate-300">
             {game.isLoading ? "Reading the chain…" : "Nobody has opened a case yet."}
           </p>
         ) : (
@@ -81,7 +81,7 @@ export default function LeaderboardPage() {
                         {mine ? " · you" : ""}
                       </span>
                       {r.best && (
-                        <span className="block truncate text-[0.6875rem]" style={{ color: r.best.ink }}>
+                        <span className="block truncate text-xs" style={{ color: r.best.ink }}>
                           best: {r.best.name}
                           {r.pending > 0 ? ` · ${r.pending} still decrypting` : ""}
                         </span>
@@ -97,7 +97,7 @@ export default function LeaderboardPage() {
                   </span>
                   <span
                     className="t-chain text-right text-sm font-extrabold"
-                    style={{ color: r.tickets > 0 ? "var(--color-accent)" : "var(--color-ink-faint)" }}
+                    style={{ color: r.tickets > 0 ? "var(--color-accent)" : "var(--color-ink-dim)" }}
                   >
                     {r.tickets}
                   </span>
@@ -107,7 +107,7 @@ export default function LeaderboardPage() {
           </div>
         )}
 
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-400">
           Sorted by the TESA won, not by cases opened, the second is only money spent, and
           putting it first would make this a table of spending. Slots the covalidators have not
           returned yet are counted as opens but not as prizes.
