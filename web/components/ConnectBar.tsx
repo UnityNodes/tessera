@@ -91,22 +91,22 @@ export function ConnectBar({
       }
     >
       <Panel>
-        <div className="rounded-[var(--radius-control)] bg-[var(--color-bg)] px-3 py-2.5">
+        <div className="rounded-[var(--radius-control)] bg-[var(--color-bg)] px-3.5 py-3">
           <p className="t-label">your wallet</p>
           <a
             href={addressUrl(address!)}
             target="_blank"
             rel="noreferrer"
-            className="t-addr mt-1 flex items-center gap-1.5 text-[0.9375rem] font-bold text-slate-100 hover:text-[var(--color-accent-hover)]"
+            className="t-addr mt-1.5 flex items-center gap-2 text-[1.0625rem] font-bold text-slate-100 hover:text-[var(--color-accent-hover)]"
           >
             {short(address!)}
-            <ExternalLink className="h-3.5 w-3.5 opacity-60" />
+            <ExternalLink className="h-4 w-4 opacity-60" />
           </a>
-          <p className="t-chain mt-1 text-[0.6875rem] text-slate-500">{CHAIN.name}</p>
+          <p className="t-chain mt-1.5 text-[0.8125rem] text-slate-400">{CHAIN.name}</p>
         </div>
 
-        <p className="t-label mt-3 px-3">what you hold</p>
-        <div className="mt-1.5 space-y-1">
+        <p className="t-label mt-4 px-3.5 text-xs">what you hold</p>
+        <div className="mt-2 space-y-1.5">
           <Row
             icon={<Wallet className="h-4 w-4" />}
             name="test dollars"
@@ -133,17 +133,17 @@ export function ConnectBar({
           />
         </div>
 
-        <p className="t-label mt-3 px-3">what you can do</p>
-        <div className="mt-1.5">
+        <p className="t-label mt-4 px-3.5 text-xs">what you can do</p>
+        <div className="mt-2">
           <Act href="/profile" icon={<ShieldCheck className="h-4 w-4" />}>
             Your shelf
-            <span className="block text-[0.6875rem] font-normal text-slate-500">
+            <span className="block text-[0.8125rem] font-normal leading-snug text-slate-400">
               your slots, and what you can claim
             </span>
           </Act>
           <Act href={megapotHref} icon={<Ticket className="h-4 w-4" />}>
             The jackpot
-            <span className="block text-[0.6875rem] font-normal text-slate-500">
+            <span className="block text-[0.8125rem] font-normal leading-snug text-slate-400">
               the Megapot draw your tickets are in
             </span>
           </Act>
@@ -151,12 +151,12 @@ export function ConnectBar({
             type="button"
             onClick={() => void mint()}
             disabled={minting}
-            className="flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-[var(--radius-control)] px-3 py-2 text-left text-sm font-bold text-[var(--color-accent-hover)] transition-colors hover:bg-slate-800 disabled:text-slate-500"
+            className="flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[var(--radius-control)] px-3.5 py-2.5 text-left text-[0.9375rem] font-bold text-[var(--color-accent-hover)] transition-colors hover:bg-slate-800 disabled:text-slate-500"
           >
             <PlusCircle className="h-4 w-4 shrink-0" />
             <span>
               {minting ? "Minting…" : "Get $20 in test dollars"}
-              <span className="block text-[0.6875rem] font-normal text-slate-500">
+              <span className="block text-[0.8125rem] font-normal leading-snug text-slate-400">
                 the faucet mints straight to your wallet
               </span>
             </span>
@@ -166,7 +166,7 @@ export function ConnectBar({
         <button
           type="button"
           onClick={() => disconnect()}
-          className="mt-2 flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-[var(--radius-control)] border-t border-slate-800 px-3 py-2.5 pt-3 text-left text-sm font-bold text-slate-400 transition-colors hover:text-[var(--color-danger)]"
+          className="mt-3 flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[var(--radius-control)] border-t border-slate-800 px-3.5 py-3 pt-3.5 text-left text-[0.9375rem] font-bold text-slate-400 transition-colors hover:text-[var(--color-danger)]"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           Disconnect
@@ -178,7 +178,7 @@ export function ConnectBar({
 
 function Panel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="w-[min(20rem,calc(100vw-2rem))] rounded-[var(--radius-panel)] border border-slate-800 bg-[var(--color-modal)] p-2 shadow-2xl">
+    <div className="scrollbar-none max-h-[calc(100vh-5.5rem)] w-[min(23rem,calc(100vw-1.5rem))] overflow-y-auto rounded-[var(--radius-panel)] border border-slate-800 bg-[var(--color-modal)] p-2.5 shadow-2xl">
       {children}
     </div>
   );
@@ -198,20 +198,25 @@ function Row({
   ink?: string;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-1.5">
-      <span className="grid h-7 w-7 shrink-0 place-items-center" style={{ color: ink ?? "var(--color-ink-dim)" }}>
+    <div className="flex items-center gap-3 rounded-[var(--radius-control)] px-3.5 py-2">
+      <span
+        className="grid h-8 w-8 shrink-0 place-items-center"
+        style={{ color: ink ?? "var(--color-ink-dim)" }}
+      >
         {icon}
       </span>
       <span className="min-w-0 flex-1">
         <span
-          className="t-chain block text-base font-extrabold leading-none"
+          className="t-chain block text-xl font-extrabold leading-none"
           style={{ color: ink ?? "var(--color-ink)" }}
         >
           {value}
         </span>
-        <span className="block truncate text-[0.75rem] leading-tight text-slate-300">{name}</span>
+        <span className="mt-1 block truncate text-[0.875rem] font-bold leading-tight text-slate-200">
+          {name}
+        </span>
         {note && (
-          <span className="block text-[0.6875rem] leading-snug text-slate-500">{note}</span>
+          <span className="mt-0.5 block text-[0.8125rem] leading-snug text-slate-400">{note}</span>
         )}
       </span>
     </div>
@@ -230,7 +235,7 @@ function Act({
   return (
     <Link
       href={href}
-      className="flex min-h-11 items-center gap-2.5 rounded-[var(--radius-control)] px-3 py-2 text-sm font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)]"
+      className="flex min-h-11 items-center gap-3 rounded-[var(--radius-control)] px-3.5 py-2.5 text-[0.9375rem] font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)]"
     >
       <span className="shrink-0">{icon}</span>
       <span className="min-w-0">{children}</span>
