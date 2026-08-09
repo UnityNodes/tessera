@@ -6,3 +6,20 @@ solc = "0.8.30"
 evm_version = "cancun"
 optimizer = true
 optimizer_runs = 200
+
+# EIP-170: 25 006
+# 24 576, CreateContractSizeLimit.
+#
+# , :
+#   runs = 1              24 780   204   ,
+#   runs = 50             24 883   307
+#   via_ir, runs = 200    21 847  +2 729
+#
+# via_ir : ,
+# , .
+# : , .
+#
+# runs 200.
+# runs = 1
+# , .
+via_ir = true

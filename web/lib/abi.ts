@@ -1,4 +1,5 @@
-export const TESSERA_DECK_ABI = [
+export const TESSERA_DECK_ABI =
+  [
     {
       "type": "constructor",
       "inputs": [
@@ -229,6 +230,19 @@ export const TESSERA_DECK_ABI = [
     },
     {
       "type": "function",
+      "name": "claimCreator",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "amount",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
       "name": "claimVault",
       "inputs": [
         {
@@ -277,6 +291,50 @@ export const TESSERA_DECK_ABI = [
     },
     {
       "type": "function",
+      "name": "createCustomDeck",
+      "inputs": [
+        {
+          "name": "n",
+          "type": "uint16",
+          "internalType": "uint16"
+        },
+        {
+          "name": "upTo",
+          "type": "uint16[]",
+          "internalType": "uint16[]"
+        },
+        {
+          "name": "weight",
+          "type": "uint16[]",
+          "internalType": "uint16[]"
+        },
+        {
+          "name": "vaultSlots",
+          "type": "uint16",
+          "internalType": "uint16"
+        },
+        {
+          "name": "creatorBps",
+          "type": "uint16",
+          "internalType": "uint16"
+        },
+        {
+          "name": "cid",
+          "type": "string",
+          "internalType": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "deckId",
+          "type": "uint32",
+          "internalType": "uint32"
+        }
+      ],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
       "name": "createDeck",
       "inputs": [
         {
@@ -308,6 +366,51 @@ export const TESSERA_DECK_ABI = [
         }
       ],
       "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "creatorClaimable",
+      "inputs": [
+        {
+          "name": "",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "creatorOwed",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "customDeckFee",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
     },
     {
       "type": "function",
@@ -354,6 +457,16 @@ export const TESSERA_DECK_ABI = [
               "name": "unsweptOpens",
               "type": "uint64",
               "internalType": "uint64"
+            },
+            {
+              "name": "creator",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "creatorBps",
+              "type": "uint16",
+              "internalType": "uint16"
             }
           ]
         }
@@ -388,6 +501,25 @@ export const TESSERA_DECK_ABI = [
           "name": "",
           "type": "uint256",
           "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "deckMeta",
+      "inputs": [
+        {
+          "name": "",
+          "type": "uint32",
+          "internalType": "uint32"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "string",
+          "internalType": "string"
         }
       ],
       "stateMutability": "view"
@@ -447,6 +579,32 @@ export const TESSERA_DECK_ABI = [
         }
       ],
       "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "maxCreatorBps",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint16",
+          "internalType": "uint16"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "minCustomSize",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint16",
+          "internalType": "uint16"
+        }
+      ],
+      "stateMutability": "view"
     },
     {
       "type": "function",
@@ -725,6 +883,29 @@ export const TESSERA_DECK_ABI = [
         }
       ],
       "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "setCustomDeckRules",
+      "inputs": [
+        {
+          "name": "fee",
+          "type": "uint256",
+          "internalType": "uint256"
+        },
+        {
+          "name": "maxBps",
+          "type": "uint16",
+          "internalType": "uint16"
+        },
+        {
+          "name": "minSize",
+          "type": "uint16",
+          "internalType": "uint16"
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
     },
     {
       "type": "function",
@@ -1262,6 +1443,50 @@ export const TESSERA_DECK_ABI = [
     },
     {
       "type": "event",
+      "name": "CreatorClaimed",
+      "inputs": [
+        {
+          "name": "creator",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "CreatorPaid",
+      "inputs": [
+        {
+          "name": "deckId",
+          "type": "uint32",
+          "indexed": true,
+          "internalType": "uint32"
+        },
+        {
+          "name": "creator",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
       "name": "DeckCreated",
       "inputs": [
         {
@@ -1287,6 +1512,18 @@ export const TESSERA_DECK_ABI = [
           "type": "uint256",
           "indexed": false,
           "internalType": "uint256"
+        },
+        {
+          "name": "creator",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "creatorBps",
+          "type": "uint16",
+          "indexed": false,
+          "internalType": "uint16"
         }
       ],
       "anonymous": false
@@ -1603,6 +1840,22 @@ export const TESSERA_DECK_ABI = [
     },
     {
       "type": "error",
+      "name": "DeckTooSmall",
+      "inputs": [
+        {
+          "name": "size",
+          "type": "uint16",
+          "internalType": "uint16"
+        },
+        {
+          "name": "min",
+          "type": "uint16",
+          "internalType": "uint16"
+        }
+      ]
+    },
+    {
+      "type": "error",
       "name": "NoStakeOpen",
       "inputs": []
     },
@@ -1661,6 +1914,11 @@ export const TESSERA_DECK_ABI = [
     {
       "type": "error",
       "name": "NothingBanked",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "NothingToClaim",
       "inputs": []
     },
     {
