@@ -18,6 +18,9 @@ export interface DeckInfo extends DeckShape {
   vaultBanked: bigint;
   vault: bigint;
   empty: boolean;
+  creator: `0x${string}` | undefined;
+  creatorBps: number;
+  cid: string;
 }
 
 /**
@@ -51,6 +54,7 @@ export function useDeck() {
         [
           { ...deck, functionName: "deckAt", args: [id] },
           { ...deck, functionName: "tiers", args: [id] },
+          { ...deck, functionName: "deckMeta", args: [id] },
         ] as ContractFunctionParameters[],
     ),
     query: { enabled: count > 0, refetchInterval: 12_000 },
@@ -62,18 +66,22 @@ export function useDeck() {
   const decks = useMemo<DeckInfo[]>(() => {
     return ids
       .map((id) => {
-        const d = rows.data?.[id * 2]?.result as
+        const STRIDE = 3;
+        const d = rows.data?.[id * STRIDE]?.result as
           | {
               size: number;
               drawn: number;
               vaultUpTo: number;
               vault: bigint;
               unsweptOpens: bigint;
+              creator: `0x${string}`;
+              creatorBps: number;
             }
           | undefined;
-        const t = rows.data?.[id * 2 + 1]?.result as
+        const t = rows.data?.[id * STRIDE + 1]?.result as
           | readonly { upTo: number; weight: number }[]
           | undefined;
+        const cid = (rows.data?.[id * STRIDE + 2]?.result as string | undefined) ?? "";
         if (!d) return null;
 
         const size = Number(d.size);
@@ -93,6 +101,12 @@ export function useDeck() {
           vaultBanked: d.vault,
           vault: d.vault + coming,
           empty: size > 0 && drawn >= size,
+          creator:
+            d.creator && d.creator !== "0x0000000000000000000000000000000000000000"
+              ? d.creator
+              : undefined,
+          creatorBps: Number(d.creatorBps ?? 0),
+          cid,
           tiers: (t ?? []).map((x) => ({ upTo: Number(x.upTo), weight: Number(x.weight) })),
         };
       })
