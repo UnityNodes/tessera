@@ -147,6 +147,12 @@ export function ConnectBar({
               the Megapot draw your tickets are in
             </span>
           </Act>
+          <Act href="/create" icon={<PlusCircle className="h-6 w-6" />}>
+            Cut your own case
+            <span className="block text-xs font-normal leading-snug text-slate-400">
+              name it, colour it, take a share of what it earns
+            </span>
+          </Act>
           <button
             type="button"
             onClick={() => void mint()}

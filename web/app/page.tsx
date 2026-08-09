@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { formatUnits } from "viem";
-import { Sparkles, Swords, Plus } from "lucide-react";
+import { Sparkles, Swords } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Chest, skinOf } from "@/components/Chest";
 import { DeckHero } from "@/components/DeckHero";
 import { useDeck, type DeckInfo } from "@/hooks/useDeck";
 import { useBattleList } from "@/hooks/useBattles";
 import { useSkins } from "@/hooks/useSkins";
+import { useHidden } from "@/hooks/useHidden";
 import { slotsPerTier, bestTier, isShard, ticketsLabel } from "@/lib/deck";
 
 /**
@@ -19,6 +20,8 @@ import { slotsPerTier, bestTier, isShard, ticketsLabel } from "@/lib/deck";
 export default function Home() {
   const game = useDeck();
   const skinUrl = useSkins();
+  const hidden = useHidden();
+  const shown = game.decks.filter((d) => !hidden.has(d.id));
   const battles = useBattleList();
   const first = game.decks.find((d) => !d.empty) ?? game.decks[0];
   const total = game.decks.reduce((n, d) => n + d.size, 0);
@@ -99,33 +102,22 @@ export default function Home() {
         id="decks"
         className="w-full scroll-mt-32 border-b border-slate-800/60 bg-[var(--color-section)] px-4 py-16 lg:px-8 2xl:px-14"
       >
-        <div className="mx-auto flex max-w-[1320px] flex-col items-center">
+        <div className="flex w-full flex-col items-center">
           <h2 className="t-inscription mb-10 flex flex-wrap items-baseline justify-center gap-3 text-center text-2xl font-extrabold text-white lg:text-3xl">
             <span>the decks</span>
             <span className="t-chain text-base font-bold normal-case tracking-normal text-[var(--color-ink-dim)]">
-              {game.decks.length} {game.decks.length === 1 ? "deck" : "decks"}
+              {shown.length} {shown.length === 1 ? "deck" : "decks"}
             </span>
           </h2>
 
-          {game.decks.length === 0 ? (
+          {shown.length === 0 ? (
             <p className="py-10 text-center text-slate-300">Reading the chain…</p>
           ) : (
-            <div className="grid w-full gap-6 [grid-template-columns:repeat(auto-fit,minmax(17rem,1fr))]">
-              {game.decks.map((d) => (
+            <div className="grid w-full gap-5 [grid-template-columns:repeat(auto-fill,minmax(19rem,1fr))]">
+              {shown.map((d) => (
                 <DeckCard key={d.id} deck={d} art={skinUrl(d.id)} />
               ))}
-              <Link
-                href="/create"
-                className="group flex min-h-[22rem] flex-col items-center justify-center gap-3 rounded-[var(--radius-panel)] border border-dashed border-slate-700 p-6 text-center transition-colors hover:border-[rgb(57_255_136_/_0.5)]"
-              >
-                <Plus className="h-10 w-10 text-slate-500 transition-colors group-hover:text-[var(--color-accent-hover)]" />
-                <span className="t-black text-xl text-slate-300 group-hover:text-white">
-                  Cut your own
-                </span>
-                <span className="max-w-[14rem] text-sm leading-snug text-slate-400">
-                  Name it, colour it, pick what it pays, and take a share of what it earns.
-                </span>
-              </Link>
+
             </div>
           )}
         </div>
@@ -224,31 +216,34 @@ function DeckCard({ deck, art }: { deck: DeckInfo; art?: string }) {
     <Link
       data-deck={deck.id}
       href={`/case/${deck.id}`}
-      className="group relative flex flex-col justify-between rounded-[var(--radius-panel)] border bg-slate-900/60 p-6 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-slate-900/90"
+      className="group relative flex flex-col overflow-hidden rounded-[var(--radius-panel)] border bg-slate-900/60 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-slate-900/90"
       style={{
         borderColor: `color-mix(in oklab, ${ink} 40%, transparent)`,
         boxShadow: `0 0 25px color-mix(in oklab, ${ink} 22%, transparent)`,
       }}
     >
-      <div className="flex flex-col items-center space-y-4 text-center">
-        <div className="relative flex h-40 w-full items-center justify-center">
+      <div className="relative aspect-square w-full">
+        <div className="absolute inset-0 flex items-center justify-center p-5">
           <span
             aria-hidden
             className="absolute inset-x-6 inset-y-2 rounded-full opacity-30 blur-xl transition-opacity group-hover:opacity-60"
             style={{ background: ink }}
           />
           {deck.empty ? (
-            <Chest rarity="grout" size={140} className="relative z-10" />
+            <Chest rarity="grout" size={190} className="relative z-10" />
           ) : (
             <DeckHero
               deck={deck}
-              size={150}
+              size={200}
               skin={deck.cid}
               art={art}
               className="relative z-10 transition-transform duration-300 group-hover:scale-105"
             />
           )}
         </div>
+      </div>
+
+      <div className="flex flex-1 flex-col items-center space-y-3 px-5 pb-5 text-center">
 
         <h3
           className="t-black flex flex-wrap items-baseline justify-center gap-2 text-2xl tracking-wide"
@@ -301,7 +296,7 @@ function DeckCard({ deck, art }: { deck: DeckInfo; art?: string }) {
         )}
       </div>
 
-      <div className="mt-6 flex flex-col space-y-2 border-t border-slate-800/80 pt-4">
+      <div className="mt-auto flex flex-col space-y-2 border-t border-slate-800/80 px-5 pb-5 pt-4">
         <div className="t-chain flex items-center justify-between text-xs font-semibold text-slate-300">
           <span>
             Still sealed: <strong className="text-white">{deck.remaining}</strong>

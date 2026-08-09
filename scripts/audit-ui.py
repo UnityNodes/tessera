@@ -116,12 +116,30 @@ with sync_playwright() as p:
     same("= ", t["remaining"], whole(num(hero)))
     same("= ", t["size"], whole(num(hero.split("of")[1])))
 
+    # ,
+    # .
+    # , .
+    hidden = set(page.request.get(URL + "/api/decks/hidden").json().get("hidden", []))
+    print(f"  ⓘ : {sorted(hidden) or ''}")
+
     # . ;
     # .
     decks_seen = page.locator("#decks h2").first.inner_text()
-    same("N decks= ", t["decks"], whole(num(decks_seen)))
+    # , , :
+    # , 7 decks
+    # , .
+    same("N decks= ", t["decks"] - len(hidden), whole(num(decks_seen)))
 
     for d in EXPECTED["decks"]:
+        if d["id"] in hidden:
+            # , . ,
+            # .
+            check(
+                f"#{d['id']}: ",
+                page.locator(f"a[href='/case/{d['id']}']").count() == 0,
+                ", ",
+            )
+            continue
         card = page.locator(f"a[href='/case/{d['id']}']").last
         txt = card.inner_text()
         sealed = num(re.search(r"Still sealed:\s*([\d\s,]+)", txt).group(1))

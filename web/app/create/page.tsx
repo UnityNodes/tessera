@@ -107,6 +107,17 @@ export default function CreatePage() {
               <label className="t-label mb-2 block" htmlFor="deck-art">
                 2. its picture, or just a colour
               </label>
+              <label
+                htmlFor="deck-art"
+                className="flex cursor-pointer items-center gap-3 rounded-[var(--radius-control)] border border-slate-800 bg-slate-950 p-2 transition-colors hover:border-slate-700"
+              >
+                <span className="rounded-[var(--radius-chip)] bg-slate-800 px-4 py-2 text-sm font-bold text-white">
+                  Choose a PNG
+                </span>
+                <span className="min-w-0 flex-1 truncate text-sm text-slate-400">
+                  {art ? art.name : "no file chosen"}
+                </span>
+              </label>
               <input
                 id="deck-art"
                 type="file"
@@ -116,7 +127,7 @@ export default function CreatePage() {
                   setArt(f);
                   setPreview(f ? URL.createObjectURL(f) : null);
                 }}
-                className="w-full cursor-pointer rounded-[var(--radius-control)] border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-300 file:mr-4 file:cursor-pointer file:rounded-[var(--radius-chip)] file:border-0 file:bg-slate-800 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white"
+                className="sr-only"
               />
               <p className="mt-2 text-sm text-slate-400">
                 PNG on a transparent background, up to 4 MB. Every upload is checked
