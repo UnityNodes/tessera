@@ -124,9 +124,9 @@ export function ConnectBar({
             icon={<Shards size={36} ink="#fff" flat />}
             name="TESA"
             note={
-              tesa > 0 && tesa % WEIGHT_PER_TICKET === 0
-                ? "a full ticket is ready to claim"
-                : `${WEIGHT_PER_TICKET - (tesa % WEIGHT_PER_TICKET)} more make the next ticket`
+              tesa >= WEIGHT_PER_TICKET
+                ? "enough for a ticket, take it on your shelf"
+                : `${WEIGHT_PER_TICKET - (tesa % WEIGHT_PER_TICKET)} more, then you claim it on your shelf`
             }
             value={String(tesa)}
             ink="var(--color-tier-shard)"
