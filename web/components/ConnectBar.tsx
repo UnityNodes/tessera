@@ -3,7 +3,15 @@
 import Link from "next/link";
 import { formatUnits } from "viem";
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from "wagmi";
-import { Wallet, ShieldCheck, ChevronDown, PlusCircle, Ticket } from "lucide-react";
+import {
+  Wallet,
+  ShieldCheck,
+  ChevronDown,
+  PlusCircle,
+  Ticket,
+  ExternalLink,
+  LogOut,
+} from "lucide-react";
 import { Chest } from "./Chest";
 import { WEIGHT_PER_TICKET } from "@/lib/deck";
 import { Button } from "./ui/Button";
@@ -83,22 +91,26 @@ export function ConnectBar({
       }
     >
       <Panel>
-        <div className="border-b border-slate-800 px-3 pb-3">
+        <div className="rounded-[var(--radius-control)] bg-[var(--color-bg)] px-3 py-2.5">
           <p className="t-label">your wallet</p>
           <a
             href={addressUrl(address!)}
             target="_blank"
             rel="noreferrer"
-            className="t-addr mt-1 block text-sm font-bold text-slate-200 hover:text-[var(--color-accent-hover)]"
+            className="t-addr mt-1 flex items-center gap-1.5 text-[0.9375rem] font-bold text-slate-100 hover:text-[var(--color-accent-hover)]"
           >
-            {short(address!)} ↗
+            {short(address!)}
+            <ExternalLink className="h-3.5 w-3.5 opacity-60" />
           </a>
+          <p className="t-chain mt-1 text-[0.6875rem] text-slate-500">{CHAIN.name}</p>
         </div>
 
-        <div className="space-y-1.5 py-2">
+        <p className="t-label mt-3 px-3">what you hold</p>
+        <div className="mt-1.5 space-y-1">
           <Row
             icon={<Wallet className="h-4 w-4" />}
             name="test dollars"
+            note="free on this testnet, the ticket contract is not"
             value={`$${Number(formatUnits(balance, 6)).toFixed(2)}`}
           />
           <Row
@@ -110,48 +122,55 @@ export function ConnectBar({
           />
           <Row
             icon={<Chest rarity="shard" size={18} />}
-            name={
+            name="TESA"
+            note={
               tesa > 0 && tesa % WEIGHT_PER_TICKET === 0
-                ? "TESA · a ticket ready"
-                : `TESA · ${WEIGHT_PER_TICKET - (tesa % WEIGHT_PER_TICKET)} to the next ticket`
+                ? "a full ticket is ready to claim"
+                : `${WEIGHT_PER_TICKET - (tesa % WEIGHT_PER_TICKET)} more make the next ticket`
             }
             value={String(tesa)}
             ink="var(--color-tier-shard)"
           />
         </div>
 
-        <div className="border-t border-slate-800 pt-2">
+        <p className="t-label mt-3 px-3">what you can do</p>
+        <div className="mt-1.5">
+          <Act href="/profile" icon={<ShieldCheck className="h-4 w-4" />}>
+            Your shelf
+            <span className="block text-[0.6875rem] font-normal text-slate-500">
+              your slots, and what you can claim
+            </span>
+          </Act>
+          <Act href={megapotHref} icon={<Ticket className="h-4 w-4" />}>
+            The jackpot
+            <span className="block text-[0.6875rem] font-normal text-slate-500">
+              the Megapot draw your tickets are in
+            </span>
+          </Act>
           <button
             type="button"
             onClick={() => void mint()}
             disabled={minting}
-            className="flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-[var(--radius-control)] px-3 py-2.5 text-left text-sm font-bold text-[var(--color-accent-hover)] transition-colors hover:bg-slate-800 disabled:text-slate-500"
+            className="flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-[var(--radius-control)] px-3 py-2 text-left text-sm font-bold text-[var(--color-accent-hover)] transition-colors hover:bg-slate-800 disabled:text-slate-500"
           >
-            <PlusCircle className="h-4 w-4" />
-            {minting ? "Minting…" : "Get $20 in test dollars"}
-          </button>
-          <Link
-            href="/profile"
-            className="flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] px-3 py-2.5 text-sm font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)]"
-          >
-            <ShieldCheck className="h-4 w-4" />
-            Your shelf, claim what you collected
-          </Link>
-          <Link
-            href={megapotHref}
-            className="flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] px-3 py-2.5 text-sm font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)]"
-          >
-            <Ticket className="h-4 w-4" />
-            The jackpot your tickets are in
-          </Link>
-          <button
-            type="button"
-            onClick={() => disconnect()}
-            className="mt-1 block w-full cursor-pointer rounded-[var(--radius-control)] border-t border-slate-800 px-3 py-2.5 pt-3 text-left text-sm font-bold text-slate-400 transition-colors hover:text-[var(--color-danger)]"
-          >
-            Disconnect
+            <PlusCircle className="h-4 w-4 shrink-0" />
+            <span>
+              {minting ? "Minting…" : "Get $20 in test dollars"}
+              <span className="block text-[0.6875rem] font-normal text-slate-500">
+                the faucet mints straight to your wallet
+              </span>
+            </span>
           </button>
         </div>
+
+        <button
+          type="button"
+          onClick={() => disconnect()}
+          className="mt-2 flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-[var(--radius-control)] border-t border-slate-800 px-3 py-2.5 pt-3 text-left text-sm font-bold text-slate-400 transition-colors hover:text-[var(--color-danger)]"
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          Disconnect
+        </button>
       </Panel>
     </Disclosure>
   );
@@ -179,20 +198,42 @@ function Row({
   ink?: string;
 }) {
   return (
-    <div className="flex items-center gap-2.5 rounded-[var(--radius-control)] px-3 py-1.5">
-      <span className="shrink-0" style={{ color: ink ?? "var(--color-ink-dim)" }}>
+    <div className="flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-1.5">
+      <span className="grid h-7 w-7 shrink-0 place-items-center" style={{ color: ink ?? "var(--color-ink-dim)" }}>
         {icon}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[0.8125rem] text-slate-300">{name}</span>
-        {note && <span className="block text-[0.6875rem] leading-snug text-slate-500">{note}</span>}
-      </span>
-      <span
-        className="t-chain shrink-0 text-sm font-bold"
-        style={{ color: ink ?? "var(--color-ink)" }}
-      >
-        {value}
+        <span
+          className="t-chain block text-base font-extrabold leading-none"
+          style={{ color: ink ?? "var(--color-ink)" }}
+        >
+          {value}
+        </span>
+        <span className="block truncate text-[0.75rem] leading-tight text-slate-300">{name}</span>
+        {note && (
+          <span className="block text-[0.6875rem] leading-snug text-slate-500">{note}</span>
+        )}
       </span>
     </div>
+  );
+}
+
+function Act({
+  href,
+  icon,
+  children,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex min-h-11 items-center gap-2.5 rounded-[var(--radius-control)] px-3 py-2 text-sm font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)]"
+    >
+      <span className="shrink-0">{icon}</span>
+      <span className="min-w-0">{children}</span>
+    </Link>
   );
 }

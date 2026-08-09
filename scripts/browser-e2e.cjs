@@ -333,7 +333,7 @@ async function ensureConnected(page) {
 
   //
   await page.goto(URL.replace(/\/+$/, "") + "/profile", { waitUntil: "domcontentloaded" });
-  await page.getByText(/every slot you drew/i).waitFor({ timeout: 30000 });
+  await page.getByText("every slot you drew", { exact: true }).waitFor({ timeout: 30000 });
   await page.waitForLoadState("networkidle", { timeout: 45000 }).catch(() => {});
   await page.waitForTimeout(4000);
   const shelf = await page.locator("main").innerText();
