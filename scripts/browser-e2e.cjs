@@ -322,9 +322,22 @@ async function ensureConnected(page) {
   //
   await page.goto(URL.replace(/\/+$/, "") + "/profile", { waitUntil: "domcontentloaded" });
   await page.getByText(/every slot you drew/i).waitFor({ timeout: 30000 });
+  await page.waitForLoadState("networkidle", { timeout: 45000 }).catch(() => {});
+  await page.waitForTimeout(4000);
   const shelf = await page.locator("main").innerText();
-  const held = Number((shelf.match(/(\d+)\s*\n?\s*TESA/i) || [])[1] || 0);
-  const owed = Number((shelf.match(/(\d+)\s*\n?\s*BONUS TICKETS/i) || [])[1] || 0);
+  const read = async (label) =>
+    page.evaluate((needle) => {
+      for (const el of document.querySelectorAll("main *")) {
+        if (!el.children.length && (el.textContent || "").trim().toUpperCase().startsWith(needle)) {
+          const box = el.parentElement;
+          const m = (box?.textContent || "").match(/(\d+)/);
+          if (m) return Number(m[1]);
+        }
+      }
+      return 0;
+    }, label);
+  const held = await read("TESA");
+  const owed = await read("BONUS TICKETS");
   console.log(`✓ TESA ${held}, ${owed}`);
   if ((held > 0 || owed > 0) && !/what you can claim/i.test(shelf)) {
     throw new Error(", ");

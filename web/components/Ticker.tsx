@@ -75,34 +75,42 @@ function Drop({ item, mine }: { item: FeedItem; mine: boolean }) {
 
   return (
     <div
-      className="group relative flex h-16 w-16 flex-col items-center justify-between rounded-[var(--radius-control)] border bg-slate-900/80 p-1.5 transition-all hover:scale-105 lg:h-20 lg:w-20"
+      className="group relative flex h-[6.5rem] w-[6.5rem] shrink-0 flex-col items-center justify-between rounded-[var(--radius-panel)] border p-2 transition-all hover:scale-105 lg:h-28 lg:w-28"
       style={{
-        borderColor: mine ? "var(--color-accent-hover)" : ink,
-        boxShadow: `0 0 12px ${mine ? "rgb(57 255 136 / 0.4)" : "color-mix(in oklab, " + ink + " 26%, transparent)"}`,
+        background: "color-mix(in oklab, var(--color-surface) 88%, transparent)",
+        borderColor: mine
+          ? "rgb(57 255 136 / 0.55)"
+          : `color-mix(in oklab, ${ink} 30%, transparent)`,
+        boxShadow: `0 0 18px ${mine ? "rgb(57 255 136 / 0.28)" : `color-mix(in oklab, ${ink} 18%, transparent)`}`,
       }}
     >
-      <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-[var(--radius-chip)]">
+      <div className="relative flex flex-1 items-center justify-center">
         <Chest
           rarity={item.spec.rarity}
-          size={72}
+          size={64}
           className="transition-transform duration-300 group-hover:rotate-3"
         />
 
         {paid > 0 && (
           <span
-            className="t-chain absolute right-0 top-0 text-[11px] font-extrabold leading-none"
-            style={{ color: ink, textShadow: "0 1px 6px rgb(2 6 23 / 0.95)" }}
+            className="t-chain absolute -right-1 -top-1 rounded px-1 text-[0.6875rem] font-extrabold leading-none"
+            style={{
+              color: ink,
+              background: "rgb(6 10 6 / 0.85)",
+              textShadow: `0 0 8px color-mix(in oklab, ${ink} 60%, transparent)`,
+            }}
           >
             +{paid}
           </span>
         )}
-
-        <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 to-transparent p-0.5 text-center">
-          <span className="t-chain block truncate text-[9px] font-bold text-white">
-            {item.spec.name}
-          </span>
-        </span>
       </div>
+
+      <span
+        className="t-chain block w-full truncate text-center text-[0.625rem] font-bold"
+        style={{ color: ink }}
+      >
+        {item.spec.name}
+      </span>
 
       <div className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 hidden w-40 -translate-x-1/2 flex-col rounded-[var(--radius-control)] border border-slate-700 bg-slate-900 p-2 shadow-2xl group-hover:flex">
         <span className="t-chain text-xs font-bold text-slate-200">

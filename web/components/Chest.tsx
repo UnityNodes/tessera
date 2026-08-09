@@ -1,4 +1,5 @@
 import type { Rarity } from "@/lib/deck";
+import { Shards } from "./Shards";
 
 /**
  *
@@ -32,7 +33,6 @@ const ART: Record<Rarity, { src: string; open: string; filter?: string; bare?: b
     bare: true,
     src: "/chests/sealed-bare.webp",
     open: "/chests/sealed-open.webp",
-    filter: "hue-rotate(-56deg) saturate(0.85) brightness(0.82)",
   },
   denarius: {
     bare: true,
@@ -81,6 +81,14 @@ export function Chest({
   open?: boolean;
   className?: string;
 }) {
+  if (rarity === "shard") {
+    return (
+      <span data-tier="shard" className={className} style={{ display: "block" }}>
+        <Shards size={size} style={{ animation: drift ? "crate-hover 4.4s ease-in-out infinite" : undefined }} />
+      </span>
+    );
+  }
+
   const art = ART[rarity];
   const glow = "drop-shadow(0 0 calc(var(--glow, 0) * 26px) var(--metal))";
   const masked = !(art.bare && !open);

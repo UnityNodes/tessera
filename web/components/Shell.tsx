@@ -149,7 +149,13 @@ export function Shell({ children }: { children: React.ReactNode }) {
               />
             )}
 
-            <ConnectBar onMinted={game.refetch} />
+            <ConnectBar
+              onMinted={game.refetch}
+              balance={game.balance}
+              vault={game.vault}
+              tesa={tesa}
+              tickets={Math.round(megapot.tickets)}
+            />
           </div>
         </div>
       </header>
