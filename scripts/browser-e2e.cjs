@@ -132,7 +132,7 @@ async function ensureConnected(page) {
 
   //
   {
-    const chip = page.locator("summary", { hasText: /megapot/i }).first();
+    const chip = page.locator("summary", { hasText: /^0x[a-fA-F0-9]{4}/ }).first();
     if (await chip.count()) {
       await chip.click();
       await page.waitForTimeout(400);
@@ -158,18 +158,30 @@ async function ensureConnected(page) {
     }
   }
 
-  const pill = page.locator("span", { hasText: /^TEST\s*\$/ }).first();
-  const dollars = Number((await pill.innerText()).replace(/[^\d.]/g, "")) || 0;
+  //
+  const wallet = page.locator("summary", { hasText: /^0x[a-fA-F0-9]{4}/ }).first();
+  await wallet.click();
+  await page.waitForTimeout(600);
+  const dollars = await page.evaluate(() => {
+    for (const el of document.querySelectorAll("*")) {
+      if (!el.children.length && (el.textContent || "").trim() === "test dollars") {
+        const m = (el.closest("div")?.parentElement?.textContent || "").match(/\$([\d.,]+)/);
+        if (m) return Number(m[1].replace(/,/g, ""));
+      }
+    }
+    return 0;
+  });
   console.log(`  $${dollars.toFixed(2)}`);
   if (dollars < 1) {
-    const faucet = page.locator("button", { hasText: /^Get \$20$/ }).first();
-    await faucet.click();
+    await page.locator("button", { hasText: /Get \$20 in test dollars/ }).first().click();
     await page.waitForFunction(
       () => ![...document.querySelectorAll("button")].some((b) => /Minting/.test(b.textContent || "")),
       { timeout: 90000 },
     );
     console.log("✓ ");
   }
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(300);
 
   const firstCase = process.env.DECK
     ? `/case/${process.env.DECK}`

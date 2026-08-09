@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { formatUnits } from "viem";
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from "wagmi";
-import { Wallet, ShieldCheck, ChevronDown, PlusCircle, Lock, Ticket } from "lucide-react";
+import { Wallet, ShieldCheck, ChevronDown, PlusCircle, Ticket } from "lucide-react";
 import { Chest } from "./Chest";
 import { WEIGHT_PER_TICKET } from "@/lib/deck";
 import { Button } from "./ui/Button";
@@ -21,15 +21,15 @@ const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 export function ConnectBar({
   onMinted,
   balance = 0n,
-  vault = 0n,
   tesa = 0,
   tickets = 0,
+  megapotHref = "/case/0#megapot",
 }: {
   onMinted?: () => void;
   balance?: bigint;
-  vault?: bigint;
   tesa?: number;
   tickets?: number;
+  megapotHref?: string;
 } = {}) {
   const { address, chainId, isConnected } = useAccount();
   const { connect, connectors, isPending } = useConnect();
@@ -104,6 +104,7 @@ export function ConnectBar({
           <Row
             icon={<Ticket className="h-4 w-4" />}
             name="real Megapot tickets"
+            note="bought in the same transaction that opens a case"
             value={String(tickets)}
             ink="var(--color-accent-hover)"
           />
@@ -116,12 +117,6 @@ export function ConnectBar({
             }
             value={String(tesa)}
             ink="var(--color-tier-shard)"
-          />
-          <Row
-            icon={<Lock className="h-4 w-4" />}
-            name="in the vaults, all decks"
-            value={`$${Number(formatUnits(vault, 6)).toFixed(2)}`}
-            ink="var(--color-tier-vault)"
           />
         </div>
 
@@ -141,6 +136,13 @@ export function ConnectBar({
           >
             <ShieldCheck className="h-4 w-4" />
             Your shelf, claim what you collected
+          </Link>
+          <Link
+            href={megapotHref}
+            className="flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] px-3 py-2.5 text-sm font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)]"
+          >
+            <Ticket className="h-4 w-4" />
+            The jackpot your tickets are in
           </Link>
           <button
             type="button"
@@ -166,11 +168,13 @@ function Panel({ children }: { children: React.ReactNode }) {
 function Row({
   icon,
   name,
+  note,
   value,
   ink,
 }: {
   icon: React.ReactNode;
   name: string;
+  note?: string;
   value: string;
   ink?: string;
 }) {
@@ -179,7 +183,10 @@ function Row({
       <span className="shrink-0" style={{ color: ink ?? "var(--color-ink-dim)" }}>
         {icon}
       </span>
-      <span className="min-w-0 flex-1 truncate text-[0.8125rem] text-slate-300">{name}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[0.8125rem] text-slate-300">{name}</span>
+        {note && <span className="block text-[0.6875rem] leading-snug text-slate-500">{note}</span>}
+      </span>
       <span
         className="t-chain shrink-0 text-sm font-bold"
         style={{ color: ink ?? "var(--color-ink)" }}

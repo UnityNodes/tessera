@@ -5,17 +5,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAccount } from "wagmi";
 import { formatUnits } from "viem";
-import { Lock, PlusCircle, ChevronDown, Ticket } from "lucide-react";
+import { Lock, PlusCircle } from "lucide-react";
 import { ConnectBar } from "./ConnectBar";
 import { Ticker } from "./Ticker";
 import { Counter } from "./ui/Counter";
-import { Disclosure } from "./ui/Disclosure";
 import { useDeck } from "@/hooks/useDeck";
 import { useFeed } from "@/hooks/useFeed";
 import { useMegapot } from "@/hooks/useMegapot";
 import { useInventory } from "@/hooks/useInventory";
-import { Chest } from "./Chest";
-import { specOf, isShard, WEIGHT_PER_TICKET } from "@/lib/deck";
+import { specOf, isShard } from "@/lib/deck";
 import { useMint } from "@/hooks/useMint";
 import { addressUrl, DECK_ADDRESS } from "@/lib/chain";
 
@@ -69,21 +67,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-2">
-            {isConnected && (
-              <span className="flex items-center gap-2 rounded-[var(--radius-chip)] border border-slate-800 bg-slate-900/90 px-3 py-2">
-                <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[0.625rem] font-bold tracking-wider text-slate-400">
-                  TEST
-                </span>
-                <Counter
-                  value={Number(formatUnits(game.balance, 6))}
-                  decimals={2}
-                  prefix="$ "
-                  className="t-chain text-sm font-bold leading-none text-slate-100"
-                />
-              </span>
-            )}
 
-            {isConnected && canMint && (
+            {isConnected && canMint && !game.canAfford && (
               <button
                 type="button"
                 onClick={() => void mint()}
@@ -121,40 +106,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
               />
             </span>
 
-            {isConnected && (
-              <Link
-                href="/profile"
-                title="Your TESA, five make one real Megapot ticket"
-                className="flex items-center gap-1.5 rounded-[var(--radius-chip)] border px-3 py-2 transition-all hover:brightness-125"
-                style={{
-                  borderColor: "color-mix(in oklab, var(--color-tier-shard) 40%, transparent)",
-                  background: "color-mix(in oklab, var(--color-tier-shard) 10%, transparent)",
-                }}
-              >
-                <Chest rarity="shard" size={20} />
-                <span
-                  className="t-chain text-sm font-bold leading-none"
-                  style={{ color: "var(--color-tier-shard)" }}
-                >
-                  {tesa}
-                </span>
-                <span className="t-label text-[0.625rem]">TESA</span>
-              </Link>
-            )}
-
-            {isConnected && (
-              <TicketsChip
-                tickets={Math.round(megapot.tickets)}
-                caseHref={`/case/${firstOpen}#megapot`}
-              />
-            )}
-
             <ConnectBar
               onMinted={game.refetch}
               balance={game.balance}
-              vault={game.vault}
               tesa={tesa}
               tickets={Math.round(megapot.tickets)}
+              megapotHref={`/case/${firstOpen}#megapot`}
             />
           </div>
         </div>
@@ -222,49 +179,6 @@ function Tab({ href, children }: { href: string; children: React.ReactNode }) {
     >
       {children}
     </Link>
-  );
-}
-
-/**
- *
- *
- *
- */
-function TicketsChip({ tickets, caseHref }: { tickets: number; caseHref: string }) {
-  return (
-    <Disclosure
-      summary={
-        <span className="flex items-center gap-2 rounded-[var(--radius-chip)] border border-slate-800 bg-slate-900/90 px-3 py-2">
-          <Ticket className="h-4 w-4 text-[var(--color-accent-hover)]" />
-          <Counter
-            value={tickets}
-            className="t-chain text-sm font-bold leading-none text-[var(--color-accent-hover)]"
-          />
-          <span className="t-label text-[0.625rem]">megapot</span>
-          <ChevronDown className="h-3.5 w-3.5 text-slate-500 transition-transform duration-200 group-open/d:rotate-180" />
-        </span>
-      }
-    >
-      <div className="slab w-[min(22rem,calc(100vw-2rem))] bg-[var(--color-modal)] p-5">
-        <p className="text-sm text-slate-400">
-          Every case you open buys you one real{" "}
-          <span className="font-bold text-slate-100">Megapot</span> lottery ticket. The ticket is
-          recorded in Megapot&apos;s own contract against{" "}
-          <span className="font-bold text-slate-100">your wallet</span>, Tessera never holds it
-          and cannot touch it.
-        </p>
-        <p className="mt-3 text-sm text-slate-500">
-          On this testnet the draw is frozen, so nothing is picked here. On Base mainnet the same
-          contract draws every day, and the same wallet plays.
-        </p>
-        <Link
-          href={caseHref}
-          className="t-label mt-4 inline-flex min-h-11 items-center gap-1.5 text-[var(--color-accent-hover)] hover:text-[var(--color-accent-bright)]"
-        >
-          see the jackpot and claim winnings →
-        </Link>
-      </div>
-    </Disclosure>
   );
 }
 
