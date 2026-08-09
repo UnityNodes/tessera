@@ -32,12 +32,8 @@ export function MegapotPanel({ mp }: { mp: ReturnType<typeof useMegapot> }) {
         </span>
       </div>
 
-      <DataRow
-        name="your tickets"
-        value={String(Math.round(mp.tickets))}
-        ink="var(--color-accent-hover)"
-      />
-      <DataRow name="liquidity behind it" value={usd(mp.liquidityPool)} />
+
+
       <DataRow
         name="draw"
         value={mp.stalled ? "stalled" : new Date(mp.endsAt).toUTCString().slice(5, 22)}

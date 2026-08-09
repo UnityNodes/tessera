@@ -33,10 +33,10 @@ export function useMegapot() {
     error?: Explained;
   }>({ phase: "idle" });
 
+  //
   const reads = useReadContracts({
     contracts: [
       { ...jackpot, functionName: "userPoolTotal" },
-      { ...jackpot, functionName: "lpPoolTotal" },
       { ...jackpot, functionName: "lastJackpotEndTime" },
       { ...jackpot, functionName: "roundDurationInSeconds" },
       { ...jackpot, functionName: "lastWinnerAddress" },
@@ -59,7 +59,7 @@ export function useMegapot() {
   const big = (i: number) => (reads.data?.[i]?.result as bigint | undefined) ?? 0n;
   const user = mine.data?.[0]?.result as readonly [bigint, bigint, boolean] | undefined;
 
-  const endsAt = Number(big(2) + big(3)) * 1000;
+  const endsAt = Number(big(1) + big(2)) * 1000;
   const winnings = user?.[1] ?? 0n;
 
   const withdraw = useCallback(async () => {
@@ -88,10 +88,9 @@ export function useMegapot() {
     winnings,
     hasWinnings: winnings > 0n,
     prizePool: big(0),
-    liquidityPool: big(1),
     endsAt,
     stalled: endsAt > 0 && endsAt < now,
-    lastWinner: reads.data?.[4]?.result as `0x${string}` | undefined,
+    lastWinner: reads.data?.[3]?.result as `0x${string}` | undefined,
     claim,
     withdraw,
     refetch: async () => {

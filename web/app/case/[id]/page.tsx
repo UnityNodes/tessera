@@ -401,14 +401,26 @@ export default function CasePage() {
           </section>
         )}
 
-        <details id="megapot" className="slab scroll-mt-24 p-5">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+
+
+        <details id="megapot" className="slab group scroll-mt-24 p-5">
+          <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-x-3 gap-y-1 [&::-webkit-details-marker]:hidden">
             <span className="t-label flex items-center gap-2">
-              <ShieldCheck className="h-3.5 w-3.5" />
+              <ShieldCheck className="h-4 w-4" />
               your Megapot, from here
             </span>
-            <span className="text-sm text-slate-300">
-              the jackpot your tickets are in, open ▾
+            <span className="text-sm">
+              <span style={{ color: megapot.stalled ? "var(--color-tier-vault)" : undefined }}>
+                {megapot.stalled
+                  ? "a real ticket, but no draw on this testnet"
+                  : "a real ticket in the next draw"}
+              </span>
+              <span className="text-slate-400">
+                {", "}
+                <span className="group-open:hidden">open</span>
+                <span className="hidden group-open:inline">close</span>
+                <span className="ml-1 inline-block transition-transform group-open:rotate-180">▾</span>
+              </span>
             </span>
           </summary>
           <div className="mt-5">
