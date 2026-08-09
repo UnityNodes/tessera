@@ -2,7 +2,7 @@
 
 import { forwardRef } from "react";
 
-type Variant = "chisel" | "battle" | "quiet" | "ghost";
+type Variant = "chisel" | "quiet" | "ghost";
 type Size = "sm" | "md";
 
 const TOUCH = "min-h-11 sm:min-h-0 ";
@@ -52,12 +52,6 @@ export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
       "shadow-[var(--glow-accent)] " +
       "hover:brightness-110 hover:shadow-[var(--glow-accent-lift)] hover:scale-[1.02] " +
       "active:scale-[0.99] " +
-      "disabled:bg-[var(--color-raised)] disabled:bg-none disabled:text-[var(--color-ink-faint)] disabled:shadow-none",
-    battle:
-      `${pad} font-extrabold tracking-wide ` +
-      "text-white bg-[linear-gradient(135deg,#ff2d55,#c81f42)] " +
-      "shadow-[var(--glow-danger)] " +
-      "hover:brightness-110 hover:scale-[1.02] active:scale-[0.99] " +
       "disabled:bg-[var(--color-raised)] disabled:bg-none disabled:text-[var(--color-ink-faint)] disabled:shadow-none",
     quiet:
       `${pad} font-bold ` +

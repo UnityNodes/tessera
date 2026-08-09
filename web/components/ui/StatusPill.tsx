@@ -1,12 +1,13 @@
 /**
  *
  *
+ *
  */
 export type Status = "waiting" | "live" | "won" | "lost" | "done";
 
 const TONE: Record<Status, { ink: string; bg: string; label: string }> = {
   waiting: { ink: "var(--color-tier-vault)", bg: "rgb(255 210 63 / 0.12)", label: "Waiting" },
-  live: { ink: "var(--color-danger-soft)", bg: "rgb(255 45 85 / 0.14)", label: "In progress" },
+  live: { ink: "var(--color-ink)", bg: "rgb(232 245 236 / 0.12)", label: "In progress" },
   won: { ink: "var(--color-accent)", bg: "rgb(57 255 136 / 0.14)", label: "Won" },
   lost: { ink: "var(--color-tier-grout)", bg: "rgb(144 153 166 / 0.14)", label: "Lost" },
   done: { ink: "var(--color-ink-dim)", bg: "rgb(124 144 131 / 0.12)", label: "Settled" },

@@ -26,6 +26,8 @@
   --color-ink-dim: #7c9083;
   --color-ink-faint: #5f7368;
 
+
+
   --color-accent: #39ff88;
   --color-accent-hover: #6dffab;
   --color-accent-press: #1fcf6c;
@@ -80,7 +82,6 @@
   --glow-accent: 0 0 22px rgb(57 255 136 / 0.3);
   --glow-accent-lift: 0 0 32px rgb(57 255 136 / 0.45);
   --glow-accent-soft: 0 0 10px rgb(57 255 136 / 0.28);
-  --glow-danger: 0 0 22px rgb(255 45 85 / 0.3);
 
 
   --color-slate-50: #eef7f1;

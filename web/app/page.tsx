@@ -63,7 +63,7 @@ export default function Home() {
               </Button>
             </Link>
             <Link href="/battles">
-              <Button variant="battle" className="px-8 py-4 text-base">
+              <Button variant="quiet" className="px-8 py-4 text-base">
                 <Swords className="h-5 w-5" />
                 Battles
                 {battles.open.length > 0 ? ` • ${battles.open.length} waiting` : ""}

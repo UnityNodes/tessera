@@ -330,6 +330,57 @@ with sync_playwright() as p:
                 f"HTTP {r.status}",
             )
 
+    # ── ──────────────────────────────────────────────────────────
+    print("\n── ──")
+    # : .
+    #
+    # : #ff2d55
+    # ', ,
+    # . ,
+    # , ,
+    # : .
+    #
+    #
+    # , .
+    # , .
+    DANGER = [(255, 45, 85), (255, 85, 119)]
+    for path in ("/", "/battles", "/case/1", "/profile"):
+        go(path, 3000)
+        red = page.evaluate(
+            """(danger) => {
+              //
+              const near = (s) => {
+                for (const m of String(s).matchAll(/rgba?\\(([^)]+)\\)/g)) {
+                  const n = (m[1].match(/[\\d.]+/g) || []).slice(0, 3).map(Number);
+                  if (n.length < 3) continue;
+                  if (danger.some(d =>
+                        Math.abs(d[0]-n[0]) + Math.abs(d[1]-n[1]) + Math.abs(d[2]-n[2]) < 30))
+                    return true;
+                }
+                return false;
+              };
+              const out = [];
+              for (const el of document.querySelectorAll("body *")) {
+                const r = el.getBoundingClientRect();
+                if (r.width < 2 || r.height < 2) continue;
+                const st = getComputedStyle(el);
+                for (const prop of ["color", "backgroundColor", "borderTopColor", "borderLeftColor", "boxShadow", "backgroundImage"]) {
+                  if (near(st[prop])) {
+                    out.push(`${el.tagName.toLowerCase()}.${String(el.className).slice(0,40)} → ${prop}`);
+                    break;
+                  }
+                }
+              }
+              return out;
+            }""",
+            DANGER,
+        )
+        check(
+            f"{path}: ()",
+            not red,
+            "" if not red else f"{len(red)} , {red[0]}",
+        )
+
     # ── ────────────────────────────────────────────────────────────
     print("\n── ──")
     # :

@@ -61,11 +61,7 @@ export default function BattlesPage() {
 
           <div className="flex items-center gap-6">
             <Tally label="waiting" value={battles.open.length} />
-            <Tally
-              label="live"
-              value={battles.live.length}
-              ink={battles.live.length > 0 ? "var(--color-danger-soft)" : undefined}
-            />
+            <Tally label="live" value={battles.live.length} />
             <Tally label="all time" value={battles.total} />
           </div>
         </div>
@@ -100,11 +96,11 @@ export default function BattlesPage() {
             className="space-y-6 rounded-[var(--radius-window)] border p-6 lg:col-span-5"
             style={{
               background: "var(--color-surface)",
-              borderColor: "color-mix(in oklab, var(--color-danger) 25%, transparent)",
+              borderColor: "color-mix(in oklab, var(--color-accent) 22%, transparent)",
             }}
           >
             <h2 className="t-display flex items-center gap-2 text-2xl text-white">
-              <Plus className="h-6 w-6" style={{ color: "var(--color-danger)" }} />
+              <Plus className="h-6 w-6" style={{ color: "var(--color-accent)" }} />
               <span>Create a battle</span>
             </h2>
 
@@ -126,7 +122,7 @@ export default function BattlesPage() {
                         onClick={() => setPick(d.id)}
                         className={`flex cursor-pointer flex-col items-center gap-1 rounded-[var(--radius-control)] border p-3 transition-all ${
                           on
-                            ? "border-[rgb(255_45_85_/_0.4)] bg-[rgb(255_45_85_/_0.08)] text-white"
+                            ? "border-[rgb(57_255_136_/_0.4)] bg-[rgb(57_255_136_/_0.08)] text-white"
                             : "border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200"
                         }`}
                       >
@@ -170,10 +166,8 @@ export default function BattlesPage() {
                   You already have a battle on the table. Settle it before opening another.
                 </p>
               ) : (
-                // Cases, wins). Red is reserved for Battles and combat
                 <Button
                   block
-                  variant="battle"
                   className="py-4"
                   disabled={!canPlay || battles.busy}
                   loading={battles.busy}
@@ -272,7 +266,7 @@ function Row({
         <StatusPill status={status} />
 
         {battle.waiting && !isMine && (ready ? (
-          <Button size="sm" variant="battle" disabled={!canPlay || busy} onClick={onJoin}>
+          <Button size="sm" disabled={!canPlay || busy} onClick={onJoin}>
             Join • $1
           </Button>
         ) : (

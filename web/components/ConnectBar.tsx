@@ -166,7 +166,7 @@ export function ConnectBar({
         <button
           type="button"
           onClick={() => disconnect()}
-          className="mt-3 flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[var(--radius-control)] border-t border-slate-800 px-3.5 py-3 pt-3.5 text-left text-sm font-bold text-slate-400 transition-colors hover:text-[var(--color-danger)]"
+          className="mt-3 flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[var(--radius-control)] border-t border-slate-800 px-3.5 py-3 pt-3.5 text-left text-sm font-bold text-slate-400 transition-colors hover:text-white"
         >
           <LogOut className="h-6 w-6 shrink-0 text-white" />
           Disconnect

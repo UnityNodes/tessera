@@ -173,7 +173,6 @@ export default function BattlePage() {
             <div className="mx-auto mt-5 max-w-md">
               <Button
                 block
-                variant="battle"
                 className="py-4"
                 disabled={fight.busy}
                 onClick={() => void fight.resolve()}
@@ -301,8 +300,8 @@ function OpenSeat({
     <div
       className="grid place-items-center rounded-[20px] border border-dashed p-8"
       style={{
-        borderColor: "color-mix(in oklab, var(--color-danger) 30%, transparent)",
-        background: "color-mix(in oklab, var(--color-danger) 3%, var(--color-surface))",
+        borderColor: "color-mix(in oklab, var(--color-accent) 28%, transparent)",
+        background: "color-mix(in oklab, var(--color-accent) 3%, var(--color-surface))",
       }}
     >
       <div className="w-full max-w-xs text-center">
@@ -312,8 +311,7 @@ function OpenSeat({
         </p>
         <div className="mt-5 text-left">
           {ready ? (
-            // reserved for Battles and combat states».
-            <Button block variant="battle" className="py-4" disabled={!canJoin || busy} onClick={onJoin}>
+            <Button block className="py-4" disabled={!canJoin || busy} onClick={onJoin}>
               {busy ? "…" : "Take the seat • $1"}
             </Button>
           ) : (
