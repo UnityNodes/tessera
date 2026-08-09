@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 100 100" role="img" aria-label="Tessera logo mark, one color">
+  <title>Tessera (monochrome)</title>
+  <desc>Single-color version. Set the color via the CSS color property (currentColor) or replace with any brand color.</desc>
+  <g style="color:#12151A">
+    <g fill="currentColor">
+      <rect x="74" y="11" width="15" height="15" rx="3"/>
+      <rect x="53" y="32" width="15" height="15" rx="3"/>
+      <rect x="74" y="32" width="15" height="15" rx="3"/>
+      <rect x="53" y="53" width="15" height="15" rx="3"/>
+      <rect x="74" y="53" width="15" height="15" rx="3"/>
+      <rect x="11" y="74" width="15" height="15" rx="3"/>
+      <rect x="32" y="74" width="15" height="15" rx="3"/>
+      <rect x="53" y="74" width="15" height="15" rx="3"/>
+      <rect x="74" y="74" width="15" height="15" rx="3"/>
+      <rect x="32" y="53" width="15" height="15" rx="3"/>
+    </g>
+    <rect x="37" y="58" width="5" height="5" rx="1" fill="#ffffff"/>
+    <g fill="none" stroke="currentColor" stroke-opacity="0.35" stroke-width="1.3">
+      <rect x="11" y="11" width="15" height="15" rx="3"/>
+      <rect x="32" y="11" width="15" height="15" rx="3"/>
+      <rect x="53" y="11" width="15" height="15" rx="3"/>
+      <rect x="11" y="32" width="15" height="15" rx="3"/>
+      <rect x="32" y="32" width="15" height="15" rx="3"/>
+      <rect x="11" y="53" width="15" height="15" rx="3"/>
+    </g>
+  </g>
+</svg>

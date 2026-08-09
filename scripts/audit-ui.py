@@ -265,19 +265,35 @@ with sync_playwright() as p:
 
     # ── ─────────────────────────────────────────────────────────────
     print("\n── ──")
-    # . <img> src
-    # : ,
-    # , .
-    # , naturalWidth
+    # :
     # .
+    # , , .
     go("/", 3000)
     marks = page.evaluate(
-        """() => [...document.querySelectorAll('img[src*="/brand/"]')]
-             .map(i => ({ src: new URL(i.src).pathname, w: i.naturalWidth }))"""
+        """() => [...document.querySelectorAll('[data-mark]')].map(el => {
+             const r = el.getBoundingClientRect();
+             return { kind: el.dataset.mark, w: Math.round(r.width), h: Math.round(r.height),
+                      color: getComputedStyle(el).color };
+           })"""
     )
     check("", len(marks) >= 2, f"{len(marks)}")
     for m in marks:
-        check(f"{m['src']} ", m["w"] > 0, f"naturalWidth {m['w']}")
+        check(f"{m['kind']}", m["w"] > 8 and m["h"] > 8, f"{m['w']}×{m['h']}")
+
+        # , , :
+        # , .
+        #
+        # .
+        #
+        # , :
+        # .
+        rgb = [int(v) for v in re.findall(r"\d+", m["color"])[:3]]
+        spread = (max(rgb) - min(rgb)) / max(max(rgb), 1)
+        check(
+            f"{m['kind']}",
+            spread < 0.2,
+            f"{m['color']}, {spread:.0%}",
+        )
 
     # '. ,
     # .

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 100 100" role="img" aria-label="Tessera favicon">
+  <title>Tessera favicon</title>
+  <desc>Simplified mark for small sizes: solid grid, one bright current-draw tile, no thin outlines.</desc>
+  <rect x="0" y="0" width="100" height="100" rx="24" fill="#12151A"/>
+  <g fill="#D6A441">
+    <rect x="74" y="11" width="15" height="15" rx="3"/>
+    <rect x="53" y="32" width="15" height="15" rx="3"/>
+    <rect x="74" y="32" width="15" height="15" rx="3"/>
+    <rect x="53" y="53" width="15" height="15" rx="3"/>
+    <rect x="74" y="53" width="15" height="15" rx="3"/>
+    <rect x="11" y="74" width="15" height="15" rx="3"/>
+    <rect x="32" y="74" width="15" height="15" rx="3"/>
+    <rect x="53" y="74" width="15" height="15" rx="3"/>
+    <rect x="74" y="74" width="15" height="15" rx="3"/>
+  </g>
+  <rect x="32" y="53" width="15" height="15" rx="3" fill="#F4CC6A"/>
+</svg>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="200" viewBox="0 0 400 100" role="img" aria-label="Tessera horizontal logo lockup for dark backgrounds">
+  <title>Tessera, horizontal lockup (dark background)</title>
+  <desc>Mark plus wordmark with light text, for dark backgrounds. Transparent canvas.</desc>
+  <rect x="0" y="0" width="100" height="100" rx="24" fill="#12151A"/>
+  <rect x="0.5" y="0.5" width="99" height="99" rx="23.5" fill="none" stroke="#ffffff" stroke-opacity="0.08"/>
+  <g fill="#D6A441">
+    <rect x="74" y="11" width="15" height="15" rx="3"/>
+    <rect x="53" y="32" width="15" height="15" rx="3"/>
+    <rect x="74" y="32" width="15" height="15" rx="3"/>
+    <rect x="53" y="53" width="15" height="15" rx="3"/>
+    <rect x="74" y="53" width="15" height="15" rx="3"/>
+    <rect x="11" y="74" width="15" height="15" rx="3"/>
+    <rect x="32" y="74" width="15" height="15" rx="3"/>
+    <rect x="53" y="74" width="15" height="15" rx="3"/>
+    <rect x="74" y="74" width="15" height="15" rx="3"/>
+  </g>
+  <rect x="32" y="53" width="15" height="15" rx="3" fill="#F4CC6A"/>
+  <rect x="37" y="58" width="5" height="5" rx="1" fill="#12151A"/>
+  <g fill="none" stroke="#D6A441" stroke-opacity="0.3" stroke-width="1.3">
+    <rect x="11" y="11" width="15" height="15" rx="3"/>
+    <rect x="32" y="11" width="15" height="15" rx="3"/>
+    <rect x="53" y="11" width="15" height="15" rx="3"/>
+    <rect x="11" y="32" width="15" height="15" rx="3"/>
+    <rect x="32" y="32" width="15" height="15" rx="3"/>
+    <rect x="11" y="53" width="15" height="15" rx="3"/>
+  </g>
+  <text x="124" y="54" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="40" font-weight="500" letter-spacing="-1" fill="#F4F1EA">tessera</text>
+  <text x="126" y="74" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="11" letter-spacing="2" fill="#A9986F">drawn without replacement</text>
+</svg>

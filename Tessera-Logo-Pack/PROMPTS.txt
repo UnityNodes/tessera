@@ -1,0 +1,28 @@
+TESSERA, AI generation prompts (for raster / alternative explorations)
+=======================================================================
+
+Keep the concept intact with these keywords:
+  tesserae mosaic · finite pool · drawn without replacement ·
+  one bright "current draw" tile · empty outlines = gone ·
+  graphite ink + gold · flat vector · no text
+
+--- Midjourney / Ideogram ------------------------------------------------
+logo mark for "Tessera", a 4x4 mosaic grid inside a rounded-square token,
+some tiles solid warm gold, one tile brighter with a small opening, a few
+tiles empty as thin outlines, representing a finite pool drawn without
+replacement. Deep graphite-ink background #12151A, gold #D6A441, flat vector,
+minimal, geometric, app-icon, provably-fair premium feel, ancient-mosaic nod,
+no text, centered --style raw --v 6
+
+--- DALL-E / generic text-to-image --------------------------------------
+A minimalist flat vector app-icon logo for a lottery/raffle brand called
+Tessera. A rounded dark graphite square containing a 4x4 grid of small square
+tiles (Roman mosaic "tesserae"). Most tiles are solid warm gold; one tile is
+a brighter gold with a tiny slot cut into it (the tile being drawn); the
+top-left tiles are just faint outlines (already drawn and gone). Clean,
+geometric, high contrast, no gradients, no text, centered, premium.
+
+Name origin note for designers:
+  Latin "tessera" = a mosaic tile, AND a Roman token/ticket (tessera
+  frumentaria = a grain-dole ticket), AND a gaming die. The three meanings
+  map exactly to: a pool of many pieces, case = real ticket, and the draw.
