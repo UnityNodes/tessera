@@ -98,12 +98,26 @@ const usd = (v) => `$${(Number(v) / 1e6).toFixed(2)}`;
     functionName: "balanceOf",
     args: [DECK],
   });
+  //
+  let creators = null;
+  try {
+    creators = BigInt(await read("creatorOwed"));
+  } catch {
+    console.log(
+      "    ⚠ creatorOwed ",
+    );
+  }
+  const owed = vaults + treasury + (creators ?? 0n);
+
   check(
     0,
-    ": + ≤ ",
-    vaults + treasury <= held,
-    `${usd(vaults)} + ${usd(treasury)} = ${usd(vaults + treasury)} ${usd(held)}` +
-      (vaults + treasury === held ? " ()" : ` (${usd(held - vaults - treasury)})`),
+    creators === null
+      ? ": + ≤ "
+      : ": + + ≤ ",
+    owed <= held,
+    `${usd(vaults)}${creators === null ? "" : ` + ${usd(creators)}`} + ${usd(treasury)}` +
+      ` = ${usd(owed)} ${usd(held)}` +
+      (owed === held ? " ()" : ` (${usd(held - owed)})`),
   );
   console.log(`    Megapot : ${usd(fees)}`);
 
