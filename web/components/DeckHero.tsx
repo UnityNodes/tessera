@@ -10,6 +10,7 @@ export function DeckHero({
   deck,
   size = 128,
   skin,
+  art,
   className,
 }: {
   deck: DeckShape;
@@ -18,11 +19,12 @@ export function DeckHero({
    *
    */
   skin?: string;
+  art?: string;
   className?: string;
 }) {
   const dress = skinOf(skin);
-  if (dress) {
-    return <Chest rarity="sealed" skin={skin} size={size} className={className} />;
+  if (art || dress) {
+    return <Chest rarity="sealed" skin={skin} art={art} size={size} className={className} />;
   }
 
   const rank = (t: { spec: ReturnType<typeof slotsPerTier>[number]["spec"] }) =>

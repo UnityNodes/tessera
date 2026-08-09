@@ -111,6 +111,7 @@ export function Chest({
   drift = false,
   open = false,
   skin,
+  art,
   className,
 }: {
   rarity?: Rarity;
@@ -118,6 +119,7 @@ export function Chest({
   drift?: boolean;
   open?: boolean;
   skin?: string;
+  art?: string;
   className?: string;
 }) {
   if (rarity === "shard") {
@@ -128,15 +130,19 @@ export function Chest({
     );
   }
 
-  const art = ART[rarity];
+  const tier = ART[rarity];
   const dress = skinOf(skin);
   const glow = "drop-shadow(0 0 calc(var(--glow, 0) * 26px) var(--metal))";
-  const masked = !(art.bare && !open);
+  const masked = !(tier.bare && !open) && !art;
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={sized(dress?.src && !open ? dress.src : open ? art.open : art.src, size)}
+      src={
+        art && !open
+          ? art
+          : sized(dress?.src && !open ? dress.src : open ? ART[rarity].open : ART[rarity].src, size)
+      }
       alt=""
       aria-hidden
       data-tier={rarity}
@@ -151,13 +157,14 @@ export function Chest({
         width: size,
         maxWidth: "100%",
         height: "auto",
-        filter: dress?.filter
-          ? `${dress.filter} ${glow}`
-          : dress?.src
+        filter:
+          art || dress?.src
             ? glow
-            : art.filter
-              ? `${art.filter} ${glow}`
-              : glow,
+            : dress?.filter
+              ? `${dress.filter} ${glow}`
+              : tier.filter
+                ? `${tier.filter} ${glow}`
+                : glow,
         maskImage: masked ? MASK : undefined,
         WebkitMaskImage: masked ? MASK : undefined,
         animation: drift ? "crate-hover 4.4s ease-in-out infinite" : undefined,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useAccount, useConfig, useReadContracts } from "wagmi";
+import { useAccount, useConfig, useReadContracts, useSignMessage } from "wagmi";
 import {
   readContract,
   simulateContract,
@@ -25,6 +25,7 @@ export interface DeckPlan {
   weight: number[];
   vaultSlots: number;
   sharePercent: number;
+  art?: File;
 }
 
 /**
@@ -33,10 +34,12 @@ export interface DeckPlan {
 export function useCreateDeck() {
   const { address } = useAccount();
   const config = useConfig();
+  const { signMessageAsync } = useSignMessage();
   const [state, setState] = useState<{
     phase: CreatePhase;
     txUrl?: string;
     deckId?: number;
+    art?: string;
     error?: Explained;
   }>({ phase: "idle" });
 
@@ -110,7 +113,17 @@ export function useCreateDeck() {
           logs: receipt.logs,
         });
         const id = Number((made[0]?.args as { deckId?: number } | undefined)?.deckId ?? 0);
-        setState({ phase: "done", txUrl: txUrl(hash), deckId: id });
+
+        //
+        let art: string | undefined;
+        if (plan.art) {
+          try {
+            art = await putArt(id, plan.art, signMessageAsync);
+          } catch (e) {
+            art = e instanceof Error ? e.message : "the picture was not accepted";
+          }
+        }
+        setState({ phase: "done", txUrl: txUrl(hash), deckId: id, art });
         await rules.refetch();
         return id;
       } catch (err) {
@@ -118,7 +131,7 @@ export function useCreateDeck() {
         return undefined;
       }
     },
-    [address, config, allowance, fee, rules],
+    [address, config, allowance, fee, rules, signMessageAsync],
   );
 
   return {
@@ -130,4 +143,30 @@ export function useCreateDeck() {
     minSize,
     create,
   };
+}
+
+/**
+ *
+ */
+async function putArt(
+  deckId: number,
+  file: File,
+  sign: (a: { message: string }) => Promise<string>,
+) {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  const sum = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  const signature = await sign({
+    message: `tessera: set the picture of deck ${deckId} to ${sum}`,
+  });
+
+  const form = new FormData();
+  form.set("deckId", String(deckId));
+  form.set("signature", signature);
+  form.set("file", file);
+
+  const res = await fetch("/api/skin", { method: "POST", body: form });
+  const body = (await res.json().catch(() => ({}))) as { error?: string; why?: string };
+  if (!res.ok) throw new Error(body.why ?? body.error ?? "the picture was not accepted");
+  return undefined;
 }

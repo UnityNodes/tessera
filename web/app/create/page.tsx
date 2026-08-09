@@ -32,6 +32,8 @@ export default function CreatePage() {
   const [size, setSize] = useState(200);
   const [kind, setKind] = useState<ShapeKind>("jackpot");
   const [share, setShare] = useState(25);
+  const [art, setArt] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
 
   const shape = useMemo(() => shapeFor(kind, size), [kind, size]);
   const clean = name.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -59,6 +61,7 @@ export default function CreatePage() {
       weight: shape.weight,
       vaultSlots: shape.vaultSlots,
       sharePercent: share,
+      art: art ?? undefined,
     });
     if (id !== undefined) router.push(`/case/${id}`);
   };
@@ -101,7 +104,28 @@ export default function CreatePage() {
             </section>
 
             <section>
-              <label className="t-label mb-2 block">2. pick its colour</label>
+              <label className="t-label mb-2 block" htmlFor="deck-art">
+                2. its picture, or just a colour
+              </label>
+              <input
+                id="deck-art"
+                type="file"
+                accept="image/png"
+                onChange={(e) => {
+                  const f = e.target.files?.[0] ?? null;
+                  setArt(f);
+                  setPreview(f ? URL.createObjectURL(f) : null);
+                }}
+                className="w-full cursor-pointer rounded-[var(--radius-control)] border border-slate-800 bg-slate-950 px-4 py-3 text-sm text-slate-300 file:mr-4 file:cursor-pointer file:rounded-[var(--radius-chip)] file:border-0 file:bg-slate-800 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white"
+              />
+              <p className="mt-2 text-sm text-slate-400">
+                PNG on a transparent background, up to 4 MB. Every upload is checked
+                automatically, anything explicit is refused and the deck keeps the plain chest.
+              </p>
+            </section>
+
+            <section>
+              <label className="t-label mb-2 block">3. pick its colour</label>
               <div className="flex flex-wrap gap-2.5">
                 {HUES.map((h) => (
                   <button
@@ -122,7 +146,7 @@ export default function CreatePage() {
             </section>
 
             <section>
-              <label className="t-label mb-2 block">3. how many cases</label>
+              <label className="t-label mb-2 block">4. how many cases</label>
               <div className="flex flex-wrap gap-2.5">
                 {SIZES.map((s) => (
                   <button
@@ -142,7 +166,7 @@ export default function CreatePage() {
             </section>
 
             <section>
-              <label className="t-label mb-2 block">4. what it pays</label>
+              <label className="t-label mb-2 block">5. what it pays</label>
               <div className="grid gap-2.5 sm:grid-cols-3">
                 {SHAPES.map((s) => {
                   const fits = size >= s.min && shapeFor(s.kind, size) !== null;
@@ -170,7 +194,7 @@ export default function CreatePage() {
 
             <section>
               <label className="t-label mb-2 block" htmlFor="deck-share">
-                5. your share of the commission
+                6. your share of the commission
               </label>
               <div className="flex items-center gap-4">
                 <input
@@ -208,7 +232,16 @@ export default function CreatePage() {
                   className="pointer-events-none absolute inset-x-8 inset-y-4 rounded-full opacity-25 blur-2xl"
                   style={{ background: `hsl(${hue} 100% 59%)` }}
                 />
-                <Chest rarity="sealed" skin={`${clean || "unnamed"}:${hue}`} size={170} />
+                {preview ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={preview}
+                    alt=""
+                    className="relative z-10 h-[170px] w-[170px] object-contain"
+                  />
+                ) : (
+                  <Chest rarity="sealed" skin={`${clean || "unnamed"}:${hue}`} size={170} />
+                )}
               </div>
 
               <h2
@@ -266,6 +299,12 @@ export default function CreatePage() {
                     {mk.state.error.next && (
                       <span className="mt-1 block text-slate-400">{mk.state.error.next}</span>
                     )}
+                  </p>
+                )}
+                {mk.state.art && (
+                  <p className="mt-3 text-sm text-[var(--color-danger)]">
+                    The deck is cut, but its picture was refused: {mk.state.art}. It shows the
+                    plain chest instead.
                   </p>
                 )}
                 <p className="mt-3 text-sm leading-snug text-slate-400">

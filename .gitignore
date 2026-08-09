@@ -31,3 +31,5 @@ stitch/
 
 *.zip
 *.mp3
+
+.data/

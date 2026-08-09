@@ -26,6 +26,7 @@ import { useRedeem } from "@/hooks/useRedeem";
 import { useStake } from "@/hooks/useStake";
 import { usePool } from "@/hooks/usePool";
 import { useMegapot } from "@/hooks/useMegapot";
+import { useSkins } from "@/hooks/useSkins";
 import { useVault } from "@/hooks/useVault";
 import {
   specOf,
@@ -63,6 +64,7 @@ export default function CasePage() {
   const refreshOpens = useRefreshOpens();
   const pool = usePool(shape, deck?.drawn ?? 0, deckId);
   const megapot = useMegapot();
+  const skinUrl = useSkins();
 
   const refresh = useCallback(async () => {
     await Promise.all([
@@ -191,6 +193,7 @@ export default function CasePage() {
                   risk={open.state.risk}
                   vault={deck.vault}
                   skin={deck.cid}
+                  art={skinUrl(deckId)}
                   size={300}
                   onClick={
                     canOpen

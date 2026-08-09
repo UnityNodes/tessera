@@ -8,6 +8,7 @@ import { Chest, skinOf } from "@/components/Chest";
 import { DeckHero } from "@/components/DeckHero";
 import { useDeck, type DeckInfo } from "@/hooks/useDeck";
 import { useBattleList } from "@/hooks/useBattles";
+import { useSkins } from "@/hooks/useSkins";
 import { slotsPerTier, bestTier, isShard, ticketsLabel } from "@/lib/deck";
 
 /**
@@ -17,6 +18,7 @@ import { slotsPerTier, bestTier, isShard, ticketsLabel } from "@/lib/deck";
  */
 export default function Home() {
   const game = useDeck();
+  const skinUrl = useSkins();
   const battles = useBattleList();
   const first = game.decks.find((d) => !d.empty) ?? game.decks[0];
   const total = game.decks.reduce((n, d) => n + d.size, 0);
@@ -110,7 +112,7 @@ export default function Home() {
           ) : (
             <div className="grid w-full gap-6 [grid-template-columns:repeat(auto-fit,minmax(17rem,1fr))]">
               {game.decks.map((d) => (
-                <DeckCard key={d.id} deck={d} />
+                <DeckCard key={d.id} deck={d} art={skinUrl(d.id)} />
               ))}
               <Link
                 href="/create"
@@ -200,7 +202,7 @@ function StatCard({ value, label, tone }: { value: string; label: string; tone?:
   );
 }
 
-function DeckCard({ deck }: { deck: DeckInfo }) {
+function DeckCard({ deck, art }: { deck: DeckInfo; art?: string }) {
   const tiers = slotsPerTier(deck);
   const best = bestTier(deck);
 
@@ -242,6 +244,7 @@ function DeckCard({ deck }: { deck: DeckInfo }) {
               deck={deck}
               size={150}
               skin={deck.cid}
+              art={art}
               className="relative z-10 transition-transform duration-300 group-hover:scale-105"
             />
           )}
