@@ -147,6 +147,15 @@ export function Shell({ children }: { children: React.ReactNode }) {
       <footer className="w-full border-t border-slate-800/80 bg-[var(--color-sunk)] px-4 py-8 lg:px-8 2xl:px-14">
         <div className="mx-auto flex flex-col items-center justify-between gap-4 text-xs text-slate-400 sm:flex-row">
           <span className="flex flex-wrap items-center justify-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/brand/tessera-favicon.svg"
+              alt=""
+              aria-hidden
+              width={24}
+              height={24}
+              className="h-6 w-6 shrink-0"
+            />
             <span className="font-bold text-slate-300">Tessera Protocol</span>
             <span>•</span>
             <span className="t-chain">a finite pool, drawn without replacement</span>
@@ -182,14 +191,19 @@ function Tab({ href, children }: { href: string; children: React.ReactNode }) {
   );
 }
 
+/**
+ *
+ *
+ *
+ */
 const Mark = () => (
-  <span
-    className="grid h-8 w-8 shrink-0 place-items-center rounded-[var(--radius-chip)] transition-transform group-hover:scale-105"
-    style={{
-      background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-press))",
-      boxShadow: "0 0 15px rgb(57 255 136 / 0.4)",
-    }}
-  >
-    <span className="t-black text-lg leading-none tracking-tighter text-white">T</span>
-  </span>
+  // eslint-disable-next-line @next/next/no-img-element
+  <img
+    src="/brand/tessera-mark.svg"
+    alt=""
+    aria-hidden
+    width={36}
+    height={36}
+    className="h-9 w-9 shrink-0 transition-transform group-hover:scale-105"
+  />
 );

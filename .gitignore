@@ -32,3 +32,8 @@ stitch/
 # , .
 *.zip
 *.mp3
+
+# , web/public/brand ,
+# . (1024-png, ,
+# index.html ) .
+Tessera-Logo-Pack/

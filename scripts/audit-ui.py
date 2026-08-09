@@ -263,6 +263,57 @@ with sync_playwright() as p:
             break
     check("", seen > 0, f": {seen}")
 
+    # ── ─────────────────────────────────────────────────────────────
+    print("\n── ──")
+    # . <img> src
+    # : ,
+    # , .
+    # , naturalWidth
+    # .
+    go("/", 3000)
+    marks = page.evaluate(
+        """() => [...document.querySelectorAll('img[src*="/brand/"]')]
+             .map(i => ({ src: new URL(i.src).pathname, w: i.naturalWidth }))"""
+    )
+    check("", len(marks) >= 2, f"{len(marks)}")
+    for m in marks:
+        check(f"{m['src']} ", m["w"] > 0, f"naturalWidth {m['w']}")
+
+    # '. ,
+    # .
+    head = page.evaluate(
+        """() => ({
+             icons: [...document.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]')]
+                      .map(l => l.getAttribute('href')),
+             theme: document.querySelector('meta[name="theme-color"]')?.content ?? null,
+             og: document.querySelector('meta[property="og:image"]')?.content ?? null,
+           })"""
+    )
+    check("", len(head["icons"]) >= 2, f"{head['icons']}")
+    check("", bool(head["theme"]), f"{head['theme']}")
+    check("'", bool(head["og"]), f"{head['og']}")
+
+    for href in [*head["icons"], head["og"]]:
+        if not href:
+            continue
+        path = href if href.startswith("http") else URL + href
+        r = page.request.get(path)
+        check(f"{href.split('/')[-1]} ", r.status == 200, f"HTTP {r.status}")
+
+    # . ,
+    # :
+    # , .
+    mf = page.request.get(URL + "/manifest.webmanifest")
+    check("", mf.status == 200, f"HTTP {mf.status}")
+    if mf.status == 200:
+        for icon in mf.json().get("icons", []):
+            r = page.request.get(URL + icon["src"])
+            check(
+                f": {icon['src'].split('/')[-1]} ",
+                r.status == 200,
+                f"HTTP {r.status}",
+            )
+
     # ── ────────────────────────────────────────────────────────────
     print("\n── ──")
     # :

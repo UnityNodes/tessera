@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Orbitron, Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -19,10 +19,42 @@ const inter = Inter({
   display: "swap",
 });
 
+const TITLE = "Tessera, a case, and a real lottery ticket";
+const ABOUT =
+  "One dollar buys a real Megapot ticket. The case comes on top. What is inside lives in an encrypted, finite pool on Inco Lightning, committed before anyone opens anything.";
+
 export const metadata: Metadata = {
-  title: "Tessera, a case, and a real lottery ticket",
-  description:
-    "One dollar buys a real Megapot ticket. The case comes on top. What is inside lives in an encrypted, finite pool on Inco Lightning, committed before anyone opens anything.",
+  metadataBase: new URL("https://tessera.unitynodes.com"),
+  title: TITLE,
+  description: ABOUT,
+
+
+
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/brand/tessera-favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: [{ url: "/brand/apple-touch-icon-180.png", sizes: "180x180", type: "image/png" }],
+  },
+
+  openGraph: {
+    type: "website",
+    siteName: "Tessera",
+    title: TITLE,
+    description: ABOUT,
+    images: [{ url: "/brand/tessera-lockup-dark-1600x400.png", width: 1600, height: 400 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: ABOUT,
+    images: ["/brand/tessera-lockup-dark-1600x400.png"],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#12151A",
 };
 
 export default function RootLayout({
