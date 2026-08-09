@@ -81,7 +81,7 @@ export default function BattlePage() {
 
   return (
     <div className="w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
-      <div className="mx-auto flex max-w-[1100px] flex-col space-y-6">
+      <div className="mx-auto flex max-w-[1320px] flex-col space-y-6">
 
         <div className="flex flex-col justify-between gap-5 border-b border-slate-800 pb-6 md:flex-row md:items-end">
           <div>
@@ -89,7 +89,7 @@ export default function BattlePage() {
               href="/battles"
               className="t-label inline-flex items-center gap-1 hover:text-[var(--color-accent-hover)]"
             >
-              <ChevronLeft className="h-3 w-3" />
+              <ChevronLeft className="h-4 w-4" />
               all battles
             </Link>
             <h1 className="t-page mt-2 flex flex-wrap items-baseline gap-3 text-white">
@@ -98,7 +98,7 @@ export default function BattlePage() {
                 deck #{battle.deckId}
               </span>
             </h1>
-            <p className="mt-2 max-w-xl text-sm text-slate-300">
+            <p className="mt-2 max-w-2xl text-base leading-relaxed text-slate-300">
               {battle.resolved
                 ? "Settled on chain. Both cards are public, and so is the arithmetic that decided them."
                 : battle.joined
@@ -262,20 +262,20 @@ function Side({
       )}
 
       <div
-        className="relative flex items-center justify-between gap-3 border-b px-5 py-3.5"
+        className="relative flex items-center justify-between gap-3 border-b px-5 py-4"
         style={{ borderColor: "var(--edge)" }}
       >
-        <span className="t-addr min-w-0 truncate text-sm font-bold text-slate-200">{title}</span>
+        <span className="t-addr min-w-0 truncate text-base font-bold text-slate-200">{title}</span>
         <TierPlate
           name={spec ? (spec.tickets > 0 ? `+${spec.tickets} · ${spec.name}` : spec.name) : "sealed"}
           ink={spec ? spec.ink : "var(--color-tier-sealed)"}
         />
       </div>
 
-      <div className="relative flex min-h-[13rem] items-center justify-center px-4 py-6">
+      <div className="relative flex min-h-[19rem] items-center justify-center px-4 py-8">
         {sealed ? (
           <div className="flex flex-col items-center gap-3 py-6">
-            <Chest rarity="sealed" size={150} />
+            <Chest rarity="sealed" size={210} />
             <span className="t-label">sealed until someone pays</span>
           </div>
         ) : (

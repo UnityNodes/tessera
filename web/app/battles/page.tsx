@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { Swords, Plus, Play, Users } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -9,7 +10,7 @@ import { StatusPill } from "@/components/ui/StatusPill";
 import { Tally } from "@/components/ui/Tally";
 import { Chest } from "@/components/Chest";
 import { StartHere } from "@/components/StartHere";
-import { useDeck } from "@/hooks/useDeck";
+import { useDeck, type DeckInfo } from "@/hooks/useDeck";
 import { useBattleList, type Battle } from "@/hooks/useBattles";
 import { bestTier } from "@/lib/deck";
 
@@ -19,9 +20,19 @@ import { bestTier } from "@/lib/deck";
  */
 export default function BattlesPage() {
   const { address } = useAccount();
+  const router = useRouter();
   const game = useDeck();
   const battles = useBattleList();
   const [pick, setPick] = useState(0);
+
+  /**
+   *
+   *
+   */
+  const enter = async (open: Promise<bigint | undefined>) => {
+    const id = await open;
+    if (id !== undefined) router.push(`/battles/${id}`);
+  };
 
   const me = address?.toLowerCase();
   const mine = useMemo(
@@ -38,11 +49,11 @@ export default function BattlesPage() {
 
   return (
     <div className="w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
-      <div className="mx-auto flex max-w-[1100px] flex-col space-y-8">
+      <div className="mx-auto flex max-w-[1320px] flex-col space-y-8">
         <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-6 md:flex-row md:items-center">
           <div className="max-w-2xl">
             <h1 className="t-page text-white">Case battles arena</h1>
-            <p className="mt-2 text-sm text-slate-300">
+            <p className="mt-2 text-base leading-relaxed text-slate-300">
               Two cases open at once and the better card takes both prizes. Neither card can be
               read until both players have paid, not even by the one who opened the battle.
             </p>
@@ -92,8 +103,8 @@ export default function BattlesPage() {
               borderColor: "color-mix(in oklab, var(--color-danger) 25%, transparent)",
             }}
           >
-            <h2 className="t-display flex items-center gap-2 text-xl text-white">
-              <Plus className="h-5 w-5" style={{ color: "var(--color-danger)" }} />
+            <h2 className="t-display flex items-center gap-2 text-2xl text-white">
+              <Plus className="h-6 w-6" style={{ color: "var(--color-danger)" }} />
               <span>Create a battle</span>
             </h2>
 
@@ -104,7 +115,7 @@ export default function BattlesPage() {
                   {game.isLoading ? "Reading the chain…" : "Every deck in this season is empty."}
                 </p>
               ) : (
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
                   {playable.map((d) => {
                     const best = bestTier(d);
                     const on = chosen?.id === d.id;
@@ -119,11 +130,11 @@ export default function BattlesPage() {
                             : "border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200"
                         }`}
                       >
-                        <Chest rarity={best?.rarity ?? "sealed"} size={40} />
-                        <span className="truncate text-xs font-bold">
+                        <Chest rarity={best?.rarity ?? "sealed"} size={62} />
+                        <span className="truncate text-sm font-bold">
                           {best?.name ?? "Sealed"}
                         </span>
-                        <span className="t-chain text-xs text-slate-400">
+                        <span className="t-chain text-sm text-slate-400">
                           {d.remaining} left
                         </span>
                       </button>
@@ -136,8 +147,8 @@ export default function BattlesPage() {
             <div>
               <label className="t-label mb-2 block">2. the table</label>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <Fact icon={<Users className="h-4 w-4" />} value="2 players" note="you and one" />
-                <Fact icon={<Swords className="h-4 w-4" />} value="1 card each" note="higher takes both" />
+                <Fact icon={<Users className="h-5 w-5" />} value="2 players" note="you and one" />
+                <Fact icon={<Swords className="h-5 w-5" />} value="1 card each" note="higher takes both" />
               </div>
             </div>
 
@@ -145,8 +156,8 @@ export default function BattlesPage() {
               <div className="mb-4 flex items-baseline justify-between gap-4">
                 <span className="t-label">your entry</span>
                 <span className="text-right">
-                  <span className="t-chain text-xl font-extrabold text-white">$1.00</span>
-                  <span className="t-chain block text-xs text-slate-400">
+                  <span className="t-chain text-2xl font-extrabold text-white">$1.00</span>
+                  <span className="t-chain block text-sm text-slate-400">
                     and it still buys your ticket
                   </span>
                 </span>
@@ -166,7 +177,7 @@ export default function BattlesPage() {
                   className="py-4"
                   disabled={!canPlay || battles.busy}
                   loading={battles.busy}
-                  onClick={() => chosen && void battles.create(chosen.id, game.needsApproval)}
+                  onClick={() => chosen && void enter(battles.create(chosen.id, game.needsApproval))}
                 >
                   <Play className="h-4 w-4 fill-current" />
                   Start battle
@@ -176,7 +187,7 @@ export default function BattlesPage() {
           </div>
 
           <div className="space-y-4 lg:col-span-7">
-            <h2 className="flex flex-wrap items-baseline justify-between gap-2 text-xl font-bold text-white">
+            <h2 className="flex flex-wrap items-baseline justify-between gap-2 text-2xl font-bold text-white">
               <span>Active public battles</span>
               <span className="t-label">live from the chain</span>
             </h2>
@@ -190,11 +201,12 @@ export default function BattlesPage() {
                 <Row
                   key={String(b.id)}
                   battle={b}
+                  deck={game.decks[b.deckId]}
                   me={me}
                   ready={Boolean(address) && game.canAfford}
                   canPlay={canPlay && !mine}
                   busy={battles.busy}
-                  onJoin={() => void battles.join(b.id, game.needsApproval)}
+                  onJoin={() => void enter(battles.join(b.id, game.needsApproval))}
                 />
               ))
             )}
@@ -207,6 +219,7 @@ export default function BattlesPage() {
 
 function Row({
   battle,
+  deck,
   me,
   ready,
   canPlay,
@@ -214,6 +227,7 @@ function Row({
   onJoin,
 }: {
   battle: Battle;
+  deck?: DeckInfo;
   me?: string;
   ready: boolean;
   canPlay: boolean;
@@ -223,11 +237,8 @@ function Row({
   const isMine = battle.a.toLowerCase() === me || battle.b.toLowerCase() === me;
 
   const status = battle.resolved ? "done" : battle.joined ? "live" : "waiting";
-  const ink = battle.resolved
-    ? "var(--color-ink-faint)"
-    : battle.joined
-      ? "var(--color-danger-soft)"
-      : "var(--color-tier-vault)";
+  const deckBest = deck ? bestTier(deck) : undefined;
+  const deckInk = deckBest?.ink ?? "var(--color-tier-sealed)";
 
   return (
     <div
@@ -236,21 +247,20 @@ function Row({
     >
       <div className="flex min-w-0 items-center gap-4">
         <span
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-control)] border"
+          className="grid h-14 w-14 shrink-0 place-items-center rounded-[var(--radius-control)] border"
           style={{
-            color: ink,
-            borderColor: `color-mix(in oklab, ${ink} 30%, transparent)`,
-            background: `color-mix(in oklab, ${ink} 10%, transparent)`,
+            borderColor: `color-mix(in oklab, ${deckInk} 24%, transparent)`,
+            background: `color-mix(in oklab, ${deckInk} 7%, transparent)`,
           }}
         >
-          <Swords className="h-4 w-4" />
+          <Chest rarity={deckBest?.rarity ?? "sealed"} size={44} />
         </span>
 
         <div className="min-w-0">
-          <h3 className="truncate text-sm font-bold text-white">
+          <h3 className="truncate text-base font-bold text-white">
             Battle #{String(battle.id)} · deck #{battle.deckId} ({battle.joined ? "2/2" : "1/2"})
           </h3>
-          <span className="t-chain block truncate text-xs text-slate-400">
+          <span className="t-chain mt-0.5 block truncate text-sm text-slate-400">
             {short(battle.a)}
             {battle.joined ? ` vs ${short(battle.b)}` : " · waiting for a challenger"} ·{" "}
             <Ago at={battle.openedAt} />
@@ -291,7 +301,7 @@ function Fact({
     <div className="flex items-center gap-2.5 rounded-[var(--radius-control)] border border-slate-800 bg-slate-950 px-3 py-2.5">
       <span className="text-slate-400">{icon}</span>
       <span className="min-w-0">
-        <span className="block truncate text-xs font-bold text-slate-200">{value}</span>
+        <span className="block truncate text-sm font-bold text-slate-200">{value}</span>
         <span className="t-chain block truncate text-xs text-slate-400">{note}</span>
       </span>
     </div>

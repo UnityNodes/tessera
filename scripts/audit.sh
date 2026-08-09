@@ -44,6 +44,10 @@ fi
 # , .
 if [ -n "${BATTLE:-}" ]; then
   run "" node e2e-battle.cjs
+  # , :
+  # .
+  # .
+  run "" env BATTLE_UI=1 OPENS=0 node browser-e2e.cjs "$URL"
 fi
 
 echo

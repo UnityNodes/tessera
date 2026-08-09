@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useAccount, useConfig, useReadContract, useReadContracts } from "wagmi";
 import { simulateContract, writeContract, waitForTransactionReceipt } from "wagmi/actions";
 import { useQuery } from "@tanstack/react-query";
-import type { ContractFunctionParameters } from "viem";
+import { parseEventLogs, type ContractFunctionParameters } from "viem";
 import { TESSERA_DECK_ABI } from "@/lib/abi";
 import { DECK_ADDRESS, txUrl } from "@/lib/chain";
 import { revealHandles } from "@/lib/inco";
@@ -55,7 +55,7 @@ function useBattleWrites(onSettled?: () => void) {
         if (receipt.status !== "success") throw new Error("The transaction reverted on chain");
         setState({ phase: "done", txUrl: txUrl(hash) });
         onSettled?.();
-        return hash;
+        return receipt;
       } catch (err) {
         setState({ phase: "failed", error: explain(err) });
         onSettled?.();
@@ -173,17 +173,31 @@ export function useBattleList(onSettled?: () => void) {
     loading: count.isLoading || details.isLoading,
     refetch,
 
-    create: (deckId: number, needsApproval: boolean) =>
-      writes.run(async () => {
+    /**
+     *
+     *
+     */
+    create: async (deckId: number, needsApproval: boolean) => {
+      const receipt = await writes.run(async () => {
         await writes.pay(needsApproval);
         return writes.send("openBattle", [deckId]);
-      }),
+      });
+      if (!receipt) return undefined;
+      const opened = parseEventLogs({
+        abi: TESSERA_DECK_ABI,
+        eventName: "BattleOpened",
+        logs: receipt.logs,
+      });
+      return (opened[0]?.args as { id?: bigint } | undefined)?.id;
+    },
 
-    join: (id: bigint, needsApproval: boolean) =>
-      writes.run(async () => {
+    join: async (id: bigint, needsApproval: boolean) => {
+      const receipt = await writes.run(async () => {
         await writes.pay(needsApproval);
         return writes.send("joinBattle", [id]);
-      }),
+      });
+      return receipt ? id : undefined;
+    },
   };
 }
 

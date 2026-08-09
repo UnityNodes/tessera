@@ -341,6 +341,69 @@ async function ensureConnected(page) {
   }
 
   //
+  //
+  //
+  if (process.env.BATTLE_UI) {
+    console.log("▶ ");
+    await page.goto(URL.replace(/\/+$/, "") + "/battles", { waitUntil: "domcontentloaded" });
+    const start = page.getByRole("button", { name: /^Start battle$/ });
+    await start.waitFor({ timeout: 40000 }).catch(() => {});
+
+    if (!(await start.count())) {
+      //
+      //
+      const reasons = [
+        /You already have a battle on the table/,
+        /Every deck in this season is empty/,
+        /Reading the chain/,
+      ];
+      let why = null;
+      for (const r of reasons) {
+        const hit = page.locator("main").getByText(r).first();
+        if (await hit.count()) {
+          why = (await hit.textContent()).trim();
+          break;
+        }
+      }
+      console.log(`  Start battle: ${why ?? ""}`);
+    } else {
+      let id = null;
+      for (let tries = 1; tries <= 3 && !id; tries++) {
+        await start.click();
+        try {
+          await page.waitForURL(/\/battles\/\d+$/, { timeout: 120000 });
+          id = page.url().match(/\/battles\/(\d+)$/)[1];
+        } catch {
+          const said = await page
+            .locator("main")
+            .innerText()
+            .catch(() => "");
+          const banner = said.split("\n").find((l) => /revert|fail|error|reject|denied/i.test(l));
+          if (banner && /rpc|network|timeout/i.test(banner) && tries < 3) {
+            console.log(`  ⟳ ${banner.trim()} 20 `);
+            await page.waitForTimeout(20000);
+            continue;
+          }
+          await shot(page, "e2e-battle-stuck");
+          throw new Error(
+            `Start battle, ${page.url()}. ` +
+              `: ${banner ?? ""}`,
+          );
+        }
+      }
+      console.log(`✓ #${id}`);
+
+      //
+      await page.getByText(new RegExp(`Battle #${id}\\b`)).first().waitFor({ timeout: 30000 });
+      await page
+        .getByText("sealed until someone pays", { exact: true })
+        .waitFor({ timeout: 30000 });
+      console.log("✓ ");
+      await shot(page, "e2e-battle-opened");
+    }
+  }
+
+  //
   await page.goto(URL.replace(/\/+$/, "") + "/profile", { waitUntil: "domcontentloaded" });
   await page.getByText("every slot you drew", { exact: true }).waitFor({ timeout: 30000 });
   await page.waitForLoadState("networkidle", { timeout: 45000 }).catch(() => {});
