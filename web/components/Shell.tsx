@@ -25,6 +25,7 @@ import { addressUrl, DECK_ADDRESS } from "@/lib/chain";
  */
 export function Shell({ children }: { children: React.ReactNode }) {
   const { isConnected } = useAccount();
+  const onCase = (usePathname() ?? "").startsWith("/case/");
   const game = useDeck();
   const shapes = useMemo(() => game.decks.map((d) => d), [game.decks]);
   const feed = useFeed(shapes);
@@ -55,7 +56,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="relative z-[1] flex min-h-screen flex-col">
+    <div
+      className={`relative z-[1] flex flex-col ${
+        onCase ? "h-[100dvh] overflow-hidden" : "min-h-screen"
+      }`}
+    >
       <header className="sticky top-0 z-[var(--z-sticky)] border-b border-slate-800/80 bg-[color-mix(in_oklab,var(--color-header)_92%,transparent)] px-4 py-3 backdrop-blur-md lg:px-8 2xl:px-14">
         <div className="mx-auto flex flex-col items-center justify-between gap-3 md:flex-row">
           <div className="flex w-full min-w-0 items-center justify-between gap-3 md:w-auto md:gap-8">
@@ -177,8 +182,13 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </div>
 
 
-      <main className="w-full flex-1 bg-[var(--color-section)]">{children}</main>
+      <main
+        className={`w-full flex-1 bg-[var(--color-section)] ${onCase ? "min-h-0 overflow-hidden" : ""}`}
+      >
+        {children}
+      </main>
 
+      {!onCase && (
       <footer className="w-full border-t border-slate-800/80 bg-[var(--color-sunk)] px-4 py-8 lg:px-8 2xl:px-14">
         <div className="mx-auto flex flex-col items-center justify-between gap-4 text-xs text-slate-400 sm:flex-row">
           <span className="flex flex-wrap items-center justify-center gap-2">
@@ -197,6 +207,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </a>
         </div>
       </footer>
+      )}
     </div>
   );
 }

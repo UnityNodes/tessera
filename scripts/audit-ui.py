@@ -193,19 +193,19 @@ with sync_playwright() as p:
     print("\n── ──")
     for d in EXPECTED["decks"]:
         go(f"/case/{d['id']}")
-        # : , ,
-        # of M. , ,
-        # -, .
-        tally = page.locator("div", has=page.get_by_text("still sealed", exact=True)).last
-        # inner_text , ,
-        # text-transform DOM .
-        # re.I .
-        head = re.search(
-            r"still sealed\s+([\d\s,]+)\s+of\s+([\d\s,]+)", tally.inner_text(), re.I
-        )
-        check(f"#{d['id']}: ", bool(head), "still sealed / N / of M")
+        # :
+        # ,
+        # . .
+        # , : body
+        # , \s+
+        # 092.
+        def chip(label):
+            return page.get_by_text(label, exact=True).last.locator("xpath=..").inner_text()
+
+        head = re.search(r"([\d,\u00a0 ]+)of([\d,\u00a0 ]+)", chip("sealed"), re.I)
+        check(f"#{d['id']}: ", bool(head), "N of M sealed")
         same(
-            f"#{d['id']}: still sealed",
+            f"#{d['id']}: sealed",
             d["remaining"],
             whole(num(head.group(1)) if head else None),
         )
@@ -214,14 +214,16 @@ with sync_playwright() as p:
             d["size"],
             whole(num(head.group(2)) if head else None),
         )
+        same(f"#{d['id']}: drawn", d["drawn"], whole(num(chip("drawn"))))
 
-        grid = page.get_by_role("img", name=re.compile(r"slots still sealed")).get_attribute(
-            "aria-label"
+        # ,
+        # : ,
+        # . , -
+        # , .
+        fits = page.evaluate(
+            "() => document.documentElement.scrollHeight - window.innerHeight <= 1"
         )
-        same(f"#{d['id']}: ", d["remaining"], whole(num(grid)))
-
-        strip = page.locator("text=/\\d+ drawn · \\d+ sealed/").first.inner_text()
-        same(f"#{d['id']}: ()", d["drawn"], whole(num(strip)))
+        check(f"#{d['id']}: ", fits, "")
 
     # ── ─────────────────────────────────
     print("\n── ──")

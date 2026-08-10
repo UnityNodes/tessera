@@ -1,29 +1,22 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useAccount } from "wagmi";
 import { formatUnits } from "viem";
 import { motion, AnimatePresence } from "motion/react";
-import { ChevronLeft, Sparkles, Lock, ShieldCheck } from "lucide-react";
+import { ChevronLeft, Sparkles, Lock } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Tally } from "@/components/ui/Tally";
 import { TierPlate } from "@/components/ui/TierPlate";
 import { Case } from "@/components/Case";
 import { Chest, skinOf } from "@/components/Chest";
 import { OpenTheatre } from "@/components/OpenTheatre";
-import { Drops } from "@/components/Drops";
-import { PoolGrid } from "@/components/PoolGrid";
-import { MegapotPanel } from "@/components/MegapotPanel";
-import { StakePanel } from "@/components/StakePanel";
 import { StartHere } from "@/components/StartHere";
 import { useDeck } from "@/hooks/useDeck";
 import { useOpenCase } from "@/hooks/useOpenCase";
-import { useInventory, useRefreshInventory, heldWeight, pickForRedeem } from "@/hooks/useInventory";
+import { useInventory, useRefreshInventory } from "@/hooks/useInventory";
 import { useRefreshOpens } from "@/hooks/useOpens";
-import { useRedeem } from "@/hooks/useRedeem";
-import { useStake } from "@/hooks/useStake";
 import { usePool } from "@/hooks/usePool";
 import { useMegapot } from "@/hooks/useMegapot";
 import { useSkins } from "@/hooks/useSkins";
@@ -32,8 +25,6 @@ import {
   specOf,
   slotsPerTier,
   bestTier,
-  ticketsFromWeight,
-  WEIGHT_PER_TICKET,
   isVault,
   isShard,
   type DeckShape,
@@ -78,16 +69,22 @@ export default function CasePage() {
 
   const open = useOpenCase(refresh);
   const [mult, setMult] = useState(1);
-  const redeem = useRedeem(refresh);
-  const stake = useStake(refresh);
+
+  //
+  const stage = useRef<HTMLDivElement>(null);
+  const [art, setArt] = useState(170);
+  useEffect(() => {
+    const el = stage.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      const free = el.getBoundingClientRect().height;
+      setArt(Math.max(96, Math.min(260, Math.floor(free - 8))));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const vault = useVault(refresh);
 
-  const weight = heldWeight(inventory.data);
-  const tesa = (inventory.data ?? []).filter(
-    (sl) => sl.value != null && !sl.spent && !sl.locked && isShard(specOf(sl.value, shape)),
-  ).length;
-  const toRedeem = pickForRedeem(inventory.data);
-  const bonusTickets = ticketsFromWeight(weight);
 
   const vaultSlot = inventory.data?.find(
     (s) =>
@@ -98,10 +95,6 @@ export default function CasePage() {
       s.signatures?.length &&
       isVault(specOf(s.value, shape)),
   );
-
-  const decidingSlot = stake.open
-    ? inventory.data?.find((s) => s.index === stake.decidingSlot)
-    : undefined;
 
   const busy = ["approving", "signing", "confirming", "revealing", "landing"].includes(
     open.state.phase,
@@ -127,9 +120,11 @@ export default function CasePage() {
   const prizes = tiers.filter((t) => t.weight > 0).reduce((n, t) => n + t.count, 0);
   const paying = prizes + deck.vaultUpTo;
   const oneIn = paying > 0 ? Math.max(1, Math.round(deck.size / paying)) : 0;
-
   return (
-    <div className="w-full bg-[var(--color-section)] px-4 py-6 lg:px-8 2xl:px-14">
+     *
+     *
+     */
+    <div className="flex h-full w-full flex-col overflow-hidden bg-[var(--color-section)] px-4 py-3 lg:px-8 2xl:px-14">
       <OpenTheatre
         open={open.state.batch ? { phase: "idle", waitedMs: 0 } : open.state}
         deck={shape}
@@ -138,117 +133,105 @@ export default function CasePage() {
         onClose={open.reset}
       />
 
-      <div className="mx-auto flex max-w-[1320px] flex-col gap-5">
-        <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-4 md:flex-row md:items-end">
-          <div>
+      <div className="mx-auto flex h-full w-full max-w-[1320px] min-h-0 flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2">
+          <div className="flex min-w-0 items-baseline gap-3">
             <Link
               href="/#decks"
-              className="t-label inline-flex items-center gap-1 hover:text-[var(--color-accent-hover)]"
+              className="t-label inline-flex shrink-0 items-center gap-1 hover:text-[var(--color-accent-hover)]"
             >
               <ChevronLeft className="h-4 w-4" />
-              all decks
+              decks
             </Link>
-            <h1 className="t-page mt-2 flex flex-wrap items-baseline gap-3 text-white">
-              <span>{deck.empty ? "Emptied" : (dress?.name ?? best?.name ?? "Sealed")} case</span>
-              <span className="t-chain text-lg font-bold text-[var(--color-ink-dim)]">
-                #{deck.id}
-              </span>
+            <h1 className="t-inscription truncate text-2xl font-extrabold text-white lg:text-3xl">
+              {deck.empty ? "Emptied" : (dress?.name ?? best?.name ?? "Sealed")}
             </h1>
-            <p className="mt-1.5 max-w-xl text-base leading-snug text-slate-200">
-              A dollar buys a real Megapot ticket, the case comes on top. Finite deck, drawn
-              without replacement: what someone else took is gone for you too.
-            </p>
+            <span className="t-chain shrink-0 text-base font-bold text-[var(--color-ink-dim)]">
+              #{deck.id}
+            </span>
           </div>
 
-          <div className="flex items-end gap-7">
-            <Tally label="still sealed" value={deck.remaining} note={`of ${deck.size}`} />
-            <Tally label="drawn" value={deck.drawn} />
-            {oneIn > 0 && <Tally label="pays, as cut" value={`1 in ${oneIn}`} />}
+          <div className="flex flex-wrap items-center gap-2">
+            <Chip label="sealed" value={`${deck.remaining} of ${deck.size}`} />
+            <Chip label="drawn" value={String(deck.drawn)} />
+            {oneIn > 0 && <Chip label="pays" value={`1 in ${oneIn}`} />}
+            {deck.vaultUpTo > 0 && (
+              <Chip
+                label="vault"
+                value={`$${Number(formatUnits(deck.vault, 6)).toFixed(2)}`}
+                tone="var(--color-tier-vault)"
+              />
+            )}
           </div>
         </div>
 
-        <section className="flex flex-col gap-5">
-          <div className="flex flex-col gap-4">
-          <div
-            className="frame relative flex w-full flex-col"
-            style={{ borderColor: `color-mix(in oklab, ${ink} 20%, transparent)` }}
-          >
-            <span className="absolute left-5 top-5 z-10">
-              <TierPlate name={deck.empty ? "emptied" : (dress?.name ?? best?.name ?? "sealed")} ink={ink} />
-            </span>
-            <span className="t-chain absolute right-5 top-5 z-10 text-xs text-slate-400">
-              {deck.remaining} sealed
-            </span>
+        <div
+          className="frame relative flex min-h-0 flex-1 flex-col items-center px-4 py-3"
+          style={{ borderColor: `color-mix(in oklab, ${ink} 20%, transparent)` }}
+        >
+          <span className="absolute left-4 top-4 z-10">
+            <TierPlate
+              name={deck.empty ? "emptied" : (dress?.name ?? best?.name ?? "sealed")}
+              ink={ink}
+            />
+          </span>
 
-            <div className="relative mx-auto grid aspect-square w-full max-w-[400px] place-items-center p-6">
-              <span
-                aria-hidden
-                className="pointer-events-none absolute inset-x-12 inset-y-6 rounded-full opacity-20 blur-3xl"
-                style={{ background: ink }}
+          <div ref={stage} className="relative grid min-h-0 w-full flex-1 place-items-center py-1">
+            <span
+              aria-hidden
+              className="pointer-events-none absolute h-40 w-64 rounded-full opacity-25 blur-3xl"
+              style={{ background: ink }}
+            />
+            <div className="relative">
+              <Case
+                phase={open.state.phase === "done" && !open.state.batch ? "opened" : "idle"}
+                value={open.state.value}
+                deck={shape}
+                risk={open.state.risk}
+                vault={deck.vault}
+                skin={deck.cid}
+                art={skinUrl(deckId)}
+                size={art}
+                onClick={
+                  canOpen ? () => open.open({ deckId, needsApproval: game.needsApproval }) : undefined
+                }
               />
-              <div className="relative">
-                <Case
-                  phase={open.state.phase === "done" ? "opened" : "idle"}
-                  value={open.state.value}
-                  deck={shape}
-                  risk={open.state.risk}
-                  vault={deck.vault}
-                  skin={deck.cid}
-                  art={skinUrl(deckId)}
-                  size={330}
-                  onClick={
-                    canOpen
-                      ? () => open.open({ deckId, needsApproval: game.needsApproval })
-                      : undefined
-                  }
-                />
-                {open.state.phase === "idle" && !deck.empty && (
-                  <span
-                    className="t-chain absolute -bottom-2 left-1/2 -translate-x-1/2 rounded border px-3 py-1 text-xs font-extrabold"
-                    style={{
-                      background: "rgb(0 0 0 / 0.45)",
-                      borderColor: `color-mix(in oklab, ${ink} 30%, transparent)`,
-                      color: ink,
-                    }}
-                  >
-                    $1.00
-                  </span>
-                )}
-              </div>
             </div>
+          </div>
 
-            <div className="border-t border-slate-800/70 p-5">
-              <div className="min-h-[3.5rem]">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={open.state.phase + (open.state.value ?? "")}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Result open={open.state} deck={shape} />
-                  </motion.div>
-                </AnimatePresence>
-              </div>
+          <div className="min-h-[2rem] w-full">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={open.state.phase + (open.state.value ?? "")}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="text-center"
+              >
+                {!open.state.batch && <Result open={open.state} deck={shape} />}
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
-              <div className="mt-3">
-                {deck.empty ? (
-                  <p className="text-base text-slate-200">Every case in this deck has been opened.</p>
-                ) : !isConnected || !game.canAfford ? (
-                  <StartHere what="A case" />
-                ) : (
-                  <div className="flex flex-col items-center">
-                   <div className="flex flex-wrap items-center justify-center gap-3">
-                    {game.maxBatch > 1 && (
-                    <div className="flex items-center gap-1 rounded-[var(--radius-control)] border border-slate-800 bg-slate-950 p-1">
-                      {[1, 2, 3, 4, 5, 10].filter((n) => n <= game.maxBatch).map((n) => (
+          {deck.empty ? (
+            <p className="text-base text-slate-200">Every case in this deck has been opened.</p>
+          ) : !isConnected || !game.canAfford ? (
+            <StartHere what="A case" />
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                {game.maxBatch > 1 && (
+                  <div className="flex items-center gap-1 rounded-[var(--radius-control)] border border-slate-800 bg-slate-950 p-1">
+                    {[1, 2, 3, 4, 5, 10]
+                      .filter((n) => n <= game.maxBatch)
+                      .map((n) => (
                         <button
                           key={n}
                           type="button"
                           disabled={n > deck.remaining}
                           onClick={() => setMult(n)}
-                          className={`min-w-10 cursor-pointer rounded-[var(--radius-chip)] px-3 py-2 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-30 ${
+                          className={`min-w-10 cursor-pointer rounded-[var(--radius-chip)] px-3 py-1.5 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-30 ${
                             mult === n ? "text-white" : "text-slate-400 hover:text-slate-200"
                           }`}
                           style={
@@ -263,219 +246,124 @@ export default function CasePage() {
                           x{n}
                         </button>
                       ))}
-                    </div>
-                    )}
-
-                    <Button
-                      disabled={busy}
-                      className="px-7 py-3.5 text-base"
-                      onClick={() =>
-                        open.state.phase === "done" || open.state.phase === "failed"
-                          ? open.reset()
-                          : mult > 1
-                            ? open.openBatch({
-                                deckId,
-                                needsApproval: game.needsApproval,
-                                count: mult,
-                              })
-                            : open.open({ deckId, needsApproval: game.needsApproval })
-                      }
-                    >
-                      <Sparkles className="h-5 w-5 fill-slate-950" />
-                      {busy
-                        ? "…"
-                        : open.state.phase === "done" || open.state.phase === "failed"
-                          ? `Open again • $${mult}`
-                          : game.needsApproval
-                            ? `Approve once, then open • $${mult}`
-                            : mult > 1
-                              ? `Open ${mult} cases • $${mult}`
-                              : "Open a case • $1"}
-                    </Button>
-
-                    {deck.vaultUpTo > 0 && open.state.phase !== "done" && (
-                      <ForfeitAction
-                        disabled={busy}
-                        onClick={() =>
-                          open.open({ deckId, needsApproval: game.needsApproval, risk: true })
-                        }
-                      />
-                    )}
-                   </div>
-                   {deck.vaultUpTo > 0 && open.state.phase !== "done" && !open.state.batch && (
-                     <ForfeitNote vault={deck.vault} />
-                   )}
                   </div>
                 )}
 
-                {open.state.batch && <BatchResult state={open.state} deck={shape} />}
+                <Button
+                  disabled={busy}
+                  className="px-7 py-3 text-base"
+                  onClick={() =>
+                    open.state.phase === "done" || open.state.phase === "failed"
+                      ? open.reset()
+                      : mult > 1
+                        ? open.openBatch({ deckId, needsApproval: game.needsApproval, count: mult })
+                        : open.open({ deckId, needsApproval: game.needsApproval })
+                  }
+                >
+                  <Sparkles className="h-5 w-5 fill-slate-950" />
+                  {busy
+                    ? "…"
+                    : open.state.phase === "done" || open.state.phase === "failed"
+                      ? `Open again • $${mult}`
+                      : game.needsApproval
+                        ? `Approve once • $${mult}`
+                        : mult > 1
+                          ? `Open ${mult} • $${mult}`
+                          : "Open a case • $1"}
+                </Button>
 
-                {open.state.txUrl && !busy && (
-                  <a
-                    href={open.state.txUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="t-label mt-3 block hover:text-[var(--color-accent-hover)]"
-                  >
-                    view transaction ↗
-                  </a>
+                {deck.vaultUpTo > 0 && open.state.phase !== "done" && (
+                  <ForfeitAction
+                    disabled={busy}
+                    onClick={() =>
+                      open.open({ deckId, needsApproval: game.needsApproval, risk: true })
+                    }
+                  />
                 )}
               </div>
 
               {vaultSlot && vault.state.phase !== "done" && (
-                <div className="mt-4">
-                  <Button
-                    block
-                    className="py-4"
-                    disabled={vault.state.phase === "signing" || vault.state.phase === "confirming"}
-                    onClick={() =>
-                      vault.claim(vaultSlot.index, vaultSlot.value!, vaultSlot.signatures!)
-                    }
-                  >
-                    <Lock className="h-4 w-4" />
-                    {vault.state.phase === "signing" || vault.state.phase === "confirming"
-                      ? "Opening the vault…"
-                      : `Take the vault • $${Number(formatUnits(deck.vault, 6)).toFixed(2)}`}
-                  </Button>
-                  {vault.state.error && (
-                    <p className="mt-3 text-sm text-[var(--color-danger)]">
-                      {vault.state.error.title}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {vault.state.phase === "done" && (
-                <p className="mt-4 text-lg" style={{ color: "var(--color-tier-vault)" }}>
-                  The vault paid you ${Number(formatUnits(vault.state.paid ?? 0n, 6)).toFixed(2)}.
-                </p>
-              )}
-            </div>
-          </div>
-
-          {deck.vaultUpTo > 0 && (
-              <div
-                className="slab p-5"
-                style={{
-                  borderColor: "color-mix(in oklab, var(--color-tier-vault) 32%, transparent)",
-                  boxShadow: "0 0 25px color-mix(in oklab, var(--color-tier-vault) 12%, transparent)",
-                }}
-              >
-                <span className="t-label flex items-center gap-2" style={{ color: "var(--color-tier-vault)" }}>
-                  <Lock className="h-3.5 w-3.5" />
-                  the vault
-                </span>
-                <span
-                  className="t-chain mt-2 block text-3xl font-bold leading-none"
-                  style={{ color: "var(--color-tier-vault)" }}
+                <Button
+                  className="px-6 py-3"
+                  disabled={vault.state.phase === "signing" || vault.state.phase === "confirming"}
+                  onClick={() => vault.claim(vaultSlot.index, vaultSlot.value!, vaultSlot.signatures!)}
                 >
-                  ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
-                </span>
-                <VaultStatus
-                  taken={Boolean(pool.data?.vaultTaken)}
-                  mine={Boolean(vaultSlot)}
-                  remaining={deck.remaining}
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-2">
-
-            <div className="slab p-5">
-              <Drops deck={shape} drawn={deck.drawn} pool={pool.data} />
+                  <Lock className="h-4 w-4" />
+                  {vault.state.phase === "signing" || vault.state.phase === "confirming"
+                    ? "Opening the vault…"
+                    : `Take the vault • $${Number(formatUnits(deck.vault, 6)).toFixed(2)}`}
+                </Button>
+              )}
             </div>
+          )}
 
-            <div className="px-1">
-              <div className="mb-2 flex flex-wrap items-baseline justify-between gap-3">
-                <span className="t-label">the deck, one cell per case</span>
-                <span className="t-chain text-xs text-slate-400">
-                  {deck.drawn} drawn · {deck.remaining} sealed
-                </span>
-              </div>
-              <PoolGrid size={deck.size} drawn={deck.drawn} ink={ink} />
-            </div>
+          {open.state.batch && <BatchResult state={open.state} deck={shape} />}
+        </div>
+
+        <div>
+          <div className="mb-2 flex flex-wrap items-baseline justify-between gap-3">
+            <span className="t-label">what is in this case</span>
+            <span className="t-chain text-xs text-slate-400">
+              {deck.remaining} of {deck.size} unopened
+            </span>
           </div>
-        </section>
-
-        {(bonusTickets > 0 || tesa > 0 || stake.open || stake.bankedWeight > 0) && (
-          <section className="slab p-6 sm:p-8">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <p className="t-label">your bonus</p>
-              {tesa > 0 && (
-                <span
-                  className="t-chain flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-extrabold"
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+            {tiers
+              .filter((t) => t.count > 0)
+              .map((t) => (
+                <div
+                  key={t.spec.name}
+                  className="flex flex-col items-center gap-1 rounded-[var(--radius-control)] border px-2 py-2"
                   style={{
-                    borderColor: "color-mix(in oklab, var(--color-tier-shard) 35%, transparent)",
-                    background: "color-mix(in oklab, var(--color-tier-shard) 8%, transparent)",
-                    color: "var(--color-tier-shard)",
+                    borderColor: `color-mix(in oklab, ${t.spec.ink} 32%, transparent)`,
+                    background: `color-mix(in oklab, ${t.spec.ink} 7%, var(--color-surface))`,
                   }}
                 >
-                  {tesa} TESA
-                  <span className="text-[var(--color-ink-dim)]">
-                    {tesa % WEIGHT_PER_TICKET === 0
-                      ? "· a ticket ready"
-                      : `· ${WEIGHT_PER_TICKET - (tesa % WEIGHT_PER_TICKET)} to a ticket`}
+                  <span
+                    className="t-chain self-start text-xs font-extrabold leading-none"
+                    style={{ color: t.spec.ink }}
+                  >
+                    {isVault(t.spec)
+                      ? `$${Number(formatUnits(deck.vault, 6)).toFixed(2)}`
+                      : t.spec.tickets > 0
+                        ? `+${t.spec.tickets}`
+                        : ", "}
                   </span>
-                </span>
-              )}
-            </div>
-            <StakePanel
-              stake={stake}
-              toRedeem={toRedeem}
-              decided={
-                decidingSlot?.value != null && decidingSlot.signatures && !decidingSlot.locked
-                  ? { value: decidingSlot.value, signatures: decidingSlot.signatures }
-                  : undefined
-              }
-              decidingInBattle={Boolean(decidingSlot?.locked)}
-              onRedeem={() => redeem.redeem(toRedeem)}
-              redeeming={redeem.state.phase === "signing" || redeem.state.phase === "confirming"}
-              treasury={game.treasury}
-              ticketPrice={game.ticketPrice}
-              treasuryPerOpen={game.treasuryPerOpen}
-            />
-
-            {redeem.state.phase === "done" && (
-              <p className="mt-4 text-sm text-[var(--color-accent-hover)]">
-                Claimed. The game bought you {redeem.state.tickets ?? 1} more real ticket
-                {(redeem.state.tickets ?? 1) > 1 ? "s" : ""}.
-              </p>
-            )}
-            {redeem.state.error && (
-              <p className="mt-4 text-sm text-[var(--color-danger)]">{redeem.state.error.title}</p>
-            )}
-          </section>
-        )}
-
-
-
-        <details id="megapot" className="slab group scroll-mt-24 p-5">
-          <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-x-3 gap-y-1 [&::-webkit-details-marker]:hidden">
-            <span className="t-label flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4" />
-              your Megapot, from here
-            </span>
-            <span className="text-sm">
-              <span style={{ color: megapot.stalled ? "var(--color-tier-vault)" : undefined }}>
-                {megapot.stalled
-                  ? "a real ticket, but no draw on this testnet"
-                  : "a real ticket in the next draw"}
-              </span>
-              <span className="text-slate-400">
-                {", "}
-                <span className="group-open:hidden">open</span>
-                <span className="hidden group-open:inline">close</span>
-                <span className="ml-1 inline-block transition-transform group-open:rotate-180">▾</span>
-              </span>
-            </span>
-          </summary>
-          <div className="mt-5">
-            <MegapotPanel mp={megapot} />
+                  <Chest rarity={t.spec.rarity} size={46} />
+                  <span
+                    className="t-chain w-full truncate text-center text-xs font-bold leading-none"
+                    style={{ color: t.spec.ink }}
+                  >
+                    {t.spec.name}
+                  </span>
+                  <span className="t-chain text-xs leading-none text-slate-400">
+                    ×{t.count}
+                  </span>
+                </div>
+              ))}
           </div>
-        </details>
+        </div>
       </div>
     </div>
+  );
+}
+
+function Chip({ label, value, tone }: { label: string; value: string; tone?: string }) {
+  return (
+    <span
+      className="flex items-baseline gap-1.5 rounded-[var(--radius-chip)] border px-2.5 py-1"
+      style={{
+        borderColor: tone
+          ? `color-mix(in oklab, ${tone} 30%, transparent)`
+          : "var(--edge)",
+        background: "var(--color-surface)",
+      }}
+    >
+      <span className="t-chain text-sm font-bold" style={{ color: tone ?? "var(--color-ink)" }}>
+        {value}
+      </span>
+      <span className="t-label">{label}</span>
+    </span>
   );
 }
 
@@ -541,7 +429,7 @@ function BatchResult({ state, deck }: { state: { batch?: { handle: string; index
             >
               <Chest rarity={spec?.rarity ?? "sealed"} size={44} />
               <span
-                className="t-chain truncate text-[0.6875rem] font-bold leading-none"
+                className="t-chain truncate text-xs font-bold leading-none"
                 style={{ color: spec?.ink ?? "var(--color-ink-dim)" }}
               >
                 {spec ? spec.name : "…"}
@@ -554,55 +442,7 @@ function BatchResult({ state, deck }: { state: { batch?: { handle: string; index
   );
 }
 
-function ForfeitNote({ vault }: { vault: bigint }) {
-  return (
-    <p className="mt-2.5 text-center text-sm leading-snug text-slate-400">
-      double on whatever you draw · the vault takes the dollar and stands at{" "}
-      <span style={{ color: "var(--color-tier-vault)" }}>
-        ${Number(formatUnits(vault, 6)).toFixed(2)}
-      </span>
-    </p>
-  );
-}
 
-/**
- *
- */
-function VaultStatus({
-  taken,
-  mine,
-  remaining,
-}: {
-  taken: boolean;
-  mine: boolean;
-  remaining: number;
-}) {
-  const [ink, label, note] = mine
-    ? ["var(--color-tier-vault)", "yours to take", "you drew it, claim it below"]
-    : taken
-      ? ["var(--color-ink-dim)", "drawn", "it pays out the moment its holder claims it"]
-      : ["var(--color-tier-denarius)", "in pool", `one case in ${remaining} opens it`];
-
-  return (
-    <>
-      <span className="mt-3 flex items-center gap-2">
-        <span
-          aria-hidden
-          className="h-1.5 w-1.5 rounded-full"
-          style={{
-            background: ink,
-            boxShadow: `0 0 8px ${ink}`,
-            animation: taken && !mine ? undefined : "marker-live 2s ease-in-out infinite",
-          }}
-        />
-        <span className="t-label" style={{ color: ink }}>
-          {label}
-        </span>
-      </span>
-      <p className="mt-2 text-sm text-slate-300">{note}</p>
-    </>
-  );
-}
 
 /**
  *
