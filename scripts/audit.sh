@@ -50,6 +50,12 @@ if [ -n "${BATTLE:-}" ]; then
   run "" env BATTLE_UI=1 OPENS=0 node browser-e2e.cjs "$URL"
 fi
 
+# : x1 x2 x3 x4 x5 x10, .
+# ', .
+if [ -n "${BATCH:-}" ]; then
+  run "" node e2e-batch.cjs
+fi
+
 # . , :
 #
 # . CREATE=1 .
