@@ -94,7 +94,7 @@ export default function CreatePage() {
                 id="deck-name"
                 value={name}
                 onChange={(e) => setName(e.target.value.slice(0, 20))}
-                placeholder="kungfumode"
+                placeholder="unnamed"
                 className="w-full rounded-[var(--radius-control)] border border-slate-800 bg-slate-950 px-4 py-3 text-lg text-white outline-none placeholder:text-slate-500 focus:border-[var(--color-accent)]"
               />
               <p className="mt-2 text-sm text-slate-400">
