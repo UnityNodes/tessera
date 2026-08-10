@@ -142,8 +142,12 @@ with sync_playwright() as p:
             continue
         card = page.locator(f"a[href='/case/{d['id']}']").last
         txt = card.inner_text()
-        sealed = num(re.search(r"Still sealed:\s*([\d\s,]+)", txt).group(1))
-        same(f"#{d['id']}: still sealed", d["remaining"], whole(sealed))
+        # , Still sealed: 95
+        # 95 sealed', .
+        # , ,
+        # , .
+        m_sealed = re.search(r"([\d\s,]+)\s+sealed", txt)
+        same(f"#{d['id']}: sealed", d["remaining"], whole(num(m_sealed.group(1)) if m_sealed else None))
 
         # TESA ,
         # . :
@@ -151,7 +155,9 @@ with sync_playwright() as p:
         # , .
         if d["remaining"] > 0:
             if d["tesa"] > 0:
-                m = re.search(r"([\d\s,]+)\s+TESA still in the deck", txt)
+                # · 40 TESA,
+                # . .
+                m = re.search(r"([\d\s,]+)\s+TESA", txt)
                 same(
                     f"#{d['id']}: TESA ",
                     d["tesa"],
@@ -159,13 +165,15 @@ with sync_playwright() as p:
                 )
             else:
                 check(
-                    f"#{d['id']}: , TESA ",
-                    "no TESA in this deck" in txt,
-                    "no TESA in this deck",
+                    f"#{d['id']}: TESA ",
+                    "TESA" not in txt,
+                    "TESA, ",
                 )
 
         if d["hasVault"]:
-            vault = re.search(r"Vault:\s*\$([\d.,]+)", txt)
+            # Vault:
+            # N sealed. .
+            vault = re.search(r"\$([\d.,]+)", txt)
             # :
             # claimVault, .
             check(
@@ -175,7 +183,11 @@ with sync_playwright() as p:
                 f"${vault.group(1) if vault else ''}",
             )
         else:
-            check(f"#{d['id']}: ", "No vault" in txt, "No vault")
+            check(
+                f"#{d['id']}: ",
+                "no vault" in txt.lower(),
+                "no vault",
+            )
 
     # ── ───────────────────────────────────────────────────
     print("\n── ──")

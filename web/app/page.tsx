@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { formatUnits } from "viem";
 import { Sparkles, Swords } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -113,7 +114,7 @@ export default function Home() {
           {shown.length === 0 ? (
             <p className="py-10 text-center text-slate-300">Reading the chain…</p>
           ) : (
-            <div className="grid w-full gap-5 [grid-template-columns:repeat(auto-fill,minmax(19rem,1fr))]">
+            <div className="grid w-full gap-5 [grid-template-columns:repeat(auto-fill,minmax(15rem,1fr))]">
               {shown.map((d) => (
                 <DeckCard key={d.id} deck={d} art={skinUrl(d.id)} />
               ))}
@@ -194,9 +195,32 @@ function StatCard({ value, label, tone }: { value: string; label: string; tone?:
   );
 }
 
+/**
+ *
+ *
+ */
+function useHeroSize(min = 56) {
+  const box = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState(120);
+
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      const r = el.getBoundingClientRect();
+      setSize(Math.max(min, Math.floor(Math.min(r.height - 14, r.width * 0.5))));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [min]);
+
+  return [box, size] as const;
+}
+
 function DeckCard({ deck, art }: { deck: DeckInfo; art?: string }) {
   const tiers = slotsPerTier(deck);
   const best = bestTier(deck);
+  const [heroBox, heroSize] = useHeroSize();
 
   const top = tiers.reduce((n, t) => Math.max(n, t.spec.tickets), 0);
   const prizes = tiers.filter((t) => t.weight > 0).reduce((n, t) => n + t.count, 0);
@@ -216,37 +240,38 @@ function DeckCard({ deck, art }: { deck: DeckInfo; art?: string }) {
     <Link
       data-deck={deck.id}
       href={`/case/${deck.id}`}
-      className="group relative flex flex-col overflow-hidden rounded-[var(--radius-panel)] border bg-slate-900/60 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-slate-900/90"
+      //
+      className="group relative flex aspect-square flex-col overflow-hidden rounded-[var(--radius-panel)] border bg-slate-900/60 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-slate-900/90"
       style={{
         borderColor: `color-mix(in oklab, ${ink} 40%, transparent)`,
         boxShadow: `0 0 25px color-mix(in oklab, ${ink} 22%, transparent)`,
       }}
     >
-      <div className="relative aspect-square w-full">
-        <div className="absolute inset-0 flex items-center justify-center p-5">
-          <span
-            aria-hidden
-            className="absolute inset-x-6 inset-y-2 rounded-full opacity-30 blur-xl transition-opacity group-hover:opacity-60"
-            style={{ background: ink }}
-          />
+      <div className="relative flex min-h-0 flex-1 items-center justify-center p-3">
+        <span
+          aria-hidden
+          className="absolute inset-x-6 inset-y-4 rounded-full opacity-30 blur-xl transition-opacity group-hover:opacity-60"
+          style={{ background: ink }}
+        />
+        <div ref={heroBox} className="relative z-10 flex h-full w-full items-center justify-center [&_img]:max-h-full [&_img]:w-auto [&_svg]:max-h-full">
           {deck.empty ? (
-            <Chest rarity="grout" size={190} className="relative z-10" />
+            <Chest rarity="grout" size={heroSize} />
           ) : (
             <DeckHero
               deck={deck}
-              size={200}
+              size={heroSize}
               skin={deck.cid}
               art={art}
-              className="relative z-10 transition-transform duration-300 group-hover:scale-105"
+              className="transition-transform duration-300 group-hover:scale-105"
             />
           )}
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col items-center space-y-3 px-5 pb-5 text-center">
+      <div className="flex flex-col items-center space-y-1 px-3 pb-1.5 text-center">
 
         <h3
-          className="t-black flex flex-wrap items-baseline justify-center gap-2 text-2xl tracking-wide"
+          className="t-black flex w-full items-baseline justify-center gap-1.5 truncate text-xl tracking-wide"
           style={{ color: ink }}
         >
           <span>{title}</span>
@@ -256,61 +281,45 @@ function DeckCard({ deck, art }: { deck: DeckInfo; art?: string }) {
         </h3>
 
         {!deck.empty && oneIn > 0 && (
-          <p
-            className="t-chain rounded-full border px-3 py-1 text-sm font-extrabold"
-            style={{
-              borderColor: `color-mix(in oklab, ${ink} 30%, transparent)`,
-              background: `color-mix(in oklab, ${ink} 8%, transparent)`,
-              color: ink,
-            }}
-          >
-            1 in {oneIn} pays
-          </p>
-        )}
-
-
-        <p className="min-h-[72px] px-2 text-sm leading-relaxed text-slate-300">
-          {deck.empty ? (
-            "Every case in this deck has been opened."
-          ) : (
-            <>
-              Best case{" "}
-              <span style={{ color: ink }}>{top > 0 ? ticketsLabel(top) : "the vault"}</span>.{" "}
-              {deck.vaultUpTo > 0
-                ? "One case in the deck opens the vault and takes all of it."
-                : "No vault here, this deck pays in tickets only."}
-            </>
-          )}
-        </p>
-
-        {!deck.empty && (
-          <p className="t-chain text-xs font-bold">
-            {tesa > 0 ? (
-              <span style={{ color: "var(--color-tier-shard)" }}>
-                {tesa} TESA still in the deck · five make a ticket
+          <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+            <p
+              className="t-chain rounded-full border px-2.5 py-0.5 text-xs font-extrabold"
+              style={{
+                borderColor: `color-mix(in oklab, ${ink} 30%, transparent)`,
+                background: `color-mix(in oklab, ${ink} 8%, transparent)`,
+                color: ink,
+              }}
+            >
+              1 in {oneIn} pays
+            </p>
+            <span className="t-chain text-xs font-bold" style={{ color: ink }}>
+              {top > 0 ? ticketsLabel(top) : "the vault"}
+            </span>
+            {tesa > 0 && (
+              <span
+                className="t-chain text-xs font-bold"
+                style={{ color: "var(--color-tier-shard)" }}
+              >
+                · {tesa} TESA
               </span>
-            ) : (
-              <span className="text-slate-400">no TESA in this deck</span>
             )}
-          </p>
+          </div>
         )}
+
       </div>
 
-      <div className="mt-auto flex flex-col space-y-2 border-t border-slate-800/80 px-5 pb-5 pt-4">
+      <div className="mt-auto flex flex-col space-y-1 border-t border-slate-800/80 px-3 pb-2.5 pt-2">
         <div className="t-chain flex items-center justify-between text-xs font-semibold text-slate-300">
           <span>
-            Still sealed: <strong className="text-white">{deck.remaining}</strong>
+            <strong className="text-white">{deck.remaining}</strong> sealed
           </span>
           <span>
             {deck.vaultUpTo > 0 ? (
-              <>
-                Vault:{" "}
-                <strong style={{ color: "var(--color-tier-vault)" }}>
-                  ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
-                </strong>
-              </>
+              <strong style={{ color: "var(--color-tier-vault)" }}>
+                ${Number(formatUnits(deck.vault, 6)).toFixed(2)}
+              </strong>
             ) : (
-              "No vault"
+              "no vault"
             )}
           </span>
         </div>
@@ -326,14 +335,15 @@ function DeckCard({ deck, art }: { deck: DeckInfo; art?: string }) {
           />
         </div>
 
-        <div className="pt-2 text-center opacity-0 transition-opacity group-hover:opacity-100">
-          <span
-            className="t-label inline-block rounded-[var(--radius-chip)] px-3 py-1"
-            style={{ background: `color-mix(in oklab, ${ink} 18%, transparent)`, color: ink }}
-          >
-            {deck.empty ? "nothing left" : "open for $1"}
-          </span>
-        </div>
+      </div>
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-14 z-20 text-center opacity-0 transition-opacity group-hover:opacity-100">
+        <span
+          className="t-label inline-block rounded-[var(--radius-chip)] px-3 py-1 backdrop-blur-sm"
+          style={{ background: `color-mix(in oklab, ${ink} 22%, var(--color-surface))`, color: ink }}
+        >
+          {deck.empty ? "nothing left" : "open for $1"}
+        </span>
       </div>
     </Link>
   );
