@@ -133,43 +133,58 @@ export function OpenTheatre({
               </p>
               {opened && allLanded ? (
                  *
-                <div className="flex flex-wrap items-center justify-center gap-3 px-2">
+                <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-4 px-2">
                   {open.batch.map((b, i) => {
                     const sp = b.value != null ? specOf(b.value, deck) : null;
                     const prize = Boolean(sp && isPrize(sp));
+                    const chest = Math.max(84, Math.min(260, Math.round(1180 / open.batch!.length)));
                     return (
                       <motion.div
                         key={b.handle}
-                        initial={{ scale: 0.4, opacity: 0, y: 24 }}
+                        initial={{ scale: 0.5, opacity: 0, y: 26 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         transition={{
-                          delay: still ? 0 : i * 0.09,
-                          duration: 0.5,
-                          ease: [0.16, 0.84, 0.28, 1],
+                          delay: still ? 0 : i * 0.1,
+                          duration: 0.55,
+                          ease: [0.34, 1.3, 0.5, 1],
                         }}
-                        className="flex flex-col items-center gap-1 rounded-[var(--radius-control)] border px-3 py-3"
-                        style={{
-                          borderColor: sp
-                            ? `color-mix(in oklab, ${sp.ink} ${prize ? 55 : 22}%, transparent)`
-                            : "var(--edge)",
-                          background: sp
-                            ? `color-mix(in oklab, ${sp.ink} ${prize ? 12 : 5}%, var(--color-surface))`
-                            : "var(--color-surface)",
-                          boxShadow: prize
-                            ? `0 0 26px color-mix(in oklab, ${sp!.ink} 30%, transparent)`
-                            : undefined,
-                          opacity: prize ? 1 : 0.72,
-                        }}
+                        className="flex flex-col items-center"
                       >
-                        <Chest rarity={sp?.rarity ?? "sealed"} size={64} open={Boolean(sp)} />
                         <span
-                          className="t-chain text-xs font-bold leading-none"
+                          className="relative grid place-items-center"
+                          style={{ width: chest, height: chest }}
+                        >
+                          {prize && !still && (
+                            <span
+                              aria-hidden
+                              className="pointer-events-none absolute rounded-full"
+                              style={{
+                                width: chest,
+                                height: chest,
+                                background: `radial-gradient(closest-side, ${sp!.ink}, transparent 66%)`,
+                                filter: "blur(26px)",
+                                opacity: 0.5,
+                              }}
+                            />
+                          )}
+                          <Chest
+                            rarity={sp?.rarity ?? "sealed"}
+                            size={chest}
+                            open={Boolean(sp)}
+                            className="relative z-10"
+                          />
+                        </span>
+                        <span
+                          className="t-chain -mt-1 text-sm font-bold leading-none"
                           style={{ color: sp?.ink ?? "var(--color-ink-dim)" }}
                         >
                           {sp ? sp.name : "…"}
                         </span>
                         {sp && sp.tickets > 0 && (
-                          <span className="t-chain text-xs leading-none" style={{ color: sp.ink }}>
+                          <span
+                            className="t-chain mt-1 text-sm font-extrabold leading-none"
+                            style={{ color: sp.ink }}
+                          >
                             +{sp.tickets}
                           </span>
                         )}
