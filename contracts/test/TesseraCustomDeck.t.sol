@@ -4,6 +4,7 @@ pragma solidity ^0.8.29;
 import {Test} from "forge-std/Test.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TesseraDeck} from "../src/TesseraDeck.sol";
+import {DeployTessera} from "./helpers/DeployTessera.sol";
 import {MegapotLegacyAdapter} from "../src/adapters/MegapotLegacyAdapter.sol";
 import {IMegapot} from "../src/interfaces/IMegapot.sol";
 
@@ -29,8 +30,7 @@ contract TesseraCustomDeckTest is Test {
         vm.createSelectFork(vm.envOr("BASE_SEPOLIA_RPC_URL", string("https://sepolia.base.org")));
 
         MegapotLegacyAdapter adapter = new MegapotLegacyAdapter(MEGAPOT);
-        vm.prank(owner);
-        deck = new TesseraDeck(adapter);
+        deck = DeployTessera.behindProxy(adapter, owner);
 
         vm.deal(owner, 10 ether);
         vm.deal(maker, 10 ether);

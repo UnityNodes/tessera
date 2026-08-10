@@ -7,9 +7,10 @@ export const CHAIN = baseSepolia;
 
 /**
  *
+ *
  */
 export const DECK_ADDRESS = (process.env.NEXT_PUBLIC_DECK_ADDRESS ??
-  "0x2381590C8b905796C3AE4448068ac1D915d9122E") as `0x${string}`;
+  "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1") as `0x${string}`;
 
 export const TICKET_TOKEN = "0xA4253E7C13525287C56550b8708100f93E60509f" as const;
 
@@ -23,7 +24,7 @@ export const EXPLORER = "https://sepolia.basescan.org";
 /**
  *
  */
-export const DECK_FROM_BLOCK = BigInt(process.env.NEXT_PUBLIC_DECK_FROM_BLOCK ?? "45260039");
+export const DECK_FROM_BLOCK = BigInt(process.env.NEXT_PUBLIC_DECK_FROM_BLOCK ?? "45283259");
 
 export const txUrl = (hash: string) => `${EXPLORER}/tx/${hash}`;
 export const addressUrl = (a: string) => `${EXPLORER}/address/${a}`;

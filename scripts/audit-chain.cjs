@@ -55,6 +55,19 @@ const usd = (v) => `$${(Number(v) / 1e6).toFixed(2)}`;
   const read = (functionName, args) =>
     client.readContract({ address: DECK, abi: DECK_ABI, functionName, args });
 
+  //
+  const IMPL_SLOT = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc";
+  const implWord = await client.getStorageAt({ address: DECK, slot: IMPL_SLOT });
+  const impl = implWord && implWord !== `0x${"0".repeat(64)}`
+    ? getAddress(`0x${implWord.slice(26)}`)
+    : null;
+  check(0, "", impl !== null, impl ? `${impl}` : "ERC-1967 ");
+
+  if (impl) {
+    const code = await client.getBytecode({ address: impl });
+    check(0, "", Boolean(code) && code !== "0x", `${(code.length - 2) / 2} `);
+  }
+
   const count = Number(await read("deckCount"));
   check(0, "", count > 0, `${count} .`);
 

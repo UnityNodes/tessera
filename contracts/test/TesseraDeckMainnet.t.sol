@@ -4,6 +4,7 @@ pragma solidity ^0.8.29;
 import {Test, console} from "forge-std/Test.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {TesseraDeck} from "../src/TesseraDeck.sol";
+import {DeployTessera} from "./helpers/DeployTessera.sol";
 import {MegapotV2Adapter} from "../src/adapters/MegapotV2Adapter.sol";
 import {MegapotLegacyAdapter} from "../src/adapters/MegapotLegacyAdapter.sol";
 import {IMegapotV2} from "../src/interfaces/IMegapotV2.sol";
@@ -34,8 +35,7 @@ contract TesseraDeckMainnetForkTest is Test {
     }
 
     function _deck(IMegapotAdapter adapter) internal returns (TesseraDeck deck) {
-        vm.prank(owner);
-        deck = new TesseraDeck(adapter);
+        deck = DeployTessera.behindProxy(adapter, owner);
         uint256 fee = deck.deckFee(20);
         uint16[] memory upTo = new uint16[](1);
         uint16[] memory weight = new uint16[](1);

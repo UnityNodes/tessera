@@ -5,16 +5,24 @@ import {elist, ETypes, euint256, e, inco} from "@inco/lightning/src/Lib.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuardTransient} from "@openzeppelin/contracts/utils/ReentrancyGuardTransient.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {IMegapotAdapter} from "./interfaces/IMegapotAdapter.sol";
 
 ///
 ///
 ///
-contract TesseraDeck is ReentrancyGuardTransient {
+///
+///
+contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient {
     using SafeERC20 for IERC20;
 
-    IMegapotAdapter public immutable adapter;
-    IERC20 public immutable ticketToken;
+    //
+    //
+
+    ///
+    IMegapotAdapter public adapter;
+    IERC20 public ticketToken;
 
     address public owner;
 
@@ -75,7 +83,7 @@ contract TesseraDeck is ReentrancyGuardTransient {
     //
     //
 
-    uint16 public vaultShareBps = 5000;
+    uint16 public vaultShareBps;
 
     mapping(bytes32 => bool) public shardSpent;
 
@@ -88,11 +96,11 @@ contract TesseraDeck is ReentrancyGuardTransient {
 
     uint256 public creatorOwed;
 
-    uint256 public customDeckFee = 5e6;
+    uint256 public customDeckFee;
 
-    uint16 public maxCreatorBps = 5000;
+    uint16 public maxCreatorBps;
 
-    uint16 public minCustomSize = 50;
+    uint16 public minCustomSize;
 
     event DeckCreated(
         uint32 indexed deckId,
@@ -149,13 +157,29 @@ contract TesseraDeck is ReentrancyGuardTransient {
         _;
     }
 
-    constructor(IMegapotAdapter _adapter) {
+    constructor() {
+        _disableInitializers();
+    }
+
+    ///
+    ///
+    ///
+    function initialize(IMegapotAdapter _adapter, address _owner) external initializer {
         adapter = _adapter;
         ticketToken = _adapter.ticketToken();
-        owner = msg.sender;
+        owner = _owner;
+
+        vaultShareBps = 5000;
+        customDeckFee = 5e6;
+        maxCreatorBps = 5000;
+        minCustomSize = 50;
+
         ticketToken.forceApprove(address(_adapter), type(uint256).max);
-        emit OwnerChanged(address(0), msg.sender);
+        emit OwnerChanged(address(0), _owner);
     }
+
+    ///
+    function _authorizeUpgrade(address) internal override onlyOwner {}
 
 
     function deckFee(uint16 n) public view returns (uint256) {
