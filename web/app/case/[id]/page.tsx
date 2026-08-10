@@ -474,13 +474,9 @@ function ForfeitAction({
         Risk it · give the ticket up
       </Button>
       <p className="mt-2.5 text-sm leading-relaxed text-slate-300">
-        No Megapot ticket for you this time. Of your $1,{" "}
-        <span style={{ color: ink }}>${Number(formatUnits(toVault, 6)).toFixed(2)}</span> goes
-        straight into the vault, now at{" "}
-        <span style={{ color: ink }}>${Number(formatUnits(vault, 6)).toFixed(2)}</span>, and the
-        rest funds the prize budget. In exchange whatever you draw is{" "}
-        <span className="text-slate-200">worth double</span>. Most cases carry no bonus, and
-        double nothing is nothing.
+        Whatever you draw is <span className="text-slate-200">worth double</span>, the vault takes
+        the dollar instead, and stands at{" "}
+        <span style={{ color: ink }}>${Number(formatUnits(vault, 6)).toFixed(2)}</span>.
       </p>
     </div>
   );

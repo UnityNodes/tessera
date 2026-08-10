@@ -337,14 +337,16 @@ function DeckCard({ deck, art }: { deck: DeckInfo; art?: string }) {
 
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-14 z-20 text-center opacity-0 transition-opacity group-hover:opacity-100">
-        <span
-          className="t-label inline-block rounded-[var(--radius-chip)] px-3 py-1 backdrop-blur-sm"
-          style={{ background: `color-mix(in oklab, ${ink} 22%, var(--color-surface))`, color: ink }}
-        >
-          {deck.empty ? "nothing left" : "open for $1"}
-        </span>
-      </div>
+      <span
+        className="t-chain absolute right-2.5 top-2.5 z-20 rounded-[var(--radius-chip)] border px-2 py-0.5 text-xs font-extrabold"
+        style={{
+          borderColor: `color-mix(in oklab, ${ink} 35%, transparent)`,
+          background: "color-mix(in oklab, var(--color-surface) 82%, transparent)",
+          color: ink,
+        }}
+      >
+        {deck.empty ? "empty" : "$1"}
+      </span>
     </Link>
   );
 }

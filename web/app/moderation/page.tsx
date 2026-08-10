@@ -9,7 +9,7 @@ import { DECK_ADDRESS } from "@/lib/chain";
 import { useDeck } from "@/hooks/useDeck";
 import { UpgradePanel } from "@/components/UpgradePanel";
 import { bestTier } from "@/lib/deck";
-import { Chest } from "@/components/Chest";
+import { DeckHero } from "@/components/DeckHero";
 
 type Skin = { status: "pending" | "ok" | "no"; by: string; at: number; why?: string };
 
@@ -130,9 +130,9 @@ export default function ModerationPage() {
                       className="h-16 w-16 shrink-0 rounded-[var(--radius-control)] object-contain"
                     />
                   ) : (
-                    <span className="grid h-16 w-16 shrink-0 place-items-center rounded-[var(--radius-control)] border border-slate-800">
-                      {best ? (
-                        <Chest rarity={best.rarity} size={48} />
+                    <span className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-[var(--radius-control)] border border-slate-800">
+                      {best || d.cid ? (
+                        <DeckHero deck={d} size={52} skin={d.cid} />
                       ) : (
                         <ImageIcon className="h-6 w-6 text-slate-400" />
                       )}
