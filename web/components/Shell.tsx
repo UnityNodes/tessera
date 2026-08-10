@@ -48,6 +48,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
   const firstOpen = game.decks.find((d) => !d.empty)?.id ?? 0;
 
+  const richest = game.decks.reduce<(typeof game.decks)[number] | undefined>(
+    (a, d) => (d.vault > (a?.vault ?? 0n) ? d : a),
+    undefined,
+  );
+
   return (
     <div className="relative z-[1] flex min-h-screen flex-col">
       <header className="sticky top-0 z-[var(--z-sticky)] border-b border-slate-800/80 bg-[color-mix(in_oklab,var(--color-header)_92%,transparent)] px-4 py-3 backdrop-blur-md lg:px-8 2xl:px-14">
@@ -67,7 +72,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
               <Tab href="/">home</Tab>
               <Tab href="/battles">battles</Tab>
               <Tab href="/leaderboard">standings</Tab>
-              <Tab href="/create">create</Tab>
             </nav>
           </div>
 
@@ -93,23 +97,41 @@ export function Shell({ children }: { children: React.ReactNode }) {
               </button>
             )}
 
-            <span
-              className="flex items-center gap-2 rounded-[var(--radius-chip)] border px-3 py-2"
+            <Link
+              href={richest ? `/case/${richest.id}` : "/#decks"}
+              className="group flex items-center gap-2 rounded-[var(--radius-chip)] border px-3 py-2 transition-all hover:-translate-y-px"
               style={{
                 borderColor: "color-mix(in oklab, var(--color-tier-vault) 30%, transparent)",
                 background: "var(--color-surface)",
                 boxShadow: "0 0 12px color-mix(in oklab, var(--color-tier-vault) 12%, transparent)",
               }}
             >
-              <Lock className="h-3.5 w-3.5" style={{ color: "var(--color-tier-vault)" }} />
-              <Counter
-                value={Number(formatUnits(game.vault, 6))}
-                decimals={2}
-                prefix="$ "
-                className="t-chain text-sm font-bold leading-none"
+              <Lock
+                className="h-3.5 w-3.5 transition-transform group-hover:scale-110"
                 style={{ color: "var(--color-tier-vault)" }}
               />
-            </span>
+              <span className="flex flex-col leading-none">
+                <Counter
+                  value={Number(formatUnits(game.vault, 6))}
+                  decimals={2}
+                  prefix="$ "
+                  className="t-chain text-sm font-bold leading-none"
+                  style={{ color: "var(--color-tier-vault)" }}
+                />
+                <span className="t-label mt-1 hidden leading-none sm:block">in vaults</span>
+              </span>
+            </Link>
+
+            <Link
+              href="/create"
+              className="group flex min-h-11 shrink-0 items-center gap-2 rounded-[var(--radius-chip)] border border-slate-800 bg-slate-900/60 px-3 py-2 text-sm font-bold text-slate-300 transition-all hover:border-[color-mix(in_oklab,var(--color-accent)_40%,transparent)] hover:text-white sm:min-h-0"
+            >
+              <PlusCircle
+                className="h-4 w-4 transition-transform group-hover:scale-110"
+                style={{ color: "var(--color-accent)" }}
+              />
+              <span className="hidden sm:inline">create</span>
+            </Link>
 
             <ConnectBar
               onMinted={game.refetch}
