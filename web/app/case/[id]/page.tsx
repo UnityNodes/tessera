@@ -70,6 +70,10 @@ export default function CasePage() {
   const open = useOpenCase(refresh);
   const [mult, setMult] = useState(1);
 
+  const affordable = game.ticketPrice > 0n ? Number(game.balance / game.ticketPrice) : 0;
+
+  const take = Math.max(1, Math.min(mult, affordable || 1));
+
   //
   const stage = useRef<HTMLDivElement>(null);
   const [art, setArt] = useState(170);
@@ -229,7 +233,8 @@ export default function CasePage() {
                         <button
                           key={n}
                           type="button"
-                          disabled={n > deck.remaining}
+                          disabled={n > deck.remaining || n > affordable}
+                          title={n > affordable ? `enough for ${affordable}` : undefined}
                           onClick={() => setMult(n)}
                           className={`min-w-10 cursor-pointer rounded-[var(--radius-chip)] px-3 py-1.5 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-30 ${
                             mult === n ? "text-white" : "text-slate-400 hover:text-slate-200"
@@ -255,8 +260,8 @@ export default function CasePage() {
                   onClick={() =>
                     open.state.phase === "done" || open.state.phase === "failed"
                       ? open.reset()
-                      : mult > 1
-                        ? open.openBatch({ deckId, needsApproval: game.needsApproval, count: mult })
+                      : take > 1
+                        ? open.openBatch({ deckId, needsApproval: game.needsApproval, count: take })
                         : open.open({ deckId, needsApproval: game.needsApproval })
                   }
                 >
@@ -264,11 +269,11 @@ export default function CasePage() {
                   {busy
                     ? "…"
                     : open.state.phase === "done" || open.state.phase === "failed"
-                      ? `Open again • $${mult}`
+                      ? `Open again • $${take}`
                       : game.needsApproval
-                        ? `Approve once • $${mult}`
-                        : mult > 1
-                          ? `Open ${mult} • $${mult}`
+                        ? `Approve once • $${take}`
+                        : take > 1
+                          ? `Open ${take} • $${take}`
                           : "Open a case • $1"}
                 </Button>
 

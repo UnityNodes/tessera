@@ -9,6 +9,8 @@ type DeckError = Extract<(typeof TESSERA_DECK_ABI)[number], { type: "error" }>["
 
 export type Fault =
   | "rejected"
+  | "no-money"
+  | "no-allowance"
   | "deck-empty"
   | "no-such-deck"
   | "purchasing-disabled"
@@ -226,6 +228,24 @@ const BY_NAME: Partial<Record<DeckError, Explained>> = {
 /**
  *
  */
+const TOKEN_ERRORS: Record<string, Explained> = {
+  "0xe450d38c": {
+    fault: "no-money",
+    title: "Not enough dollars for that many cases",
+    next: "Nothing was charged. Pick a smaller number, or top up and try again.",
+    retryable: true,
+  },
+  "0xfb8f41b2": {
+    fault: "no-allowance",
+    title: "The game is not allowed to spend that much yet",
+    next: "Nothing was charged. Approve once more and the number will go through.",
+    retryable: true,
+  },
+};
+
+/**
+ *
+ */
 export function explain(err: unknown): Explained {
   if (err instanceof UserRejectedRequestError) {
     return {
@@ -243,6 +263,11 @@ export function explain(err: unknown): Explained {
         ? BY_NAME[reverted.data.errorName as DeckError]
         : undefined;
       if (known) return known;
+    }
+
+    const text0 = err.shortMessage ?? err.message ?? "";
+    for (const [sel, explained] of Object.entries(TOKEN_ERRORS)) {
+      if (text0.includes(sel)) return explained;
     }
 
     const text = err.shortMessage ?? err.message;
