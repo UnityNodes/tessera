@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/Button";
 import { TESSERA_DECK_ABI } from "@/lib/abi";
 import { DECK_ADDRESS } from "@/lib/chain";
 import { useDeck } from "@/hooks/useDeck";
+import { UpgradePanel } from "@/components/UpgradePanel";
+import { bestTier } from "@/lib/deck";
+import { Chest } from "@/components/Chest";
 
 type Skin = { status: "pending" | "ok" | "no"; by: string; at: number; why?: string };
 
@@ -100,10 +103,18 @@ export default function ModerationPage() {
 
         {error && <p className="text-sm text-[var(--color-danger)]">{error}</p>}
 
+        <UpgradePanel owner={mine} />
+
+        <h2 className="t-label mt-2">
+          decks on chain · {game.decks.length}
+        </h2>
+
         <div className="flex flex-col gap-3">
           {game.decks.map((d) => {
             const skin = skins[String(d.id)];
             const isHidden = hidden.includes(d.id);
+            const best = bestTier(d);
+            const name = d.cid ? d.cid.split(":")[0] : best?.name ?? `deck #${d.id}`;
             return (
               <div
                 key={d.id}
@@ -119,19 +130,28 @@ export default function ModerationPage() {
                       className="h-16 w-16 shrink-0 rounded-[var(--radius-control)] object-contain"
                     />
                   ) : (
-                    <span className="grid h-16 w-16 shrink-0 place-items-center rounded-[var(--radius-control)] border border-slate-800 text-slate-400">
-                      <ImageIcon className="h-6 w-6" />
+                    <span className="grid h-16 w-16 shrink-0 place-items-center rounded-[var(--radius-control)] border border-slate-800">
+                      {best ? (
+                        <Chest rarity={best.rarity} size={48} />
+                      ) : (
+                        <ImageIcon className="h-6 w-6 text-slate-400" />
+                      )}
                     </span>
                   )}
                   <div className="min-w-0">
                     <p className="text-base font-bold text-white">
-                      {d.cid ? d.cid.split(":")[0] : `deck #${d.id}`}{" "}
+                      {name}{" "}
                       <span className="t-chain text-sm text-[var(--color-ink-dim)]">#{d.id}</span>
                     </p>
-                    <p className="t-addr truncate text-sm text-slate-400">
-                      {d.creator ? `cut by ${d.creator}` : "house deck"}
-                      {isHidden ? " · hidden" : ""}
+                    <p className="t-chain text-sm text-slate-400">
+                      {d.size} slots · {d.remaining} left
+                      {d.empty ? " · empty" : ""}
+                      {d.vaultUpTo > 0 ? " · has a vault" : ""}
+                      {isHidden ? " · hidden from the catalog" : ""}
                       {skin ? ` · picture ${skin.status}` : ""}
+                    </p>
+                    <p className="t-addr truncate text-sm text-slate-500">
+                      {d.creator ? `cut by ${d.creator} · takes ${d.creatorBps / 100}%` : "house deck"}
                     </p>
                   </div>
                 </div>
