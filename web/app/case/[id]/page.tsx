@@ -77,12 +77,12 @@ export default function CasePage() {
     const el = stage.current;
     if (!el) return;
     const ro = new ResizeObserver(() => {
-      const free = el.getBoundingClientRect().height;
-      setArt(Math.max(96, Math.min(260, Math.floor(free - 8))));
+      const r = el.getBoundingClientRect();
+      setArt(Math.max(120, Math.floor(Math.min(r.height - 8, r.width * 0.42))));
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [deck?.id]);
   const vault = useVault(refresh);
 
 

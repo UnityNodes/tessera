@@ -157,6 +157,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
+      {!onCase && (
       <div className="relative z-[var(--z-feed)] w-full border-b border-slate-800/80 bg-[var(--color-bg)] px-4 py-3 lg:px-8 2xl:px-14">
         <div className="mx-auto flex flex-col gap-2">
           <div className="flex items-center justify-between">
@@ -180,6 +181,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <Ticker items={feed} />
         </div>
       </div>
+      )}
 
 
       <main
