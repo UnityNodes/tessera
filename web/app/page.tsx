@@ -114,7 +114,10 @@ export default function Home() {
           {shown.length === 0 ? (
             <p className="py-10 text-center text-slate-300">Reading the chain…</p>
           ) : (
-            <div className="grid w-full gap-5 [grid-template-columns:repeat(auto-fill,minmax(15rem,1fr))]">
+            //
+            //
+            //
+            <div className="grid w-full justify-center gap-5 [grid-template-columns:repeat(auto-fit,minmax(15rem,17rem))]">
               {shown.map((d) => (
                 <DeckCard key={d.id} deck={d} art={skinUrl(d.id)} />
               ))}

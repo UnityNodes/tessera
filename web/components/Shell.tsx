@@ -125,13 +125,20 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
             <Link
               href="/create"
-              className="group flex min-h-11 shrink-0 items-center gap-2 rounded-[var(--radius-chip)] border border-slate-800 bg-slate-900/60 px-3 py-2 text-sm font-bold text-slate-300 transition-all hover:border-[color-mix(in_oklab,var(--color-accent)_40%,transparent)] hover:text-white sm:min-h-0"
+              className="group flex min-h-11 shrink-0 items-center gap-2 rounded-[var(--radius-chip)] border px-3.5 py-2 transition-all hover:brightness-110 sm:min-h-0"
+              style={{
+                borderColor: "color-mix(in oklab, var(--color-accent) 45%, transparent)",
+                background: "color-mix(in oklab, var(--color-accent) 10%, transparent)",
+                color: "var(--color-accent-hover)",
+              }}
             >
-              <PlusCircle
-                className="h-4 w-4 transition-transform group-hover:scale-110"
-                style={{ color: "var(--color-accent)" }}
-              />
-              <span className="hidden sm:inline">create</span>
+              <PlusCircle className="h-5 w-5 shrink-0 transition-transform group-hover:scale-110" />
+              <span className="flex flex-col leading-none">
+                <span className="text-sm font-bold leading-none">Create a case</span>
+                <span className="t-label mt-1 hidden leading-none text-[var(--color-ink-dim)] lg:block">
+                  yours, and you take a cut
+                </span>
+              </span>
             </Link>
 
             <ConnectBar
