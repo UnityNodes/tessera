@@ -126,7 +126,7 @@ export default function CasePage() {
      */
     <div className="flex h-full w-full flex-col overflow-hidden bg-[var(--color-section)] px-4 py-3 lg:px-8 2xl:px-14">
       <OpenTheatre
-        open={open.state.batch ? { phase: "idle", waitedMs: 0 } : open.state}
+        open={open.state}
         deck={shape}
         pool={pool.data}
         vault={deck?.vault}

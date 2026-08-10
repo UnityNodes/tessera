@@ -165,6 +165,7 @@ export function Roll({
     <div
       ref={box}
       data-roll
+      data-landed={landedValue != null ? specOf(landedValue, deck).name : ""}
       className="relative w-full overflow-hidden"
       style={{
         height: ITEM + 36,

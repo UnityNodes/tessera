@@ -18,6 +18,15 @@ import type { PoolState } from "@/hooks/usePool";
  *
  */
 
+const ROLL_H = 204;
+
+/**
+ *
+ */
+function rollScale(n: number) {
+  return n <= 2 ? 1 : n <= 3 ? 0.78 : n <= 5 ? 0.58 : 0.4;
+}
+
 const LIVE = new Set(["confirming", "revealing", "landing", "done"]);
 
 export function OpenTheatre({
@@ -101,6 +110,46 @@ export function OpenTheatre({
             )}
           </AnimatePresence>
 
+          {open.batch ? (
+            <div className="relative flex max-h-[80vh] w-full flex-col items-center gap-2 px-6 pb-8">
+              <p className="t-label mb-1">
+                {opened
+                  ? `${open.batch.length} cases opened`
+                  : `opening ${open.batch.length} cases`}
+              </p>
+              <div className="flex w-full flex-col items-center gap-2 overflow-y-auto">
+                {open.batch.map((b) => (
+                  <div
+                    key={b.handle}
+                    className="w-full shrink-0"
+                    style={{ height: ROLL_H * rollScale(open.batch!.length) }}
+                  >
+                    <div
+                      className="w-full origin-top"
+                      style={{ transform: `scale(${rollScale(open.batch!.length)})` }}
+                    >
+                      <Roll
+                        running={open.phase !== "confirming"}
+                        landedValue={b.value}
+                        deck={deck}
+                        pool={pool}
+                        urgency={tier}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {opened && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="t-label mt-2 cursor-pointer hover:text-[var(--color-accent-hover)]"
+                >
+                  click anywhere to close
+                </button>
+              )}
+            </div>
+          ) : (
           <div className="relative flex w-full flex-col items-center px-6 pb-10">
 
             {!opened ? (
@@ -210,6 +259,7 @@ export function OpenTheatre({
               </AnimatePresence>
             </div>
           </div>
+          )}
         </motion.div>
       )}
     </AnimatePresence>
