@@ -59,6 +59,7 @@ export function Roll({
   urgency = 0,
   variant = 0,
   length = 72,
+  onLanded,
 }: {
   running: boolean;
   /**
@@ -73,6 +74,7 @@ export function Roll({
    *
    */
   length?: number;
+  onLanded?: () => void;
   deck: DeckShape;
   pool?: PoolState;
   /**
@@ -166,8 +168,10 @@ export function Roll({
     const settle = animate(x, -(idx * STEP), {
       duration: SETTLE_MS / 1000,
       ease: [0.33, 0.66, 0.66, 1],
+      onComplete: () => onLanded?.(),
     });
     return () => settle.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [landedValue, still, x]);
 

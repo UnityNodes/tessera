@@ -47,6 +47,11 @@ export function OpenTheatre({
   const still = useReducedMotion();
   const on = LIVE.has(open.phase);
 
+  //
+  //
+  const [landed, setLanded] = useState<Set<string>>(new Set());
+  const allLanded = Boolean(open.batch?.every((b) => landed.has(b.handle)));
+
   const [vh, setVh] = useState(() => (typeof window === "undefined" ? 900 : window.innerHeight));
   useEffect(() => {
     const onResize = () => setVh(window.innerHeight);
@@ -122,11 +127,11 @@ export function OpenTheatre({
           {open.batch ? (
             <div className="relative flex max-h-[80vh] w-full flex-col items-center gap-2 px-6 pb-8">
               <p className="t-label mb-1">
-                {opened
+                {opened && allLanded
                   ? `${open.batch.length} cases opened`
                   : `opening ${open.batch.length} cases`}
               </p>
-              {opened ? (
+              {opened && allLanded ? (
                  *
                 <div className="flex flex-wrap items-center justify-center gap-3 px-2">
                   {open.batch.map((b, i) => {
@@ -156,7 +161,7 @@ export function OpenTheatre({
                           opacity: prize ? 1 : 0.72,
                         }}
                       >
-                        <Chest rarity={sp?.rarity ?? "sealed"} size={64} open={prize} />
+                        <Chest rarity={sp?.rarity ?? "sealed"} size={64} open={Boolean(sp)} />
                         <span
                           className="t-chain text-xs font-bold leading-none"
                           style={{ color: sp?.ink ?? "var(--color-ink-dim)" }}
@@ -192,13 +197,14 @@ export function OpenTheatre({
                         urgency={tier}
                         variant={i}
                         length={open.batch!.length > 5 ? 28 : open.batch!.length > 2 ? 40 : 72}
+                        onLanded={() => setLanded((s) => new Set(s).add(b.handle))}
                       />
                     </div>
                   </div>
                 ))}
               </div>
               )}
-              {opened && (
+              {opened && allLanded && (
                 <button
                   type="button"
                   onClick={onClose}
