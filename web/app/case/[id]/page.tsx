@@ -137,7 +137,7 @@ export default function CasePage() {
         onClose={open.reset}
       />
 
-      <div className="mx-auto flex max-w-[1320px] flex-col gap-5">
+      <div className="mx-auto flex max-w-[880px] flex-col gap-5">
         <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-4 md:flex-row md:items-end">
           <div>
             <Link
@@ -166,7 +166,7 @@ export default function CasePage() {
           </div>
         </div>
 
-        <section className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <section className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="flex flex-col gap-4">
           <div
             className="frame relative flex w-full flex-col"
@@ -179,7 +179,7 @@ export default function CasePage() {
               {deck.remaining} sealed
             </span>
 
-            <div className="relative grid place-items-center px-6 pb-1 pt-12 sm:px-8">
+            <div className="relative grid aspect-square w-full place-items-center p-6">
               <span
                 aria-hidden
                 className="pointer-events-none absolute inset-x-12 inset-y-6 rounded-full opacity-20 blur-3xl"
@@ -194,7 +194,7 @@ export default function CasePage() {
                   vault={deck.vault}
                   skin={deck.cid}
                   art={skinUrl(deckId)}
-                  size={300}
+                  size={360}
                   onClick={
                     canOpen
                       ? () => open.open({ deckId, needsApproval: game.needsApproval })
@@ -203,7 +203,7 @@ export default function CasePage() {
                 />
                 {open.state.phase === "idle" && !deck.empty && (
                   <span
-                    className="t-chain absolute bottom-1 left-1/2 -translate-x-1/2 rounded border px-3 py-1 text-xs font-extrabold"
+                    className="t-chain absolute -bottom-2 left-1/2 -translate-x-1/2 rounded border px-3 py-1 text-xs font-extrabold"
                     style={{
                       background: "rgb(0 0 0 / 0.45)",
                       borderColor: `color-mix(in oklab, ${ink} 30%, transparent)`,
@@ -237,11 +237,11 @@ export default function CasePage() {
                 ) : !isConnected || !game.canAfford ? (
                   <StartHere what="A case" />
                 ) : (
-                  <>
+                  <div className="flex flex-col items-center">
+                   <div className="flex flex-wrap items-center justify-center gap-3">
                     <Button
-                      block
                       disabled={busy}
-                      className="py-4 text-base"
+                      className="px-7 py-3.5 text-base"
                       onClick={() =>
                         open.state.phase === "done" || open.state.phase === "failed"
                           ? open.reset()
@@ -261,14 +261,16 @@ export default function CasePage() {
                     {deck.vaultUpTo > 0 && open.state.phase !== "done" && (
                       <ForfeitAction
                         disabled={busy}
-                        vault={deck.vault}
-                        ticketPrice={game.ticketPrice}
                         onClick={() =>
                           open.open({ deckId, needsApproval: game.needsApproval, risk: true })
                         }
                       />
                     )}
-                  </>
+                   </div>
+                   {deck.vaultUpTo > 0 && open.state.phase !== "done" && (
+                     <ForfeitNote vault={deck.vault} />
+                   )}
+                  </div>
                 )}
 
                 {open.state.txUrl && !busy && (
@@ -443,28 +445,15 @@ export default function CasePage() {
 /**
  *
  */
-function ForfeitAction({
-  disabled,
-  vault,
-  ticketPrice,
-  onClick,
-}: {
-  disabled: boolean;
-  vault: bigint;
-  ticketPrice: bigint;
-  onClick: () => void;
-}) {
-  //
-  const toVault = ticketPrice - ticketPrice / BigInt(WEIGHT_PER_TICKET);
+function ForfeitAction({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
   const ink = "var(--color-tier-vault)";
   return (
-    <div className="mt-3">
+    <>
       <Button
-        block
         variant="quiet"
         disabled={disabled}
         onClick={onClick}
-        className="hover:!brightness-110"
+        className="px-6 py-3.5 text-base hover:!brightness-110"
         style={{
           color: ink,
           background: "color-mix(in oklab, var(--color-tier-vault) 8%, transparent)",
@@ -473,12 +462,18 @@ function ForfeitAction({
       >
         Risk it · give the ticket up
       </Button>
-      <p className="mt-2.5 text-sm leading-relaxed text-slate-300">
-        Whatever you draw is <span className="text-slate-200">worth double</span>, the vault takes
-        the dollar instead, and stands at{" "}
-        <span style={{ color: ink }}>${Number(formatUnits(vault, 6)).toFixed(2)}</span>.
-      </p>
-    </div>
+    </>
+  );
+}
+
+function ForfeitNote({ vault }: { vault: bigint }) {
+  return (
+    <p className="mt-2.5 text-center text-sm leading-snug text-slate-400">
+      double on whatever you draw · the vault takes the dollar and stands at{" "}
+      <span style={{ color: "var(--color-tier-vault)" }}>
+        ${Number(formatUnits(vault, 6)).toFixed(2)}
+      </span>
+    </p>
   );
 }
 
