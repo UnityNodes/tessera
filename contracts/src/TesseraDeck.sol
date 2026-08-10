@@ -336,6 +336,20 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
     }
 
     ///
+    ///
+    function _escrowAndDraw(uint32 deckId) internal returns (uint16 index, uint256 price) {
+        Deck storage d = _deck(deckId);
+        if (d.drawn >= d.size) revert DeckEmpty();
+        if (!adapter.purchasingAllowed()) revert PurchasingDisabled();
+
+        price = adapter.ticketPrice();
+        ticketToken.safeTransferFrom(msg.sender, address(this), price);
+        battleEscrow += price;
+
+        index = _draw(d, deckId, false);
+    }
+
+    ///
     function _buyAndDraw(uint32 deckId) internal returns (uint16 index, uint256 price) {
         Deck storage d = _deck(deckId);
         if (d.drawn >= d.size) revert DeckEmpty();
@@ -440,12 +454,13 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
         if (tickets == 0) revert NotEnoughWeight(weight, WEIGHT_PER_TICKET);
 
         _spendBudget(weight);
-        paid = _buyTickets(tickets);
+        paid = _buyTicketsFor(msg.sender, tickets);
 
         emit ShardsRedeemed(msg.sender, handles, weight, tickets, paid);
     }
 
-    function _buyTickets(uint256 count) internal returns (uint256 paid) {
+    ///
+    function _buyTicketsFor(address to, uint256 count) internal returns (uint256 paid) {
         uint256 price = adapter.ticketPrice();
         paid = price * count;
 
@@ -454,9 +469,9 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
         if (have < paid) revert TreasuryEmpty(have, paid);
 
         for (uint256 i = 0; i < count; i++) {
-            uint256 boughtBefore = adapter.ticketsOf(msg.sender);
-            adapter.buyTicket(msg.sender, address(this));
-            if (adapter.ticketsOf(msg.sender) <= boughtBefore) revert TicketNotCredited();
+            uint256 boughtBefore = adapter.ticketsOf(to);
+            adapter.buyTicket(to, address(this));
+            if (adapter.ticketsOf(to) <= boughtBefore) revert TicketNotCredited();
         }
     }
 
@@ -542,7 +557,7 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
         bankedWeight[msg.sender] = weight - spent;
         _spendBudget(spent);
 
-        paid = _buyTickets(tickets);
+        paid = _buyTicketsFor(msg.sender, tickets);
         emit ShardsRedeemed(msg.sender, new bytes32[](0), spent, tickets, paid);
     }
 
@@ -556,6 +571,11 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
         paidWeight += weight;
     }
 
+    //
+    //
+    //
+    //
+    //
     //
     //
     //
@@ -576,11 +596,21 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
 
     mapping(address => uint256[]) private battlesOfPlayer;
 
+    //
+    //
+    //
+    //
+
+    ///
+    uint256 public battleEscrow;
+
+    mapping(uint256 => uint128) public battlePaidB;
+
     uint64 public constant BATTLE_TIMEOUT = 15 minutes;
 
     event BattleOpened(uint256 indexed id, address indexed a, uint64 slotA);
     event BattleJoined(uint256 indexed id, address indexed b, uint64 slotB);
-    event BattleResolved(uint256 indexed id, address indexed winner, uint256 weight);
+    event BattleResolved(uint256 indexed id, address indexed winner, uint256 weight, uint256 tickets);
     event BattleAbandoned(uint256 indexed id, address indexed a);
 
     error NoSuchBattle();
@@ -592,8 +622,9 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
     error NotYourBattle();
     error TooEarlyToAbandon(uint64 openAt);
 
+    ///
     function openBattle(uint32 deckId) external nonReentrant returns (uint256 id, uint64 slotIndex) {
-        (uint16 index, uint256 price) = _buyAndDraw(deckId);
+        (uint16 index, uint256 price) = _escrowAndDraw(deckId);
         slotIndex = uint64(slots[msg.sender].length - 1);
 
         battles.push(
@@ -625,11 +656,13 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
         if (bt.b != address(0)) revert BattleTaken();
         if (bt.a == msg.sender) revert CannotFightYourself();
 
-        (uint16 index, uint256 price) = _buyAndDraw(bt.deckId);
+        (uint16 index, uint256 price) = _escrowAndDraw(bt.deckId);
         slotIndex = uint64(slots[msg.sender].length - 1);
 
         bt.b = msg.sender;
         bt.slotB = slotIndex;
+        // forge-lint: disable-next-line(unsafe-typecast)
+        battlePaidB[id] = uint128(price);
         // forge-lint: disable-next-line(unsafe-typecast)
         slots[msg.sender][slotIndex].battle = uint64(id);
         battlesOfPlayer[msg.sender].push(id);
@@ -662,20 +695,39 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
         (uint256 wa, uint256 pa) = _fight(slots[bt.a][bt.slotA], valueA, signaturesA);
         (uint256 wb, uint256 pb) = _fight(slots[bt.b][bt.slotB], valueB, signaturesB);
 
-        if (pa == pb) {
-            if (wa > 0) bankedWeight[bt.a] += wa;
-            if (wb > 0) bankedWeight[bt.b] += wb;
-        } else {
-            winner = pa > pb ? bt.a : bt.b;
-            banked = wa + wb;
-            if (banked > 0) bankedWeight[winner] += banked;
-        }
+        //
+        bool aWins = pa == pb ? valueA < valueB : pa > pb;
+        winner = aWins ? bt.a : bt.b;
 
-        emit BattleResolved(id, winner, banked);
+        banked = wa + wb;
+        if (banked > 0) bankedWeight[winner] += banked;
+
+        uint256 tickets =
+            _payStake(bt.deckId, winner, uint256(bt.paidA) + uint256(battlePaidB[id]));
+
+        emit BattleResolved(id, winner, banked, tickets);
     }
 
     ///
-    function abandonBattle(uint256 id) external {
+    ///
+    function _payStake(uint32 deckId, address to, uint256 pot) internal returns (uint256 count) {
+        battleEscrow -= pot;
+
+        count = pot / adapter.ticketPrice();
+        if (count == 0) return 0;
+
+        Deck storage d = decks[deckId];
+        // forge-lint: disable-next-line(unsafe-typecast)
+        d.unsweptOpens += uint64(count);
+        // forge-lint: disable-next-line(unsafe-typecast)
+        unsweptOpens += uint64(count);
+
+        _buyTicketsFor(to, count);
+    }
+
+    ///
+    ///
+    function abandonBattle(uint256 id) external nonReentrant {
         Battle storage bt = _battle(id);
         if (bt.resolved) revert BattleGone();
         if (bt.b != address(0)) revert BattleTaken();
@@ -686,6 +738,8 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
         Slot storage sa = slots[bt.a][bt.slotA];
         sa.battle = 0;
         _unseal(sa.card, bt.a);
+
+        _payStake(bt.deckId, bt.a, bt.paidA);
 
         emit BattleAbandoned(id, msg.sender);
         emit CaseOpened(bt.a, bt.deckId, bt.indexA, euint256.unwrap(sa.card), bt.paidA);
@@ -847,7 +901,7 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
     ///
     function spendable() public view returns (uint256) {
         uint256 balance = ticketToken.balanceOf(address(this));
-        uint256 locked = vault() + creatorOwed;
+        uint256 locked = vault() + creatorOwed + battleEscrow;
         return balance > locked ? balance - locked : 0;
     }
 

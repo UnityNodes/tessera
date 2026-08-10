@@ -60,12 +60,10 @@ export default function BattlePage() {
 
   //
   const outcomeA =
-    specA && specB
-      ? power(specA) === power(specB)
-        ? "draw"
-        : power(specA) > power(specB)
-          ? "won"
-          : "lost"
+    specA && specB && cards
+      ? wins(power(specA), cards.a.value, power(specB), cards.b.value)
+        ? "won"
+        : "lost"
       : undefined;
   const outcomeB = outcomeA === "won" ? "lost" : outcomeA === "lost" ? "won" : outcomeA;
 
@@ -155,6 +153,8 @@ export default function BattlePage() {
             <Verdict
               specA={specA}
               specB={specB}
+              valueA={cards!.a.value}
+              valueB={cards!.b.value}
               iAmCreator={iAmCreator}
               watching={!iAmIn}
               settled={battle.resolved}
@@ -198,7 +198,7 @@ export default function BattlePage() {
   );
 }
 
-type Outcome = "won" | "lost" | "draw";
+type Outcome = "won" | "lost";
 
 /**
  *
@@ -247,14 +247,12 @@ function Side({
     >
       {outcome && (
         <span className="absolute left-1/2 top-3 z-20 -translate-x-1/2">
-          <StatusPill status={outcome === "draw" ? "done" : outcome}>
+          <StatusPill status={outcome}>
             {outcome === "won" ? (
               <>
                 <Trophy className="h-3.5 w-3.5" />
                 Takes both
               </>
-            ) : outcome === "draw" ? (
-              "Draw"
             ) : undefined}
           </StatusPill>
         </span>
@@ -329,21 +327,22 @@ function OpenSeat({
 function Verdict({
   specA,
   specB,
+  valueA,
+  valueB,
   iAmCreator,
   watching,
   settled,
 }: {
   specA: TierSpec;
   specB: TierSpec;
+  valueA: number;
+  valueB: number;
   iAmCreator: boolean;
   watching: boolean;
   settled: boolean;
 }) {
-  const powerA = power(specA);
-  const powerB = power(specB);
   const pot = specA.tickets + specB.tickets;
-  const draw = powerA === powerB;
-  const creatorWon = powerA > powerB;
+  const creatorWon = wins(power(specA), valueA, power(specB), valueB);
   const iWon = iAmCreator ? creatorWon : !creatorWon;
 
   return (
@@ -352,37 +351,35 @@ function Verdict({
       animate={{ opacity: 1, y: 0 }}
       className="text-center"
     >
-      {draw ? (
-        <p className="text-slate-300">
-          {pot === 0
-            ? "Both empty. Nobody owes anybody, and both players still hold the ticket."
-            : "The same card. A draw, and each keeps their own."}
-        </p>
-      ) : watching ? (
+      {watching ? (
         <p className="t-inscription text-2xl" style={{ color: "var(--color-accent-hover)" }}>
-          {pot > 0
-            ? `${creatorWon ? "the creator" : "the challenger"} takes all ${pot}`
-            : "won on the card, but the pot was empty"}
+          {creatorWon ? "the creator" : "the challenger"} takes both tickets
+          {pot > 0 ? ` and all ${pot}` : ""}
         </p>
       ) : iWon ? (
         <p className="t-inscription text-2xl" style={{ color: "var(--color-accent-hover)" }}>
-          {pot > 0
-            ? `you take all ${pot} ticket${pot > 1 ? "s" : ""}`
-            : "you win, but the pot was empty"}
+          you take both tickets{pot > 0 ? ` and all ${pot}` : ""}
         </p>
       ) : (
         <p className="text-slate-300">
-          {pot > 0 ? `Lost the ${pot}.` : "Lost, though there was nothing in the pot."} The ticket
-          you paid for is still yours.
+          Lost. Both tickets go to the other seat
+          {pot > 0 ? `, and the ${pot} with them.` : "."}
         </p>
       )}
-      {!settled && <p className="t-label mt-2">the cards are turned · settle to bank it</p>}
+      {!settled && <p className="t-label mt-2">the cards are turned · settle to hand over the pot</p>}
     </motion.div>
   );
 }
 
 function power(spec: TierSpec): number {
   return isVault(spec) ? Number.MAX_SAFE_INTEGER : spec.tickets;
+}
+
+/**
+ *
+ */
+function wins(powerA: number, valueA: number, powerB: number, valueB: number): boolean {
+  return powerA === powerB ? valueA < valueB : powerA > powerB;
 }
 
 function Abandon({

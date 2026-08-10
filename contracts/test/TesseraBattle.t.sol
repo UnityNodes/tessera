@@ -24,6 +24,7 @@ contract TesseraBattleTest is Test {
     address owner = makeAddr("owner");
     address alice = makeAddr("alice");
     address bob = makeAddr("bob");
+    address carol = makeAddr("carol");
     address verifier;
 
     function setUp() public {
@@ -46,8 +47,9 @@ contract TesseraBattleTest is Test {
         vm.prank(owner);
         deck.createDeck{value: fee}(DECK, upTo, weight, 1);
 
-        for (uint256 i = 0; i < 2; i++) {
-            address who = i == 0 ? alice : bob;
+        address[3] memory players = [alice, bob, carol];
+        for (uint256 i = 0; i < players.length; i++) {
+            address who = players[i];
             IMintable(address(MPUSDC)).mint(who, 1000e6);
             vm.prank(who);
             MPUSDC.approve(address(deck), type(uint256).max);
@@ -73,6 +75,14 @@ contract TesseraBattleTest is Test {
 
     function _tickets(address who) internal view returns (uint256 bps) {
         (bps,,) = MEGAPOT.usersInfo(who);
+    }
+
+    ///
+    function _ticketBps() internal returns (uint256) {
+        uint256 before = _tickets(carol);
+        vm.prank(carol);
+        deck.openCase(0);
+        return _tickets(carol) - before;
     }
 
     function _joined() internal returns (uint256 id) {
@@ -189,15 +199,28 @@ contract TesseraBattleTest is Test {
     }
 
 
-    function test_battle_bothPayAndBothGetARealTicket() public {
+    ///
+    function test_battle_neitherHasATicketUntilItIsSettled() public {
         uint256 aliceBefore = _tickets(alice);
         uint256 bobBefore = _tickets(bob);
+        uint256 escrowBefore = deck.battleEscrow();
 
         _joined();
 
-        assertGt(_tickets(alice) - aliceBefore, 0, unicode"");
-        assertGt(_tickets(bob) - bobBefore, 0, unicode"");
+        assertEq(_tickets(alice), aliceBefore, unicode"");
+        assertEq(_tickets(bob), bobBefore, unicode"");
         assertEq(deck.deckAt(0).drawn, 2, unicode"");
+
+        uint256 price = MEGAPOT.ticketPrice();
+        assertEq(deck.battleEscrow() - escrowBefore, price * 2, unicode"");
+    }
+
+    ///
+    function test_battle_stakeIsNotSpendableTreasury() public {
+        uint256 spendableBefore = deck.spendable();
+        _joined();
+
+        assertEq(deck.spendable(), spendableBefore, unicode"");
     }
 
     function test_battle_winnerTakesBothBonuses() public {
@@ -212,37 +235,76 @@ contract TesseraBattleTest is Test {
         assertEq(deck.bankedWeight(bob), 0, unicode"");
     }
 
-    function test_battle_loserKeepsTheTicketTheyPaidFor() public {
-        uint256 before = _tickets(bob);
+    ///
+    function test_battle_winnerTakesBothTicketsAndLoserGetsNone() public {
+        uint256 aliceBefore = _tickets(alice);
+        uint256 bobBefore = _tickets(bob);
+
         uint256 id = _joined();
         _attest(true);
-        deck.resolveBattle(id, 2, _sigs(), 3, _sigs());
+        (address winner,) = deck.resolveBattle(id, 2, _sigs(), 3, _sigs());
+        assertEq(winner, alice);
 
-        assertGt(_tickets(bob) - before, 0, unicode"");
+        uint256 one = _ticketBps();
+        assertEq(_tickets(alice) - aliceBefore, one * 2, unicode"");
+        assertEq(_tickets(bob), bobBefore, unicode", , ");
+        assertEq(deck.battleEscrow(), 0, unicode"");
     }
 
-    function test_battle_equalWeightIsADraw() public {
+    ///
+    function test_battle_equalWeightIsDecidedByTheRarerSlot() public {
         uint256 id = _joined();
         _attest(true);
 
         (address winner, uint256 banked) = deck.resolveBattle(id, 3, _sigs(), 4, _sigs());
 
-        assertEq(winner, address(0));
-        assertEq(banked, 0);
-        assertEq(deck.bankedWeight(alice), 5, unicode"");
-        assertEq(deck.bankedWeight(bob), 5);
+        assertEq(winner, alice, unicode"");
+        assertEq(banked, 10, unicode"");
+        assertEq(deck.bankedWeight(alice), 10);
+        assertEq(deck.bankedWeight(bob), 0, unicode"");
     }
 
-    function test_battle_bothEmpty() public {
+    function test_battle_rarerSlotWinsForTheJoinerToo() public {
+        uint256 id = _joined();
+        _attest(true);
+
+        (address winner,) = deck.resolveBattle(id, 4, _sigs(), 3, _sigs());
+
+        assertEq(winner, bob, unicode"");
+    }
+
+    ///
+    function test_battle_costsTheGameExactlyTwoOpens() public {
+        uint256 feeBefore = deck.feesClaimable();
+
+        vm.startPrank(carol);
+        deck.openCase(0);
+        deck.openCase(0);
+        vm.stopPrank();
+        uint256 feeFromTwoOpens = deck.feesClaimable() - feeBefore;
+        assertGt(feeFromTwoOpens, 0, unicode"");
+
+        uint256 mid = deck.feesClaimable();
+        uint256 id = _joined();
+        _attest(true);
+        deck.resolveBattle(id, 2, _sigs(), 3, _sigs());
+
+        assertEq(
+            deck.feesClaimable() - mid, feeFromTwoOpens, unicode""
+        );
+    }
+
+    ///
+    function test_battle_bothEmptyStillHasAWinner() public {
+        uint256 aliceBefore = _tickets(alice);
         uint256 id = _joined();
         _attest(true);
 
         (address winner, uint256 banked) = deck.resolveBattle(id, 40, _sigs(), 41, _sigs());
 
-        assertEq(winner, address(0));
-        assertEq(banked, 0);
-        assertEq(deck.bankedWeight(alice), 0);
-        assertEq(deck.bankedWeight(bob), 0);
+        assertEq(winner, alice, unicode"40 41");
+        assertEq(banked, 0, unicode"");
+        assertEq(_tickets(alice) - aliceBefore, _ticketBps() * 2, unicode"");
     }
 
     function test_battle_vaultSlotWinsAndSurvives() public {
@@ -331,6 +393,21 @@ contract TesseraBattleTest is Test {
         deck.resolveBattle(99, 2, _sigs(), 3, _sigs());
     }
 
+
+    ///
+    function test_battle_abandonBuysTheTicketAfterAll() public {
+        uint256 before = _tickets(alice);
+        vm.prank(alice);
+        (uint256 id,) = deck.openBattle(0);
+        assertEq(_tickets(alice), before, unicode"");
+
+        vm.warp(block.timestamp + deck.BATTLE_TIMEOUT());
+        vm.prank(alice);
+        deck.abandonBattle(id);
+
+        assertEq(_tickets(alice) - before, _ticketBps(), unicode"");
+        assertEq(deck.battleEscrow(), 0, unicode"");
+    }
 
     function test_battle_abandonReturnsTheCard() public {
         vm.prank(alice);

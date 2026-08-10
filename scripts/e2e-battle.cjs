@@ -24,18 +24,25 @@ const ADDR =
 const PK_A = process.argv[3] || process.env.DEPLOYER_PRIVATE_KEY;
 const RPC = process.env.BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org";
 const TOKEN = "0xA4253E7C13525287C56550b8708100f93E60509f";
+const MEGAPOT = "0x6f03c7BCaDAdBf5E6F5900DA3d56AdD8FbDac5De";
 
 const abi = parseAbi([
   "function openBattle(uint32 deckId) returns (uint256 id, uint64 slotIndex)",
   "function joinBattle(uint256 id) returns (uint64 slotIndex)",
   "function resolveBattle(uint256 id, uint256 valueA, bytes[] signaturesA, uint256 valueB, bytes[] signaturesB) returns (address winner, uint256 banked)",
   "function abandonBattle(uint256 id)",
-  "function battleAt(uint256 id) view returns ((address a, uint64 slotA, bool resolved, address b, uint64 slotB, uint16 indexA, uint64 openedAt, uint128 paidA))",
+  "function battleAt(uint256 id) view returns ((address a, uint64 slotA, bool resolved, address b, uint64 slotB, uint32 deckId, uint16 indexA, uint64 openedAt, uint128 paidA))",
+  "function deckAt(uint32) view returns ((bytes32 cards, uint16 size, uint16 drawn, uint16 vaultUpTo, uint128 vault, uint64 unsweptOpens, address creator, uint16 creatorBps))",
   "function openBattleIds(uint256 max) view returns (uint256[])",
   "function sealedSlotsOf(address) view returns (uint64[])",
   "function handleOf(address, uint256) view returns (bytes32)",
   "function weightOf(uint32, uint256) view returns (uint16)",
   "function bankedWeight(address) view returns (uint256)",
+  "function battleEscrow() view returns (uint256)",
+])
+const megapot = parseAbi([
+  "function usersInfo(address) view returns (uint256 ticketsPurchasedTotalBps, uint256 winningsClaimable, bool active)",
+  "function ticketPrice() view returns (uint256)",
 ]);
 const erc20 = parseAbi([
   "function mint(address,uint256)",
@@ -122,9 +129,24 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     console.log(`funded ${p.address}`);
   }
 
+  const tickets = async (who) => {
+    const [bps] = await pub.readContract({
+      address: MEGAPOT, abi: megapot, functionName: "usersInfo", args: [who],
+    });
+    return bps;
+  };
+
+  const ticketsA = await tickets(a.address);
+  const ticketsB = await tickets(b.address);
+  const escrowBefore = await read("battleEscrow");
+
   const DECK = Number(process.env.DECK ?? 0);
   const [id] = await a.send(ADDR, abi, "openBattle", [DECK]);
   console.log(`\nbattle #${id} opened by ${a.address} on deck #${DECK}`);
+
+  if ((await tickets(a.address)) !== ticketsA) {
+    throw new Error("");
+  }
 
   await until(["battleAt", [id]], (bt) => bt.a.toLowerCase() === a.address.toLowerCase());
 
@@ -185,11 +207,35 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   ]);
 
   const zero = "0x0000000000000000000000000000000000000000";
-  console.log(
-    winner === zero
-      ? `\ndraw, each keeps their own (${await read("bankedWeight", [a.address])} / ${await read("bankedWeight", [b.address])})`
-      : `\nwinner ${winner} takes ${banked} weight`,
-  );
+  if (winner === zero) throw new Error("");
+
+  const vaultUpTo = (await read("deckAt", [DECK])).vaultUpTo;
+  const power = (value, weight) =>
+    vaultUpTo > 0 && value >= 1 && value <= vaultUpTo ? Number.MAX_SAFE_INTEGER : Number(weight);
+  const powerA = power(valueA, weightA);
+  const powerB = power(valueB, weightB);
+
+  const expected =
+    powerA === powerB ? (valueA < valueB ? a.address : b.address)
+      : powerA > powerB ? a.address : b.address;
+  if (winner.toLowerCase() !== expected.toLowerCase()) {
+    throw new Error(`: ${winner}, ${expected}`);
+  }
+
+  const nowA = await tickets(a.address);
+  const nowB = await tickets(b.address);
+  const gotWinner = winner.toLowerCase() === a.address.toLowerCase() ? nowA - ticketsA : nowB - ticketsB;
+  const gotLoser = winner.toLowerCase() === a.address.toLowerCase() ? nowB - ticketsB : nowA - ticketsA;
+  if (gotLoser !== 0n) throw new Error(`, , : ${gotLoser} bps`);
+  if (gotWinner <= 0n) throw new Error("");
+
+  const escrowAfter = await read("battleEscrow");
+  if (escrowAfter !== escrowBefore) {
+    throw new Error(`: ${escrowBefore}, ${escrowAfter}`);
+  }
+
+  console.log(`\nwinner ${winner} takes both tickets and ${banked} weight`);
+  console.log(`loser walks away with nothing, that is the point`);
   console.log(`click to verdict: ${Date.now() - joined} ms from the join`);
 })().catch((err) => {
   console.error(err.shortMessage || err.message || err);

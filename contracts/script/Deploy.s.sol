@@ -41,6 +41,29 @@ contract Deploy is Script {
 }
 
 ///
+///   forge script script/Deploy.s.sol:DeployImpl \
+///     --rpc-url "$BASE_SEPOLIA_RPC_URL" --broadcast
+///
+///
+contract DeployImpl is Script {
+    function run() external {
+        uint256 pk = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        address payable proxy = payable(vm.envAddress("PROXY"));
+
+        vm.startBroadcast(pk);
+        TesseraDeck impl = new TesseraDeck();
+        vm.stopBroadcast();
+
+        console.log("implementation", address(impl));
+        console.log("owner must call upgradeToAndCall on", proxy);
+        console.log("to    ", proxy);
+        console.logBytes(
+            abi.encodeWithSignature("upgradeToAndCall(address,bytes)", address(impl), "")
+        );
+    }
+}
+
+///
 ///   forge script script/Deploy.s.sol:Upgrade \
 ///     --rpc-url "$BASE_SEPOLIA_RPC_URL" --broadcast
 ///

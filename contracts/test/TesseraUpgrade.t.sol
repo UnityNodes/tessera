@@ -197,3 +197,64 @@ contract TesseraUpgradeTest is Test {
         return address(uint160(uint256(vm.load(proxy, ERC1967Utils.IMPLEMENTATION_SLOT))));
     }
 }
+
+///
+///
+contract TesseraLiveUpgradeTest is Test {
+    address payable constant LIVE = payable(0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1);
+
+    function setUp() public {
+        vm.createSelectFork(vm.envOr("BASE_SEPOLIA_RPC_URL", string("https://sepolia.base.org")));
+    }
+
+    function test_liveGame_upgradesWithoutLosingTheBoard() public {
+        TesseraDeck game = TesseraDeck(LIVE);
+
+        uint256 decks = game.deckCount();
+        uint256 battles = game.battleCount();
+        uint256 budget = game.budgetWeight();
+        uint256 vault = game.vault();
+        address adapter = address(game.adapter());
+        address token = address(game.ticketToken());
+        string memory meta = game.deckMeta(4);
+        uint16 leftInDeckZero = game.remaining(0);
+
+        assertGt(decks, 0, unicode"");
+
+        TesseraDeck next = new TesseraDeck();
+        vm.prank(game.owner());
+        game.upgradeToAndCall(address(next), "");
+
+        assertEq(game.deckCount(), decks, unicode"");
+        assertEq(game.battleCount(), battles, unicode"");
+        assertEq(game.budgetWeight(), budget, unicode"");
+        assertEq(game.vault(), vault, unicode"");
+        assertEq(address(game.adapter()), adapter, unicode"");
+        assertEq(address(game.ticketToken()), token, unicode"");
+        assertEq(game.deckMeta(4), meta, unicode"kungfumode ");
+        assertEq(game.remaining(0), leftInDeckZero, unicode"");
+
+        assertEq(game.battleEscrow(), 0, unicode"");
+    }
+
+    ///
+    function test_liveGame_keepsItsSettings() public {
+        TesseraDeck game = TesseraDeck(LIVE);
+
+        uint16 share = game.vaultShareBps();
+        uint256 fee = game.customDeckFee();
+        uint16 maxBps = game.maxCreatorBps();
+        uint16 minSize = game.minCustomSize();
+        address owner = game.owner();
+
+        TesseraDeck next = new TesseraDeck();
+        vm.prank(owner);
+        game.upgradeToAndCall(address(next), "");
+
+        assertEq(game.vaultShareBps(), share);
+        assertEq(game.customDeckFee(), fee);
+        assertEq(game.maxCreatorBps(), maxBps);
+        assertEq(game.minCustomSize(), minSize);
+        assertEq(game.owner(), owner, unicode"");
+    }
+}

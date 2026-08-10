@@ -144,7 +144,7 @@ export default function BattlesPage() {
               <label className="t-label mb-2 block">2. the table</label>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <Fact icon={<Users className="h-5 w-5" />} value="2 players" note="you and one" />
-                <Fact icon={<Swords className="h-5 w-5" />} value="1 card each" note="higher takes both" />
+                <Fact icon={<Swords className="h-5 w-5" />} value="1 card each" note="rarer takes both" />
               </div>
             </div>
 
@@ -154,7 +154,7 @@ export default function BattlesPage() {
                 <span className="text-right">
                   <span className="t-chain text-2xl font-extrabold text-white">$1.00</span>
                   <span className="t-chain block text-sm text-slate-400">
-                    and it still buys your ticket
+                    staked, the winner takes both tickets
                   </span>
                 </span>
               </div>

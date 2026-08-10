@@ -2,13 +2,7 @@ export const TESSERA_DECK_ABI =
   [
     {
       "type": "constructor",
-      "inputs": [
-        {
-          "name": "_adapter",
-          "type": "address",
-          "internalType": "contract IMegapotAdapter"
-        }
-      ],
+      "inputs": [],
       "stateMutability": "nonpayable"
     },
     {
@@ -24,6 +18,19 @@ export const TESSERA_DECK_ABI =
           "name": "",
           "type": "uint64",
           "internalType": "uint64"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "UPGRADE_INTERFACE_VERSION",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "string",
+          "internalType": "string"
         }
       ],
       "stateMutability": "view"
@@ -161,6 +168,38 @@ export const TESSERA_DECK_ABI =
           "name": "",
           "type": "uint256",
           "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "battleEscrow",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "battlePaidB",
+      "inputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint128",
+          "internalType": "uint128"
         }
       ],
       "stateMutability": "view"
@@ -563,6 +602,24 @@ export const TESSERA_DECK_ABI =
     },
     {
       "type": "function",
+      "name": "initialize",
+      "inputs": [
+        {
+          "name": "_adapter",
+          "type": "address",
+          "internalType": "contract IMegapotAdapter"
+        },
+        {
+          "name": "_owner",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
       "name": "joinBattle",
       "inputs": [
         {
@@ -751,6 +808,19 @@ export const TESSERA_DECK_ABI =
           "name": "",
           "type": "uint256",
           "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "proxiableUUID",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "bytes32",
+          "internalType": "bytes32"
         }
       ],
       "stateMutability": "view"
@@ -1190,6 +1260,24 @@ export const TESSERA_DECK_ABI =
     },
     {
       "type": "function",
+      "name": "upgradeToAndCall",
+      "inputs": [
+        {
+          "name": "newImplementation",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "data",
+          "type": "bytes",
+          "internalType": "bytes"
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
       "name": "vault",
       "inputs": [],
       "outputs": [
@@ -1400,6 +1488,12 @@ export const TESSERA_DECK_ABI =
           "type": "uint256",
           "indexed": false,
           "internalType": "uint256"
+        },
+        {
+          "name": "tickets",
+          "type": "uint256",
+          "indexed": false,
+          "internalType": "uint256"
         }
       ],
       "anonymous": false
@@ -1537,6 +1631,19 @@ export const TESSERA_DECK_ABI =
           "type": "uint256",
           "indexed": false,
           "internalType": "uint256"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "Initialized",
+      "inputs": [
+        {
+          "name": "version",
+          "type": "uint64",
+          "indexed": false,
+          "internalType": "uint64"
         }
       ],
       "anonymous": false
@@ -1711,6 +1818,19 @@ export const TESSERA_DECK_ABI =
     },
     {
       "type": "event",
+      "name": "Upgraded",
+      "inputs": [
+        {
+          "name": "implementation",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
       "name": "VaultGrew",
       "inputs": [
         {
@@ -1764,6 +1884,17 @@ export const TESSERA_DECK_ABI =
         }
       ],
       "anonymous": false
+    },
+    {
+      "type": "error",
+      "name": "AddressEmptyCode",
+      "inputs": [
+        {
+          "name": "target",
+          "type": "address",
+          "internalType": "address"
+        }
+      ]
     },
     {
       "type": "error",
@@ -1856,6 +1987,32 @@ export const TESSERA_DECK_ABI =
     },
     {
       "type": "error",
+      "name": "ERC1967InvalidImplementation",
+      "inputs": [
+        {
+          "name": "implementation",
+          "type": "address",
+          "internalType": "address"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "ERC1967NonPayable",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "FailedCall",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "InvalidInitialization",
+      "inputs": []
+    },
+    {
+      "type": "error",
       "name": "NoStakeOpen",
       "inputs": []
     },
@@ -1884,6 +2041,11 @@ export const TESSERA_DECK_ABI =
           "internalType": "uint256"
         }
       ]
+    },
+    {
+      "type": "error",
+      "name": "NotInitializing",
+      "inputs": []
     },
     {
       "type": "error",
@@ -2013,6 +2175,22 @@ export const TESSERA_DECK_ABI =
           "name": "need",
           "type": "uint256",
           "internalType": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "UUPSUnauthorizedCallContext",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "UUPSUnsupportedProxiableUUID",
+      "inputs": [
+        {
+          "name": "slot",
+          "type": "bytes32",
+          "internalType": "bytes32"
         }
       ]
     },
