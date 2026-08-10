@@ -55,6 +55,8 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
     ///
     uint256 public constant WEIGHT_PER_TICKET = 5;
 
+    uint8 public constant MAX_BATCH = 10;
+
     struct Slot {
         euint256 card;
         uint32 deckId;
@@ -151,6 +153,7 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
     error DeckHasNoVault();
     error DeckTooSmall(uint16 size, uint16 min);
     error NothingToClaim();
+    error BadBatch(uint8 n);
 
     modifier onlyOwner() {
         if (msg.sender != owner) revert NotOwner();
@@ -308,15 +311,27 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
 
     ///
     function openCase(uint32 deckId) external nonReentrant returns (uint16 index, bytes32 handle) {
+        return _openOne(deckId);
+    }
+
+    ///
+    ///
+    function openMany(uint32 deckId, uint8 n) external nonReentrant {
+        if (n == 0 || n > MAX_BATCH) revert BadBatch(n);
+        for (uint256 k = 0; k < n; k++) _openOne(deckId);
+    }
+
+    function _openOne(uint32 deckId) internal returns (uint16 index, bytes32 handle) {
         uint256 price;
         (index, price) = _buyAndDraw(deckId);
 
-        Slot storage slot = slots[msg.sender][slots[msg.sender].length - 1];
+        uint256 i = slots[msg.sender].length - 1;
+        Slot storage slot = slots[msg.sender][i];
         handle = euint256.unwrap(slot.card);
         _unseal(slot.card, msg.sender);
 
         emit CaseOpened(msg.sender, deckId, index, handle, price);
-        emit SlotRevealed(msg.sender, slots[msg.sender].length - 1);
+        emit SlotRevealed(msg.sender, i);
     }
 
     ///
@@ -475,9 +490,6 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
         }
     }
 
-    function weightIn(uint32 deckId, uint256 value) external view returns (uint16) {
-        return weightOf(deckId, value);
-    }
 
 
     ///
@@ -947,9 +959,6 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
     }
 
 
-    function myHandle(uint256 i) external view returns (bytes32) {
-        return euint256.unwrap(slots[msg.sender][i].card);
-    }
 
     function handleOf(address player, uint256 i) external view returns (bytes32) {
         return euint256.unwrap(slots[player][i].card);
@@ -959,6 +968,8 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
         return slots[player][i].deckId;
     }
 
+
+    ///
     function weightOfSlot(address player, uint256 i, uint256 value) external view returns (uint256) {
         return _slotWeight(slots[player][i], value);
     }
@@ -967,9 +978,6 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
         return slots[player][i].risk;
     }
 
-    function myCount() external view returns (uint256) {
-        return slots[msg.sender].length;
-    }
 
     function countOf(address player) external view returns (uint256) {
         return slots[player].length;

@@ -351,9 +351,9 @@ contract TesseraBattleTest is Test {
 
     function test_battle_cannotJoinTwice() public {
         uint256 id = _joined();
-        address carol = makeAddr("carol");
-        IMintable(address(MPUSDC)).mint(carol, 100e6);
-        vm.startPrank(carol);
+        address third = makeAddr("third");
+        IMintable(address(MPUSDC)).mint(third, 100e6);
+        vm.startPrank(third);
         MPUSDC.approve(address(deck), type(uint256).max);
         vm.expectRevert(TesseraDeck.BattleTaken.selector);
         deck.joinBattle(id);

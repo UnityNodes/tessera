@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAccount, useConfig } from "wagmi";
+import { parseEventLogs } from "viem";
 import { simulateContract, writeContract, waitForTransactionReceipt } from "wagmi/actions";
 import { TESSERA_DECK_ABI } from "@/lib/abi";
 import { DECK_ADDRESS, txUrl } from "@/lib/chain";
@@ -36,6 +37,10 @@ export interface OpenState {
   waitedMs: number;
   resumed?: boolean;
   risk?: boolean;
+  /**
+   *
+   */
+  batch?: { handle: `0x${string}`; index: number; value?: number }[];
 }
 
 const IDLE: OpenState = { phase: "idle", waitedMs: 0 };
@@ -183,5 +188,85 @@ export function useOpenCase(onSettled?: () => void) {
     [address, config, onSettled, awaitReveal],
   );
 
-  return { state, open, reset };
+  /**
+   *
+   */
+  const openBatch = useCallback(
+    async ({
+      deckId,
+      needsApproval,
+      count,
+    }: {
+      deckId: number;
+      needsApproval: boolean;
+      count: number;
+    }) => {
+      if (!address) return;
+      abort.current?.abort();
+      const ctl = new AbortController();
+      abort.current = ctl;
+
+      try {
+        if (needsApproval) {
+          setState({ phase: "approving", waitedMs: 0 });
+          await approveOnce(config, address, ctl.signal);
+        }
+
+        setState({ phase: "signing", waitedMs: 0 });
+        const sim = await simulateContract(config, {
+          address: DECK_ADDRESS,
+          abi: TESSERA_DECK_ABI,
+          functionName: "openMany",
+          args: [deckId, count],
+          account: address,
+        });
+        const hash = await writeContract(config, sim.request);
+        setState({ phase: "confirming", txHash: hash, txUrl: txUrl(hash), waitedMs: 0 });
+
+        const receipt = await waitForTransactionReceipt(config, { hash });
+        if (receipt.status !== "success") throw new Error("The transaction reverted on chain");
+        if (ctl.signal.aborted) return;
+
+        const mine = parseEventLogs({
+          abi: TESSERA_DECK_ABI,
+          eventName: "CaseOpened",
+          logs: receipt.logs,
+        })
+          .map((l) => l.args as { player: string; handle: `0x${string}`; index: number })
+          .filter((a) => a.player.toLowerCase() === address.toLowerCase());
+
+        const batch = mine.map((a) => ({ handle: a.handle, index: Number(a.index) }));
+        setState({ phase: "revealing", txHash: hash, txUrl: txUrl(hash), waitedMs: 0, batch });
+        onSettled?.();
+
+        const started = Date.now();
+        const revealed = await revealHandles(
+          batch.map((b) => b.handle),
+          {
+            signal: ctl.signal,
+            waitForAll: true,
+            onAttempt: () =>
+              setState((s) =>
+                s.phase === "revealing" ? { ...s, waitedMs: Date.now() - started } : s,
+              ),
+          },
+        );
+        if (ctl.signal.aborted) return;
+
+        setState((s) => ({
+          ...s,
+          phase: "done",
+          batch: batch.map((b, i) => ({ ...b, value: revealed[i]?.value })),
+        }));
+        onSettled?.();
+      } catch (err) {
+        if (ctl.signal.aborted) return;
+        setState((s) => ({ ...s, phase: "failed", error: explain(err) }));
+        onSettled?.();
+      }
+    },
+    [address, config, onSettled],
+  );
+
+  return { state, open, openBatch, reset };
 }

@@ -38,6 +38,8 @@ export function useDeck() {
       { ...deck, functionName: "adapter" },
       { ...deck, functionName: "unsweptOpens" },
       { ...deck, functionName: "vaultShareBps" },
+      //
+      { ...deck, functionName: "MAX_BATCH" },
     ],
     query: { refetchInterval: 12_000 },
   });
@@ -47,6 +49,8 @@ export function useDeck() {
   const vaultShareBps = BigInt((head.data?.[5]?.result as bigint | number | undefined) ?? 5000);
   const adapter = head.data?.[3]?.result as `0x${string}` | undefined;
   const ids = useMemo(() => Array.from({ length: count }, (_, i) => i), [count]);
+
+  const maxBatch = Number((head.data?.[6]?.result as number | undefined) ?? 1);
 
   const rows = useReadContracts({
     contracts: ids.flatMap(
@@ -145,6 +149,7 @@ export function useDeck() {
 
   return {
     decks,
+    maxBatch,
     drawn: decks.reduce((n, d) => n + d.drawn, 0),
     remaining: decks.reduce((n, d) => n + d.remaining, 0),
     vault: decks.reduce((v, d) => v + d.vault, 0n),

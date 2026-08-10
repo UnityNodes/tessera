@@ -231,11 +231,11 @@ contract TesseraRedeemTest is Test {
     }
 
     function test_weightNow_matchesDropTable() public view {
-        assertEq(deck.weightIn(0, 0), 1, unicode"");
-        assertEq(deck.weightIn(0, 1), 1);
-        assertEq(deck.weightIn(0, SHARD_MAX), 1);
-        assertEq(deck.weightIn(0, uint256(SHARD_MAX) + 1), 0);
-        assertEq(deck.weightIn(0, DECK), 0);
+        assertEq(deck.weightOf(0, 0), 1, unicode"");
+        assertEq(deck.weightOf(0, 1), 1);
+        assertEq(deck.weightOf(0, SHARD_MAX), 1);
+        assertEq(deck.weightOf(0, uint256(SHARD_MAX) + 1), 0);
+        assertEq(deck.weightOf(0, DECK), 0);
     }
 
     function test_economics_dropRateStaysBelowBreakEven() public view {
@@ -303,7 +303,7 @@ contract TesseraRedeemTest is Test {
         (uint256[] memory idx, uint256[] memory vals, bytes[][] memory sigs) =
             _args([uint256(0), 1, 2, 3, 4], [uint256(5), 6, 7, 8, 9]);
 
-        assertEq(deck.weightIn(_latest(), 5), 0, unicode"");
+        assertEq(deck.weightOf(_latest(), 5), 0, unicode"");
         assertEq(deck.weightOfSlot(player, 0, 5), 1, unicode"");
 
         vm.prank(player);
@@ -323,8 +323,8 @@ contract TesseraRedeemTest is Test {
         (uint16[] memory exact, uint16[] memory w2) = _flat(10);
         vm.prank(owner);
         deck.createDeck{value: fee}(20, exact, w2, 0);
-        assertEq(deck.weightIn(_latest(), 10), 1);
-        assertEq(deck.weightIn(_latest(), 11), 0);
+        assertEq(deck.weightOf(_latest(), 10), 1);
+        assertEq(deck.weightOf(_latest(), 11), 0);
     }
 
     function test_redeem_topTierPaysFiveTicketsAtOnce() public {
@@ -341,10 +341,10 @@ contract TesseraRedeemTest is Test {
         weight[2] = 1; //
         vm.prank(owner);
         deck.createDeck{value: fee}(100, upTo, weight, 0);
-        assertEq(deck.weightIn(_latest(), 1), 25);
-        assertEq(deck.weightIn(_latest(), 4), 5);
-        assertEq(deck.weightIn(_latest(), 12), 1);
-        assertEq(deck.weightIn(_latest(), 13), 0);
+        assertEq(deck.weightOf(_latest(), 1), 25);
+        assertEq(deck.weightOf(_latest(), 4), 5);
+        assertEq(deck.weightOf(_latest(), 12), 1);
+        assertEq(deck.weightOf(_latest(), 13), 0);
 
         uint256 firstNew = deck.countOf(player);
         _open(60); // '

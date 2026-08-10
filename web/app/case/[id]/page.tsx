@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useAccount } from "wagmi";
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { Tally } from "@/components/ui/Tally";
 import { TierPlate } from "@/components/ui/TierPlate";
 import { Case } from "@/components/Case";
-import { skinOf } from "@/components/Chest";
+import { Chest, skinOf } from "@/components/Chest";
 import { OpenTheatre } from "@/components/OpenTheatre";
 import { Drops } from "@/components/Drops";
 import { PoolGrid } from "@/components/PoolGrid";
@@ -77,6 +77,7 @@ export default function CasePage() {
   }, [game, refreshInventory, refreshOpens, pool, megapot]);
 
   const open = useOpenCase(refresh);
+  const [mult, setMult] = useState(1);
   const redeem = useRedeem(refresh);
   const stake = useStake(refresh);
   const vault = useVault(refresh);
@@ -130,14 +131,14 @@ export default function CasePage() {
   return (
     <div className="w-full bg-[var(--color-section)] px-4 py-6 lg:px-8 2xl:px-14">
       <OpenTheatre
-        open={open.state}
+        open={open.state.batch ? { phase: "idle", waitedMs: 0 } : open.state}
         deck={shape}
         pool={pool.data}
         vault={deck?.vault}
         onClose={open.reset}
       />
 
-      <div className="mx-auto flex max-w-[880px] flex-col gap-5">
+      <div className="mx-auto flex max-w-[1320px] flex-col gap-5">
         <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-4 md:flex-row md:items-end">
           <div>
             <Link
@@ -166,7 +167,7 @@ export default function CasePage() {
           </div>
         </div>
 
-        <section className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <section className="flex flex-col gap-5">
           <div className="flex flex-col gap-4">
           <div
             className="frame relative flex w-full flex-col"
@@ -179,7 +180,7 @@ export default function CasePage() {
               {deck.remaining} sealed
             </span>
 
-            <div className="relative grid aspect-square w-full place-items-center p-6">
+            <div className="relative mx-auto grid aspect-square w-full max-w-[400px] place-items-center p-6">
               <span
                 aria-hidden
                 className="pointer-events-none absolute inset-x-12 inset-y-6 rounded-full opacity-20 blur-3xl"
@@ -194,7 +195,7 @@ export default function CasePage() {
                   vault={deck.vault}
                   skin={deck.cid}
                   art={skinUrl(deckId)}
-                  size={360}
+                  size={330}
                   onClick={
                     canOpen
                       ? () => open.open({ deckId, needsApproval: game.needsApproval })
@@ -239,23 +240,57 @@ export default function CasePage() {
                 ) : (
                   <div className="flex flex-col items-center">
                    <div className="flex flex-wrap items-center justify-center gap-3">
+                    {game.maxBatch > 1 && (
+                    <div className="flex items-center gap-1 rounded-[var(--radius-control)] border border-slate-800 bg-slate-950 p-1">
+                      {[1, 2, 3, 4, 5, 10].filter((n) => n <= game.maxBatch).map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          disabled={n > deck.remaining}
+                          onClick={() => setMult(n)}
+                          className={`min-w-10 cursor-pointer rounded-[var(--radius-chip)] px-3 py-2 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-30 ${
+                            mult === n ? "text-white" : "text-slate-400 hover:text-slate-200"
+                          }`}
+                          style={
+                            mult === n
+                              ? {
+                                  background: `color-mix(in oklab, ${ink} 16%, transparent)`,
+                                  boxShadow: `inset 0 0 0 1px color-mix(in oklab, ${ink} 45%, transparent)`,
+                                }
+                              : undefined
+                          }
+                        >
+                          x{n}
+                        </button>
+                      ))}
+                    </div>
+                    )}
+
                     <Button
                       disabled={busy}
                       className="px-7 py-3.5 text-base"
                       onClick={() =>
                         open.state.phase === "done" || open.state.phase === "failed"
                           ? open.reset()
-                          : open.open({ deckId, needsApproval: game.needsApproval })
+                          : mult > 1
+                            ? open.openBatch({
+                                deckId,
+                                needsApproval: game.needsApproval,
+                                count: mult,
+                              })
+                            : open.open({ deckId, needsApproval: game.needsApproval })
                       }
                     >
                       <Sparkles className="h-5 w-5 fill-slate-950" />
                       {busy
                         ? "…"
                         : open.state.phase === "done" || open.state.phase === "failed"
-                          ? "Open another • $1"
+                          ? `Open again • $${mult}`
                           : game.needsApproval
-                            ? "Approve once, then open • $1"
-                            : "Open a case • $1"}
+                            ? `Approve once, then open • $${mult}`
+                            : mult > 1
+                              ? `Open ${mult} cases • $${mult}`
+                              : "Open a case • $1"}
                     </Button>
 
                     {deck.vaultUpTo > 0 && open.state.phase !== "done" && (
@@ -267,11 +302,13 @@ export default function CasePage() {
                       />
                     )}
                    </div>
-                   {deck.vaultUpTo > 0 && open.state.phase !== "done" && (
+                   {deck.vaultUpTo > 0 && open.state.phase !== "done" && !open.state.batch && (
                      <ForfeitNote vault={deck.vault} />
                    )}
                   </div>
                 )}
+
+                {open.state.batch && <BatchResult state={open.state} deck={shape} />}
 
                 {open.state.txUrl && !busy && (
                   <a
@@ -343,7 +380,7 @@ export default function CasePage() {
             )}
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="grid gap-4 lg:grid-cols-2">
 
             <div className="slab p-5">
               <Drops deck={shape} drawn={deck.drawn} pool={pool.data} />
@@ -463,6 +500,57 @@ function ForfeitAction({ disabled, onClick }: { disabled: boolean; onClick: () =
         Risk it · give the ticket up
       </Button>
     </>
+  );
+}
+
+/**
+ *
+ */
+function BatchResult({ state, deck }: { state: { batch?: { handle: string; index: number; value?: number }[]; phase: string }; deck: DeckShape }) {
+  const items = state.batch ?? [];
+  const known = items.filter((b) => b.value != null);
+  const worth = known.filter((b) => specOf(b.value!, deck).tickets > 0 || isVault(specOf(b.value!, deck)));
+
+  return (
+    <div className="mt-5 w-full">
+      <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+        <span className="t-label">
+          {state.phase === "done" ? "what you opened" : "opening…"}
+        </span>
+        {state.phase === "done" && (
+          <span className="t-chain text-xs text-slate-400">
+            {worth.length} of {items.length} carried a bonus
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-10">
+        {items.map((b) => {
+          const spec = b.value != null ? specOf(b.value, deck) : undefined;
+          return (
+            <div
+              key={b.handle}
+              className="flex flex-col items-center gap-1 rounded-[var(--radius-control)] border p-2"
+              style={{
+                borderColor: spec
+                  ? `color-mix(in oklab, ${spec.ink} 35%, transparent)`
+                  : "var(--edge)",
+                background: spec
+                  ? `color-mix(in oklab, ${spec.ink} 7%, var(--color-surface))`
+                  : "var(--color-surface)",
+              }}
+            >
+              <Chest rarity={spec?.rarity ?? "sealed"} size={44} />
+              <span
+                className="t-chain truncate text-[0.6875rem] font-bold leading-none"
+                style={{ color: spec?.ink ?? "var(--color-ink-dim)" }}
+              >
+                {spec ? spec.name : "…"}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

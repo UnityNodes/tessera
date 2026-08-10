@@ -24,6 +24,19 @@ export const TESSERA_DECK_ABI =
     },
     {
       "type": "function",
+      "name": "MAX_BATCH",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint8",
+          "internalType": "uint8"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
       "name": "UPGRADE_INTERFACE_VERSION",
       "inputs": [],
       "outputs": [
@@ -665,38 +678,6 @@ export const TESSERA_DECK_ABI =
     },
     {
       "type": "function",
-      "name": "myCount",
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256",
-          "internalType": "uint256"
-        }
-      ],
-      "stateMutability": "view"
-    },
-    {
-      "type": "function",
-      "name": "myHandle",
-      "inputs": [
-        {
-          "name": "i",
-          "type": "uint256",
-          "internalType": "uint256"
-        }
-      ],
-      "outputs": [
-        {
-          "name": "",
-          "type": "bytes32",
-          "internalType": "bytes32"
-        }
-      ],
-      "stateMutability": "view"
-    },
-    {
-      "type": "function",
       "name": "openBattle",
       "inputs": [
         {
@@ -760,6 +741,24 @@ export const TESSERA_DECK_ABI =
           "internalType": "bytes32"
         }
       ],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "openMany",
+      "inputs": [
+        {
+          "name": "deckId",
+          "type": "uint32",
+          "internalType": "uint32"
+        },
+        {
+          "name": "n",
+          "type": "uint8",
+          "internalType": "uint8"
+        }
+      ],
+      "outputs": [],
       "stateMutability": "nonpayable"
     },
     {
@@ -1312,30 +1311,6 @@ export const TESSERA_DECK_ABI =
       "type": "function",
       "name": "vaultShareBps",
       "inputs": [],
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint16",
-          "internalType": "uint16"
-        }
-      ],
-      "stateMutability": "view"
-    },
-    {
-      "type": "function",
-      "name": "weightIn",
-      "inputs": [
-        {
-          "name": "deckId",
-          "type": "uint32",
-          "internalType": "uint32"
-        },
-        {
-          "name": "value",
-          "type": "uint256",
-          "internalType": "uint256"
-        }
-      ],
       "outputs": [
         {
           "name": "",
@@ -1904,6 +1879,17 @@ export const TESSERA_DECK_ABI =
           "name": "handle",
           "type": "bytes32",
           "internalType": "bytes32"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "BadBatch",
+      "inputs": [
+        {
+          "name": "n",
+          "type": "uint8",
+          "internalType": "uint8"
         }
       ]
     },

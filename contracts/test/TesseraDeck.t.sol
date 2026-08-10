@@ -21,6 +21,10 @@ contract TesseraDeckForkTest is Test {
     address owner = makeAddr("owner");
     address player = makeAddr("player");
 
+    function _ticketsOf(address who) internal view returns (uint256 bps) {
+        (bps,,) = MEGAPOT.usersInfo(who);
+    }
+
     function _tiers() internal pure returns (uint16[] memory upTo, uint16[] memory weight) {
         upTo = new uint16[](2);
         weight = new uint16[](2);
@@ -147,6 +151,66 @@ contract TesseraDeckForkTest is Test {
         uint256 warm = g - gasleft();
         vm.stopPrank();
         console.log("openCase gas (warm):", warm);
+    }
+
+
+    ///
+    function test_openMany_isExactlyNSeparateOpens() public {
+        uint256 ticketsBefore = _ticketsOf(player);
+        uint256 balBefore = MPUSDC.balanceOf(player);
+        uint256 price = MEGAPOT.ticketPrice();
+
+        vm.startPrank(player);
+        MPUSDC.approve(address(deck), type(uint256).max);
+        deck.openMany(0, 4);
+        vm.stopPrank();
+
+        assertEq(deck.countOf(player), 4, unicode"");
+        assertEq(deck.deckAt(0).drawn, 4, unicode"");
+        assertEq(balBefore - MPUSDC.balanceOf(player), price * 4, unicode"");
+        assertGt(_ticketsOf(player) - ticketsBefore, 0, unicode"");
+        assertEq(
+            _ticketsOf(player) - ticketsBefore,
+            (_ticketsOf(player) - ticketsBefore) / 4 * 4,
+            unicode""
+        );
+    }
+
+    function test_openMany_drawsDistinctSlots() public {
+        vm.startPrank(player);
+        MPUSDC.approve(address(deck), type(uint256).max);
+        deck.openMany(0, 3);
+        vm.stopPrank();
+
+        bytes32 a = deck.handleOf(player, 0);
+        bytes32 b = deck.handleOf(player, 1);
+        bytes32 c = deck.handleOf(player, 2);
+        assertTrue(a != b && b != c && a != c, unicode"");
+    }
+
+    function test_openMany_refusesZeroAndTooMany() public {
+        vm.startPrank(player);
+        MPUSDC.approve(address(deck), type(uint256).max);
+
+        vm.expectRevert(abi.encodeWithSelector(TesseraDeck.BadBatch.selector, uint8(0)));
+        deck.openMany(0, 0);
+
+        uint8 over = deck.MAX_BATCH() + 1;
+        vm.expectRevert(abi.encodeWithSelector(TesseraDeck.BadBatch.selector, over));
+        deck.openMany(0, over);
+        vm.stopPrank();
+    }
+
+    function test_openMany_stopsAtTheEndOfTheDeck() public {
+        vm.startPrank(player);
+        MPUSDC.approve(address(deck), type(uint256).max);
+        for (uint256 i = 0; i < 18; i++) deck.openCase(0);
+        assertEq(deck.remaining(0), 2);
+
+        vm.expectRevert(TesseraDeck.DeckEmpty.selector);
+        deck.openMany(0, 3);
+        assertEq(deck.remaining(0), 2, unicode"");
+        vm.stopPrank();
     }
 
     function test_openCase_revertsWithoutApproval() public {
