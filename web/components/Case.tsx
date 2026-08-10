@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "motion/react";
 import { Chest, ChestWaiting } from "./Chest";
 import { Prize } from "./Prize";
-import { specOf, isVault, ticketsLabel, type DeckShape } from "@/lib/deck";
+import { specOf, isVault, bestTier, ticketsLabel, type DeckShape } from "@/lib/deck";
 
 export type CasePhase = "idle" | "waiting" | "opened";
 
@@ -46,6 +46,7 @@ const SHARDS = [
 export function Case({ phase, value, deck, size = 340, onClick, risk = false, vault, skin, art }: Props) {
   const still = useReducedMotion();
   const spec = phase === "opened" && value != null ? specOf(value, deck) : null;
+  const face = bestTier(deck);
   const clickable = Boolean(onClick) && phase === "idle";
   const won = Boolean(spec && (spec.tickets > 0 || isVault(spec)));
   const paid = spec ? (risk ? spec.tickets * 2 : spec.tickets) : 0;
@@ -127,7 +128,8 @@ export function Case({ phase, value, deck, size = 340, onClick, risk = false, va
           transition={{ duration: 0.55, ease: [0.34, 1.3, 0.5, 1] }}
         >
           <Chest
-            rarity={spec ? spec.rarity : "sealed"}
+            //
+            rarity={spec ? spec.rarity : (face?.rarity ?? "sealed")}
             skin={spec ? undefined : skin}
             art={spec ? undefined : art}
             size={size * (spec ? 0.86 : 0.8)}
