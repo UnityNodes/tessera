@@ -266,9 +266,12 @@ function Row({
         <StatusPill status={status} />
 
         {battle.waiting && !isMine && (ready ? (
-          <Button size="sm" disabled={!canPlay || busy} onClick={onJoin}>
-            Join • $1
-          </Button>
+          <span className="flex flex-col items-end gap-1">
+            <Button size="sm" disabled={!canPlay || busy} onClick={onJoin}>
+              Join • stake $1
+            </Button>
+            <span className="t-label">winner takes both tickets</span>
+          </span>
         ) : (
           <StartHere what="A seat" compact />
         ))}

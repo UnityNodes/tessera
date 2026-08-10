@@ -305,7 +305,7 @@ function OpenSeat({
       <div className="w-full max-w-xs text-center">
         <p className="t-label">open seat</p>
         <p className="mt-2 text-slate-300">
-          Your dollar buys you a real ticket either way. Only the bonus is on the table.
+          Both dollars are on the table. The winner takes both tickets and the whole bonus.
         </p>
         <div className="mt-5 text-left">
           {ready ? (
@@ -401,8 +401,8 @@ function Abandon({
   if (left > 0) {
     return (
       <p className="mt-4 text-center text-sm text-slate-400">
-        If nobody comes, you can take the card back in {Math.ceil(left / 60_000)} min. Nothing to
-        refund, the ticket was bought the moment you opened the battle.
+        If nobody comes, you can take the card back in {Math.ceil(left / 60_000)} min, and your
+        dollar buys you the real ticket after all. No battle, no stake.
       </p>
     );
   }

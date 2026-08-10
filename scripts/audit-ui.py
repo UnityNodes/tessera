@@ -239,6 +239,22 @@ with sync_playwright() as p:
     allt = page.locator("div", has=page.get_by_text("all time", exact=True)).last.inner_text()
     same("all time= ", EXPECTED["battles"], whole(num(allt.replace("all time", ""))))
 
+    # .
+    #
+    # , , :
+    # , , , .
+    # ,
+    # your dollar buys you a real ticket either way.
+    # , , .
+    arena = page.locator("body").inner_text().lower()
+    check(
+        "",
+        "stake" in arena and "takes both tickets" in arena,
+        "" if "stake" in arena else "stake",
+    )
+    stale = [s for s in ("still buys your ticket", "buys you a real ticket either way") if s in arena]
+    check("-", not stale, "; ".join(stale) or "")
+
     # ── ──────────────────────────────────────────────────────
     #
     # , : .
