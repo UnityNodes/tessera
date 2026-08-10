@@ -71,6 +71,8 @@ const P = "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1";
     const openBtn = p.getByRole("button", { name: n > 1 ? new RegExp(`Open ${n}`) : /Open a case/ }).first();
     await openBtn.click();
 
+    await p.locator(".fixed[role=dialog]").waitFor({ timeout: 60000 });
+
     let rows = [];
     for (let i = 0; i < 45; i++) {
       await p.waitForTimeout(1000);
@@ -114,7 +116,12 @@ const P = "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1";
     const single = n === 1;
     const okCount = single ? rows.length <= 1 : rows.length === n;
     const okLanded = rows.every((r) => r.expected && r.expected === r.under);
-    const after = await pub.readContract({ address: P, abi: deckAbi, functionName: "countOf", args: [acc.address] });
+    let after = before;
+    for (let i = 0; i < 20; i++) {
+      after = await pub.readContract({ address: P, abi: deckAbi, functionName: "countOf", args: [acc.address] });
+      if (Number(after - before) >= n) break;
+      await new Promise((r) => setTimeout(r, 800));
+    }
     const okSlots = Number(after - before) === n;
 
     const verdict = okCount && (single || okLanded) && okSlots;
