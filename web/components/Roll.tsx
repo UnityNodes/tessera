@@ -58,6 +58,7 @@ export function Roll({
   pool,
   urgency = 0,
   variant = 0,
+  length = 72,
 }: {
   running: boolean;
   /**
@@ -68,6 +69,10 @@ export function Roll({
    *
    */
   variant?: number;
+  /**
+   *
+   */
+  length?: number;
   deck: DeckShape;
   pool?: PoolState;
   /**
@@ -79,9 +84,9 @@ export function Roll({
   const x = useMotionValue(0);
   const box = useRef<HTMLDivElement>(null);
 
-  const key = `${deck.tiers.length}|${deck.vaultUpTo}|${variant}|${pool?.tiers.map((t) => `${t.weight}:${t.left}`).join(",") ?? ""}`;
+  const key = `${deck.tiers.length}|${deck.vaultUpTo}|${variant}|${length}|${pool?.tiers.map((t) => `${t.weight}:${t.left}`).join(",") ?? ""}`;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const built = useMemo(() => buildStrip(deck, pool, variant), [key]);
+  const built = useMemo(() => buildStrip(deck, pool, variant, length), [key]);
 
   /**
    *
@@ -264,8 +269,26 @@ function Item({ spec }: { spec: TierSpec }) {
  *
  *
  */
-function buildStrip(deck: DeckShape, pool?: PoolState, variant = 0): TierSpec[] {
-  const LENGTH = 72;
+/**
+ */
+function shuffle<T>(items: T[], seed: number): T[] {
+  const out = [...items];
+  let s = seed >>> 0;
+  const next = () => {
+    s = (s + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(next() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+function buildStrip(deck: DeckShape, pool?: PoolState, variant = 0, length = 72): TierSpec[] {
+  const LENGTH = length;
   const grout = specFor(0);
 
   const fromDeck = slotsPerTier(deck).filter((t) => t.weight > 0 || t.spec.name === VAULT_SPEC.name);
@@ -302,11 +325,10 @@ function buildStrip(deck: DeckShape, pool?: PoolState, variant = 0): TierSpec[] 
     at = (at + 5) % spread.length;
   }
 
-  const k = ((variant % spread.length) + spread.length) % spread.length;
-  const rotated = k === 0 ? spread : [...spread.slice(k), ...spread.slice(0, k)];
-
+  //
   const out: TierSpec[] = [];
-  while (out.length < LENGTH) out.push(...rotated);
+  let cycles = 0;
+  while (out.length < LENGTH) out.push(...shuffle(spread, variant * 7919 + cycles++ * 104729));
   return out;
 }
 

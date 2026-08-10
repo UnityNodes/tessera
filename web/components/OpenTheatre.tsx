@@ -126,6 +126,53 @@ export function OpenTheatre({
                   ? `${open.batch.length} cases opened`
                   : `opening ${open.batch.length} cases`}
               </p>
+              {opened ? (
+                 *
+                <div className="flex flex-wrap items-center justify-center gap-3 px-2">
+                  {open.batch.map((b, i) => {
+                    const sp = b.value != null ? specOf(b.value, deck) : null;
+                    const prize = Boolean(sp && isPrize(sp));
+                    return (
+                      <motion.div
+                        key={b.handle}
+                        initial={{ scale: 0.4, opacity: 0, y: 24 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        transition={{
+                          delay: still ? 0 : i * 0.09,
+                          duration: 0.5,
+                          ease: [0.16, 0.84, 0.28, 1],
+                        }}
+                        className="flex flex-col items-center gap-1 rounded-[var(--radius-control)] border px-3 py-3"
+                        style={{
+                          borderColor: sp
+                            ? `color-mix(in oklab, ${sp.ink} ${prize ? 55 : 22}%, transparent)`
+                            : "var(--edge)",
+                          background: sp
+                            ? `color-mix(in oklab, ${sp.ink} ${prize ? 12 : 5}%, var(--color-surface))`
+                            : "var(--color-surface)",
+                          boxShadow: prize
+                            ? `0 0 26px color-mix(in oklab, ${sp!.ink} 30%, transparent)`
+                            : undefined,
+                          opacity: prize ? 1 : 0.72,
+                        }}
+                      >
+                        <Chest rarity={sp?.rarity ?? "sealed"} size={64} open={prize} />
+                        <span
+                          className="t-chain text-xs font-bold leading-none"
+                          style={{ color: sp?.ink ?? "var(--color-ink-dim)" }}
+                        >
+                          {sp ? sp.name : "…"}
+                        </span>
+                        {sp && sp.tickets > 0 && (
+                          <span className="t-chain text-xs leading-none" style={{ color: sp.ink }}>
+                            +{sp.tickets}
+                          </span>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              ) : (
               <div className="flex w-full flex-col items-center gap-2 overflow-y-auto">
                 {open.batch.map((b, i) => (
                   <div
@@ -144,11 +191,13 @@ export function OpenTheatre({
                         pool={pool}
                         urgency={tier}
                         variant={i}
+                        length={open.batch!.length > 5 ? 28 : open.batch!.length > 2 ? 40 : 72}
                       />
                     </div>
                   </div>
                 ))}
               </div>
+              )}
               {opened && (
                 <button
                   type="button"
