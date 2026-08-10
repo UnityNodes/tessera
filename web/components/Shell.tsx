@@ -48,6 +48,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
 
   const firstOpen = game.decks.find((d) => !d.empty)?.id ?? 0;
 
+  //
   const richest = game.decks.reduce<(typeof game.decks)[number] | undefined>(
     (a, d) => (d.vault > (a?.vault ?? 0n) ? d : a),
     undefined,
@@ -112,13 +113,13 @@ export function Shell({ children }: { children: React.ReactNode }) {
               />
               <span className="flex flex-col leading-none">
                 <Counter
-                  value={Number(formatUnits(game.vault, 6))}
+                  value={Number(formatUnits(richest?.vault ?? 0n, 6))}
                   decimals={2}
                   prefix="$ "
                   className="t-chain text-sm font-bold leading-none"
                   style={{ color: "var(--color-tier-vault)" }}
                 />
-                <span className="t-label mt-1 hidden leading-none sm:block">in vaults</span>
+                <span className="t-label mt-1 hidden leading-none sm:block">biggest vault</span>
               </span>
             </Link>
 
