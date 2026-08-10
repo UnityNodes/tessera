@@ -249,6 +249,23 @@ export function useOpenCase(onSettled?: () => void) {
               setState((s) =>
                 s.phase === "revealing" ? { ...s, waitedMs: Date.now() - started } : s,
               ),
+            onChunk: (chunk) => {
+              const byHandle = new Map(
+                chunk.map((r) => [r.handle.toLowerCase(), r.value] as const),
+              );
+              setState((s) =>
+                s.batch
+                  ? {
+                      ...s,
+                      batch: s.batch.map((b) =>
+                        b.value == null && byHandle.has(b.handle.toLowerCase())
+                          ? { ...b, value: byHandle.get(b.handle.toLowerCase()) }
+                          : b,
+                      ),
+                    }
+                  : s,
+              );
+            },
           },
         );
         if (ctl.signal.aborted) return;

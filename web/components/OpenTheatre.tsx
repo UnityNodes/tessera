@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Chest } from "./Chest";
 import { Prize } from "./Prize";
@@ -22,9 +22,11 @@ const ROLL_H = 204;
 
 /**
  *
+ *
  */
-function rollScale(n: number) {
-  return n <= 2 ? 1 : n <= 3 ? 0.78 : n <= 5 ? 0.58 : 0.4;
+function rollScale(n: number, viewport: number) {
+  const room = viewport * 0.82 - 90; //
+  return Math.max(0.26, Math.min(1, room / (n * (ROLL_H + 8))));
 }
 
 const LIVE = new Set(["confirming", "revealing", "landing", "done"]);
@@ -44,6 +46,13 @@ export function OpenTheatre({
 }) {
   const still = useReducedMotion();
   const on = LIVE.has(open.phase);
+
+  const [vh, setVh] = useState(() => (typeof window === "undefined" ? 900 : window.innerHeight));
+  useEffect(() => {
+    const onResize = () => setVh(window.innerHeight);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   const opened = open.phase === "done";
 
   /**
@@ -118,15 +127,15 @@ export function OpenTheatre({
                   : `opening ${open.batch.length} cases`}
               </p>
               <div className="flex w-full flex-col items-center gap-2 overflow-y-auto">
-                {open.batch.map((b) => (
+                {open.batch.map((b, i) => (
                   <div
                     key={b.handle}
                     className="w-full shrink-0"
-                    style={{ height: ROLL_H * rollScale(open.batch!.length) }}
+                    style={{ height: ROLL_H * rollScale(open.batch!.length, vh) }}
                   >
                     <div
                       className="w-full origin-top"
-                      style={{ transform: `scale(${rollScale(open.batch!.length)})` }}
+                      style={{ transform: `scale(${rollScale(open.batch!.length, vh)})` }}
                     >
                       <Roll
                         running={open.phase !== "confirming"}
@@ -134,6 +143,7 @@ export function OpenTheatre({
                         deck={deck}
                         pool={pool}
                         urgency={tier}
+                        variant={i}
                       />
                     </div>
                   </div>

@@ -57,12 +57,17 @@ export function Roll({
   deck,
   pool,
   urgency = 0,
+  variant = 0,
 }: {
   running: boolean;
   /**
    *
    */
   landedValue?: number;
+  /**
+   *
+   */
+  variant?: number;
   deck: DeckShape;
   pool?: PoolState;
   /**
@@ -74,9 +79,9 @@ export function Roll({
   const x = useMotionValue(0);
   const box = useRef<HTMLDivElement>(null);
 
-  const key = `${deck.tiers.length}|${deck.vaultUpTo}|${pool?.tiers.map((t) => `${t.weight}:${t.left}`).join(",") ?? ""}`;
+  const key = `${deck.tiers.length}|${deck.vaultUpTo}|${variant}|${pool?.tiers.map((t) => `${t.weight}:${t.left}`).join(",") ?? ""}`;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const built = useMemo(() => buildStrip(deck, pool), [key]);
+  const built = useMemo(() => buildStrip(deck, pool, variant), [key]);
 
   /**
    *
@@ -259,7 +264,7 @@ function Item({ spec }: { spec: TierSpec }) {
  *
  *
  */
-function buildStrip(deck: DeckShape, pool?: PoolState): TierSpec[] {
+function buildStrip(deck: DeckShape, pool?: PoolState, variant = 0): TierSpec[] {
   const LENGTH = 72;
   const grout = specFor(0);
 
@@ -297,8 +302,11 @@ function buildStrip(deck: DeckShape, pool?: PoolState): TierSpec[] {
     at = (at + 5) % spread.length;
   }
 
+  const k = ((variant % spread.length) + spread.length) % spread.length;
+  const rotated = k === 0 ? spread : [...spread.slice(k), ...spread.slice(0, k)];
+
   const out: TierSpec[] = [];
-  while (out.length < LENGTH) out.push(...spread);
+  while (out.length < LENGTH) out.push(...rotated);
   return out;
 }
 
