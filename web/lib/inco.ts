@@ -30,9 +30,29 @@ export function warmInco(): Promise<Zap> {
 
 let ready = false;
 export const incoReady = () => ready;
-void warmInco().then(() => {
-  ready = true;
-}).catch(() => {});
+
+/**
+ *
+ *
+ *
+ */
+function warmWhenIdle() {
+  const go = () =>
+    void warmInco()
+      .then(() => {
+        ready = true;
+      })
+      .catch(() => {});
+
+  if (typeof window === "undefined") return;
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(go, { timeout: 4000 });
+  } else {
+    window.addEventListener("load", () => window.setTimeout(go, 200), { once: true });
+  }
+}
+
+warmWhenIdle();
 
 export function signatureToHex(sig: Record<string, number>): `0x${string}` {
   return toHex(Uint8Array.from(Object.values(sig)));

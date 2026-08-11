@@ -84,6 +84,50 @@ with sync_playwright() as p:
         f"{first} " if first else "60 '",
     )
     page.close()
+
+    # ── ───────────────────
+    #
+    # SDK Inco 214 780 : ML-KEM, Keccak
+    # effect. , ,
+    # , .
+    # , :
+    # 3G '5.7 2.7.
+    #
+    # , . :
+    # load. :
+    # , ,
+    # , '.
+    print("\n── ──")
+    page = browser.new_page(viewport={"width": 1600, "height": 900})
+    page.goto(URL, wait_until="load")
+    early = page.evaluate(
+        """() => {
+          const load = performance.getEntriesByType('navigation')[0].loadEventEnd;
+          const heavy = performance.getEntriesByType('resource')
+            .filter(x => x.decodedBodySize > 600000);
+          return {
+            load: Math.round(load),
+            before: heavy.filter(x => x.startTime < load).length,
+            wire: Math.round(performance.getEntriesByType('resource')
+              .filter(x => x.responseEnd <= load)
+              .reduce((n, x) => n + x.encodedBodySize, 0) / 1024),
+          };
+        }"""
+    )
+    check(
+        "SDK ",
+        early["before"] == 0,
+        f"{early['wire']} load" if early["before"] == 0
+        else f"load: {early['before']}",
+    )
+
+    page.wait_for_timeout(12000)
+    warmed = page.evaluate(
+        """() => performance.getEntriesByType('resource')
+             .some(x => x.decodedBodySize > 600000)"""
+    )
+    check("", warmed, "" if warmed else "")
+    page.close()
     browser.close()
 
 print("\n" + "═" * 62)
