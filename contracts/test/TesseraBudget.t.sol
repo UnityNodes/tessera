@@ -166,4 +166,49 @@ contract TesseraLiveBudgetTest is Test {
 
         assertGt(refused, 0, unicode"");
     }
+
+    ///
+    ///
+    function test_liveBoard_cutsCopiesItCanFund() public {
+        TesseraDeck game = TesseraDeck(LIVE);
+
+        TesseraDeck next = new TesseraDeck();
+        vm.startPrank(game.owner());
+        game.upgradeToAndCall(address(next), "");
+        game.setVaultShare(game.maxVaultShare());
+        vm.stopPrank();
+
+        uint16 share = game.vaultShareBps();
+        uint256 cut;
+
+        for (uint32 id = 0; id < game.deckCount() && cut == 0; id++) {
+            TesseraDeck.Deck memory d = game.deckAt(id);
+            if (d.creator != address(0)) continue;
+
+            TesseraDeck.Tier[] memory t = game.tiers(id);
+            uint16[] memory upTo = new uint16[](t.length);
+            uint16[] memory weight = new uint16[](t.length);
+            uint256 w;
+            uint16 prev;
+            for (uint256 i = 0; i < t.length; i++) {
+                upTo[i] = t[i].upTo;
+                weight[i] = t[i].weight;
+                w += uint256(t[i].upTo - prev) * t[i].weight;
+                prev = t[i].upTo;
+            }
+            if (w * 2 * 10_000 > uint256(d.size) * (10_000 - share)) continue;
+
+            uint256 fee = game.deckFee(d.size);
+            address boss = game.owner();
+            vm.deal(boss, fee + 1 ether);
+            vm.prank(boss);
+            uint32 made = game.createDeck{value: fee}(d.size, upTo, weight, d.vaultUpTo);
+
+            assertEq(game.deckAt(made).size, d.size, unicode"");
+            assertEq(game.deckAt(made).drawn, 0, unicode"");
+            cut++;
+        }
+
+        assertEq(cut, 1, unicode"");
+    }
 }
