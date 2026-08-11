@@ -18,7 +18,7 @@ contract TesseraStakeTest is Test {
     IMegapot constant MEGAPOT = IMegapot(0x6f03c7BCaDAdBf5E6F5900DA3d56AdD8FbDac5De);
     IERC20 constant MPUSDC = IERC20(0xA4253E7C13525287C56550b8708100f93E60509f);
 
-    uint16 constant DECK = 60;
+    uint16 constant DECK = 80;
     uint16 constant PRIZE_MAX = 20; // 1..20
 
     TesseraDeck deck;

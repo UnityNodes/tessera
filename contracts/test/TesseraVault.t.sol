@@ -18,7 +18,7 @@ contract TesseraVaultTest is Test {
     IMegapot constant MEGAPOT = IMegapot(0x6f03c7BCaDAdBf5E6F5900DA3d56AdD8FbDac5De);
     IERC20 constant MPUSDC = IERC20(0xA4253E7C13525287C56550b8708100f93E60509f);
 
-    uint16 constant DECK = 60;
+    uint16 constant DECK = 100;
 
     TesseraDeck deck;
     address owner = makeAddr("owner");
@@ -285,7 +285,7 @@ contract TesseraVaultTest is Test {
         uint256 fee = deck.deckFee(DECK);
         uint16[] memory upTo = new uint16[](1);
         uint16[] memory weight = new uint16[](1);
-        upTo[0] = 6;
+        upTo[0] = 5;
         weight[0] = 5;
         vm.prank(owner);
         uint32 plain = deck.createDeck{value: fee}(DECK, upTo, weight, 0); //

@@ -151,6 +151,7 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
     error NotTheVault(bytes32 handle, uint256 value);
     error VaultEmpty();
     error ShareTooBig();
+    error ShareStarvesPrizes();
     error DeckHasNoVault();
     error DeckTooSmall(uint16 size, uint16 min);
     error NothingToClaim();
@@ -243,7 +244,11 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
             prev = upTo[i];
         }
 
-        if (totalWeight * 2 > uint256(n)) revert TooManyShardSlots();
+        //
+        //
+        if (totalWeight * 2 * 10_000 > uint256(n) * (10_000 - vaultShareBps)) {
+            revert TooManyShardSlots();
+        }
 
         elist cards = e.shuffledRange(1, n + 1, ETypes.Uint256);
         e.allowThis(cards);
@@ -913,9 +918,24 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
         emit VaultOpened(msg.sender, deckId, handle, paid);
     }
 
+    ///
+    ///
     function setVaultShare(uint16 bps) external onlyOwner {
         if (bps > 10_000) revert ShareTooBig();
+        uint256 sold;
+        for (uint256 i = 0; i < decks.length; i++) sold += decks[i].size;
+        if (budgetWeight * 2 * 10_000 > sold * (10_000 - bps)) revert ShareStarvesPrizes();
         vaultShareBps = bps;
+    }
+
+    ///
+    function maxVaultShare() external view returns (uint16) {
+        uint256 sold;
+        for (uint256 i = 0; i < decks.length; i++) sold += decks[i].size;
+        if (sold == 0) return 10_000;
+        uint256 need = (budgetWeight * 2 * 10_000) / sold;
+        // forge-lint: disable-next-line(unsafe-typecast)
+        return need >= 10_000 ? 0 : uint16(10_000 - need);
     }
 
     function setCustomDeckRules(uint256 fee, uint16 maxBps, uint16 minSize) external onlyOwner {

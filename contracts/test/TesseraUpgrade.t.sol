@@ -56,9 +56,9 @@ contract TesseraUpgradeTest is Test {
         upTo[1] = 3;
         weight[1] = 1;
 
-        uint256 fee = deck.deckFee(20);
+        uint256 fee = deck.deckFee(40);
         vm.prank(owner);
-        deck.createDeck{value: fee}(20, upTo, weight, 0);
+        deck.createDeck{value: fee}(40, upTo, weight, 0);
     }
 
     function _upgrade() internal returns (TesseraDeckV2 v2) {

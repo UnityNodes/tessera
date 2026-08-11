@@ -537,7 +537,7 @@ with sync_playwright() as p:
     # , .
     print("\n── ──")
     boss = EXPECTED.get("owner")
-    house = EXPECTED.get("houseDecks") or []
+    house = EXPECTED.get("recutableDecks") or []
     if not boss:
         check("", False, "audit-expected.json owner")
     else:
@@ -596,8 +596,11 @@ with sync_playwright() as p:
         )
 
         cuts = mp.get_by_role("button", name=re.compile("Cut a fresh copy"))
+        # , ,
+        # . , , :
+        # , .
         check(
-            "",
+            ", ",
             cuts.count() == len(house),
             f"{cuts.count()}, {len(house)}",
         )

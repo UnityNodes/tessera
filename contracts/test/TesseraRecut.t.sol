@@ -12,7 +12,7 @@ import {IMegapot} from "../src/interfaces/IMegapot.sol";
 contract TesseraRecutTest is Test {
     IMegapot constant MEGAPOT = IMegapot(0x6f03c7BCaDAdBf5E6F5900DA3d56AdD8FbDac5De);
 
-    uint16 constant SIZE = 60;
+    uint16 constant SIZE = 120;
 
     TesseraDeck game;
     address owner = makeAddr("owner");

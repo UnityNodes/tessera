@@ -16,6 +16,9 @@ contract TesseraDeckForkTest is Test {
     IMegapot constant MEGAPOT = IMegapot(0x6f03c7BCaDAdBf5E6F5900DA3d56AdD8FbDac5De);
     IERC20 constant MPUSDC = IERC20(0xA4253E7C13525287C56550b8708100f93E60509f);
 
+    ///
+    uint16 constant DECK = 40;
+
     TesseraDeck deck;
     MegapotLegacyAdapter adapter;
     address owner = makeAddr("owner");
@@ -41,10 +44,10 @@ contract TesseraDeckForkTest is Test {
         deck = DeployTessera.behindProxy(adapter, owner);
 
         vm.deal(owner, 1 ether);
-        uint256 fee = deck.deckFee(20);
+        uint256 fee = deck.deckFee(DECK);
         vm.prank(owner);
         (uint16[] memory upTo, uint16[] memory weight) = _tiers();
-        deck.createDeck{value: fee}(20, upTo, weight, 0);
+        deck.createDeck{value: fee}(DECK, upTo, weight, 0);
 
         vm.prank(owner);
         deck.setVaultShare(0);
@@ -53,9 +56,9 @@ contract TesseraDeckForkTest is Test {
     }
 
     function test_deckWasCreated() public view {
-        assertEq(deck.deckAt(0).size, 20);
+        assertEq(deck.deckAt(0).size, DECK);
         assertEq(deck.deckAt(0).drawn, 0);
-        assertEq(deck.remaining(0), 20);
+        assertEq(deck.remaining(0), DECK);
         assertEq(address(deck.ticketToken()), address(MPUSDC));
     }
 
@@ -76,7 +79,7 @@ contract TesseraDeckForkTest is Test {
         assertEq(index, 0, unicode"");
         assertTrue(handle != bytes32(0), unicode"");
         assertEq(deck.deckAt(0).drawn, 1);
-        assertEq(deck.remaining(0), 19);
+        assertEq(deck.remaining(0), DECK - 1);
         assertEq(MPUSDC.balanceOf(player), balBefore - price, unicode"");
         assertGt(boughtAfter, boughtBefore, unicode", ");
         assertEq(MPUSDC.balanceOf(address(deck)), 0, unicode"");
@@ -204,7 +207,7 @@ contract TesseraDeckForkTest is Test {
     function test_openMany_stopsAtTheEndOfTheDeck() public {
         vm.startPrank(player);
         MPUSDC.approve(address(deck), type(uint256).max);
-        for (uint256 i = 0; i < 18; i++) deck.openCase(0);
+        for (uint256 i = 0; i < DECK - 2; i++) deck.openCase(0);
         assertEq(deck.remaining(0), 2);
 
         vm.expectRevert(TesseraDeck.DeckEmpty.selector);
@@ -222,7 +225,7 @@ contract TesseraDeckForkTest is Test {
     function test_openCase_revertsWhenDeckEmpty() public {
         vm.startPrank(player);
         MPUSDC.approve(address(deck), type(uint256).max);
-        for (uint256 i = 0; i < 20; i++) {
+        for (uint256 i = 0; i < DECK; i++) {
             deck.openCase(0);
         }
         assertEq(deck.remaining(0), 0);
@@ -233,14 +236,14 @@ contract TesseraDeckForkTest is Test {
 
     function test_createDeck_onlyOwner() public {
         vm.deal(player, 1 ether);
-        uint256 fee = deck.deckFee(10);
+        uint256 fee = deck.deckFee(20);
         vm.prank(player);
         vm.expectRevert(TesseraDeck.NotOwner.selector);
         uint16[] memory upTo = new uint16[](1);
         uint16[] memory weight = new uint16[](1);
         upTo[0] = 3;
         weight[0] = 1; // 3 10/2
-        deck.createDeck{value: fee}(10, upTo, weight, 0);
+        deck.createDeck{value: fee}(20, upTo, weight, 0);
     }
 
     ///
@@ -251,43 +254,43 @@ contract TesseraDeckForkTest is Test {
         deck.openCase(0);
         vm.stopPrank();
 
-        uint256 fee = deck.deckFee(10);
+        uint256 fee = deck.deckFee(20);
         uint16[] memory upTo = new uint16[](1);
         uint16[] memory weight = new uint16[](1);
         upTo[0] = 3;
         weight[0] = 1;
         vm.prank(owner);
-        uint32 second = deck.createDeck{value: fee}(10, upTo, weight, 0);
+        uint32 second = deck.createDeck{value: fee}(20, upTo, weight, 0);
 
         assertEq(second, 1, unicode", ");
         assertEq(deck.deckCount(), 2);
-        assertEq(deck.deckAt(0).size, 20, unicode"");
+        assertEq(deck.deckAt(0).size, DECK, unicode"");
         assertEq(deck.deckAt(0).drawn, 2, unicode"'");
-        assertEq(deck.deckAt(1).size, 10);
+        assertEq(deck.deckAt(1).size, 20);
         assertEq(deck.deckAt(1).drawn, 0);
     }
 
     function test_decks_haveTheirOwnDropTable() public {
-        uint256 fee = deck.deckFee(10);
+        uint256 fee = deck.deckFee(20);
         uint16[] memory upTo = new uint16[](1);
         uint16[] memory weight = new uint16[](1);
         upTo[0] = 3;
         weight[0] = 1;
         vm.prank(owner);
-        uint32 second = deck.createDeck{value: fee}(10, upTo, weight, 0);
+        uint32 second = deck.createDeck{value: fee}(20, upTo, weight, 0);
 
         assertEq(deck.weightOf(0, 1), 5);
         assertEq(deck.weightOf(second, 1), 1);
     }
 
     function test_decks_drawIndependently() public {
-        uint256 fee = deck.deckFee(10);
+        uint256 fee = deck.deckFee(20);
         uint16[] memory upTo = new uint16[](1);
         uint16[] memory weight = new uint16[](1);
         upTo[0] = 3;
         weight[0] = 1;
         vm.prank(owner);
-        uint32 second = deck.createDeck{value: fee}(10, upTo, weight, 0);
+        uint32 second = deck.createDeck{value: fee}(20, upTo, weight, 0);
 
         vm.startPrank(player);
         MPUSDC.approve(address(deck), type(uint256).max);

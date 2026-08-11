@@ -665,6 +665,19 @@ export const TESSERA_DECK_ABI =
     },
     {
       "type": "function",
+      "name": "maxVaultShare",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint16",
+          "internalType": "uint16"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
       "name": "minCustomSize",
       "inputs": [],
       "outputs": [
@@ -2076,6 +2089,11 @@ export const TESSERA_DECK_ABI =
           "internalType": "bytes32"
         }
       ]
+    },
+    {
+      "type": "error",
+      "name": "ShareStarvesPrizes",
+      "inputs": []
     },
     {
       "type": "error",

@@ -18,7 +18,7 @@ contract TesseraBattleTest is Test {
     IMegapot constant MEGAPOT = IMegapot(0x6f03c7BCaDAdBf5E6F5900DA3d56AdD8FbDac5De);
     IERC20 constant MPUSDC = IERC20(0xA4253E7C13525287C56550b8708100f93E60509f);
 
-    uint16 constant DECK = 100;
+    uint16 constant DECK = 200;
 
     TesseraDeck deck;
     address owner = makeAddr("owner");

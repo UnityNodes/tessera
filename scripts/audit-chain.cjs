@@ -105,8 +105,30 @@ const usd = (v) => `$${(Number(v) / 1e6).toFixed(2)}`;
 
   //
   //
+  const share = BigInt(await read("vaultShareBps"));
+  const promisedWeight = BigInt(await read("budgetWeight"));
+  const slotsAll = decks.reduce((a, d) => a + BigInt(d.size), 0n);
+  const promised = (promisedWeight * 1_000_000n) / 5n;
+  const funded = (slotsAll * 100_000n * (10_000n - share)) / 10_000n;
+  check(
+    0,
+    "",
+    funded >= promised,
+    `${usd(promised)}, ${usd(funded)}` +
+      ` (${Number(share) / 100}%)`,
+  );
+
+  //
+  //
   const boss = await read("owner");
   for (const d of decks.filter((x) => /^0x0+$/.test(x.creator))) {
+    let prev = 0;
+    let weightSum = 0;
+    for (const t of d.tiers) {
+      weightSum += (t.upTo - prev) * t.weight;
+      prev = t.upTo;
+    }
+    const shouldFit = weightSum * 2 * 10_000 <= d.size * (10_000 - Number(share));
     const fee = await read("deckFee", [d.size]);
     const args = [d.size, d.tiers.map((t) => t.upTo), d.tiers.map((t) => t.weight), d.vaultUpTo];
     const override = [{ address: boss, balance: fee + 10n ** 17n }];
@@ -126,7 +148,18 @@ const usd = (v) => `$${(Number(v) / 1e6).toFixed(2)}`;
         why = (e.shortMessage || e.message || "").split("\n")[0];
         return false;
       });
-    check(0, `#${d.id}: `, ok, ok ? `${fee} wei` : why);
+    check(
+      0,
+      `#${d.id}: , `,
+      ok === shouldFit,
+      shouldFit
+        ? ok
+          ? `${weightSum} ${d.size / 2}, `
+          : `, : ${why}`
+        : ok
+          ? `${weightSum} , `
+          : `${weightSum} ${d.size} , `,
+    );
   }
 
   const treasury = BigInt(await read("treasury"));
@@ -347,6 +380,18 @@ const usd = (v) => `$${(Number(v) / 1e6).toFixed(2)}`;
     //
     owner: boss,
     houseDecks: decks.filter((d) => /^0x0+$/.test(d.creator)).map((d) => d.id),
+    recutableDecks: decks
+      .filter((d) => {
+        if (!/^0x0+$/.test(d.creator)) return false;
+        let prev = 0;
+        let w = 0;
+        for (const t of d.tiers) {
+          w += (t.upTo - prev) * t.weight;
+          prev = t.upTo;
+        }
+        return w * 2 * 10_000 <= d.size * (10_000 - Number(share));
+      })
+      .map((d) => d.id),
     totals: {
       drawn: decks.reduce((a, d) => a + d.drawn, 0),
       remaining: decks.reduce((a, d) => a + (d.size - d.drawn), 0),

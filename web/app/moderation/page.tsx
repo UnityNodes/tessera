@@ -9,7 +9,8 @@ import { DECK_ADDRESS } from "@/lib/chain";
 import { useDeck } from "@/hooks/useDeck";
 import { UpgradePanel } from "@/components/UpgradePanel";
 import { canRecut, RecutButton, RecutPanel } from "@/components/Recut";
-import { bestTier } from "@/lib/deck";
+import { BudgetPanel } from "@/components/BudgetPanel";
+import { bestTier, fitsBudget, totalWeight } from "@/lib/deck";
 import { DeckHero } from "@/components/DeckHero";
 
 type Skin = { status: "pending" | "ok" | "no"; by: string; at: number; why?: string };
@@ -113,6 +114,8 @@ export default function ModerationPage() {
 
         {error && <p className="text-sm text-[var(--color-danger)]">{error}</p>}
 
+        <BudgetPanel decks={game.decks} owner={mine} />
+
         <UpgradePanel owner={mine} />
 
         <h2 className="t-label mt-2">
@@ -164,11 +167,17 @@ export default function ModerationPage() {
                       <p className="t-addr truncate text-sm text-slate-500">
                         {d.creator ? `cut by ${d.creator} · takes ${d.creatorBps / 100}%` : "house deck"}
                       </p>
+                      {!fitsBudget(d, game.vaultShareBps) && (
+                        <p className="t-chain text-sm text-[var(--color-danger)]">
+                          promises {totalWeight(d)} weight, more than {d.size} opens can pay for.
+                          No copy of it can be cut.
+                        </p>
+                      )}
                     </div>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
-                    {canRecut(d) && (
+                    {canRecut(d, game.vaultShareBps) && (
                       <RecutButton
                         open={recut === d.id}
                         onToggle={() => setRecut(recut === d.id ? null : d.id)}
@@ -197,7 +206,7 @@ export default function ModerationPage() {
                   </div>
                 </div>
 
-                {recut === d.id && canRecut(d) && (
+                {recut === d.id && canRecut(d, game.vaultShareBps) && (
                   <RecutPanel deck={d} onDone={() => void game.refetch()} />
                 )}
               </div>

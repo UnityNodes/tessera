@@ -162,3 +162,24 @@ export function slotsPerTier(deck: DeckShape): { spec: TierSpec; count: number; 
   if (rest > 0) out.push({ spec: specFor(0), count: rest, weight: 0 });
   return out;
 }
+
+/**
+ *
+ */
+export function totalWeight(deck: DeckShape): number {
+  let sum = 0;
+  let prev = 0;
+  for (const t of deck.tiers) {
+    sum += (t.upTo - prev) * t.weight;
+    prev = t.upTo;
+  }
+  return sum;
+}
+
+/**
+ *
+ *
+ */
+export function fitsBudget(deck: DeckShape, vaultShareBps: number): boolean {
+  return totalWeight(deck) * 2 * 10_000 <= deck.size * (10_000 - vaultShareBps);
+}

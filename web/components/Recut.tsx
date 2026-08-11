@@ -15,16 +15,18 @@ import { Button } from "@/components/ui/Button";
 import { TESSERA_DECK_ABI } from "@/lib/abi";
 import { DECK_ADDRESS, txUrl } from "@/lib/chain";
 import { explain } from "@/lib/errors";
-import { specFor, WEIGHT_PER_TICKET } from "@/lib/deck";
+import { fitsBudget, specFor, totalWeight, WEIGHT_PER_TICKET } from "@/lib/deck";
 import type { DeckInfo } from "@/hooks/useDeck";
 
 /**
  *
  *
  *
+ *
+ *
  */
-export function canRecut(deck: DeckInfo): boolean {
-  return !deck.creator && deck.tiers.length > 0;
+export function canRecut(deck: DeckInfo, vaultShareBps: number): boolean {
+  return !deck.creator && deck.tiers.length > 0 && fitsBudget(deck, vaultShareBps);
 }
 
 export function RecutButton({ open, onToggle }: { open: boolean; onToggle: () => void }) {
@@ -108,6 +110,10 @@ export function RecutPanel({ deck, onDone }: { deck: DeckInfo; onDone?: () => vo
 
       <dl className="mt-4 flex flex-col gap-1.5 text-sm">
         <Row label="slots" value={String(deck.size)} />
+        <Row
+          label="promises"
+          value={`${totalWeight(deck)} weight, ${(totalWeight(deck) / WEIGHT_PER_TICKET).toFixed(1)} tickets over ${deck.size} opens`}
+        />
         <Row label="drop table" value={describe(deck)} />
         <Row
           label="vault"

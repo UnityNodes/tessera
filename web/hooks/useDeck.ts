@@ -150,6 +150,10 @@ export function useDeck() {
   return {
     decks,
     maxBatch,
+    /**
+     *
+     */
+    vaultShareBps: Number(vaultShareBps),
     drawn: decks.reduce((n, d) => n + d.drawn, 0),
     remaining: decks.reduce((n, d) => n + d.remaining, 0),
     vault: decks.reduce((v, d) => v + d.vault, 0n),
