@@ -66,9 +66,15 @@ with sync_playwright() as p:
     page.goto(URL, wait_until="load")
     first = None
     t0 = time.time()
+    # data-drop, .
+    #
+    # img[src*='/chests/']
+    # , TESA <Shards>: ,
+    # 60 '.
+    # .
     for _ in range(30):
         page.wait_for_timeout(2000)
-        tiles = page.locator("div.group", has=page.locator("img[src*='/chests/']")).count()
+        tiles = page.locator("[data-drop]").count()
         if tiles:
             first = round(time.time() - t0)
             break

@@ -8,12 +8,14 @@ import { TESSERA_DECK_ABI } from "@/lib/abi";
 import { DECK_ADDRESS } from "@/lib/chain";
 import { useDeck } from "@/hooks/useDeck";
 import { UpgradePanel } from "@/components/UpgradePanel";
+import { canRecut, RecutButton, RecutPanel } from "@/components/Recut";
 import { bestTier } from "@/lib/deck";
 import { DeckHero } from "@/components/DeckHero";
 
 type Skin = { status: "pending" | "ok" | "no"; by: string; at: number; why?: string };
 
 /**
+ *
  *
  *
  *
@@ -34,6 +36,7 @@ export default function ModerationPage() {
   const [skins, setSkins] = useState<Record<string, Skin>>({});
   const [busy, setBusy] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [recut, setRecut] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     const r = await fetch("/api/moderation");
@@ -99,6 +102,13 @@ export default function ModerationPage() {
             keeps working for whoever is already playing it. Pulling a picture removes the picture
             for good; the deck falls back to a plain chest.
           </p>
+          <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-300">
+            A deck that runs out cannot be refilled, its cards were shuffled once and sealed, and
+            re-dealing them would rewrite a pool people already paid into. What you can do is cut a
+            fresh copy: a new deck with the same size, the same drop table and the same vault rule,
+            standing next to the old one. Player decks are not copied from here, only their creator
+            can renew one, from the create page, so the share they paid for follows them.
+          </p>
         </div>
 
         {error && <p className="text-sm text-[var(--color-danger)]">{error}</p>}
@@ -118,66 +128,78 @@ export default function ModerationPage() {
             return (
               <div
                 key={d.id}
-                className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-panel)] border border-slate-800 p-4"
+                className="flex flex-col gap-4 rounded-[var(--radius-panel)] border border-slate-800 p-4"
                 style={{ background: "var(--color-surface)" }}
               >
-                <div className="flex min-w-0 items-center gap-4">
-                  {skin?.status === "ok" ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={`/api/skin/${d.id}`}
-                      alt=""
-                      className="h-16 w-16 shrink-0 rounded-[var(--radius-control)] object-contain"
-                    />
-                  ) : (
-                    <span className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-[var(--radius-control)] border border-slate-800">
-                      {best || d.cid ? (
-                        <DeckHero deck={d} size={52} skin={d.cid} />
-                      ) : (
-                        <ImageIcon className="h-6 w-6 text-slate-400" />
-                      )}
-                    </span>
-                  )}
-                  <div className="min-w-0">
-                    <p className="text-base font-bold text-white">
-                      {name}{" "}
-                      <span className="t-chain text-sm text-[var(--color-ink-dim)]">#{d.id}</span>
-                    </p>
-                    <p className="t-chain text-sm text-slate-400">
-                      {d.size} slots · {d.remaining} left
-                      {d.empty ? " · empty" : ""}
-                      {d.vaultUpTo > 0 ? " · has a vault" : ""}
-                      {isHidden ? " · hidden from the catalog" : ""}
-                      {skin ? ` · picture ${skin.status}` : ""}
-                    </p>
-                    <p className="t-addr truncate text-sm text-slate-500">
-                      {d.creator ? `cut by ${d.creator} · takes ${d.creatorBps / 100}%` : "house deck"}
-                    </p>
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex min-w-0 items-center gap-4">
+                    {skin?.status === "ok" ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={`/api/skin/${d.id}`}
+                        alt=""
+                        className="h-16 w-16 shrink-0 rounded-[var(--radius-control)] object-contain"
+                      />
+                    ) : (
+                      <span className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-[var(--radius-control)] border border-slate-800">
+                        {best || d.cid ? (
+                          <DeckHero deck={d} size={52} skin={d.cid} />
+                        ) : (
+                          <ImageIcon className="h-6 w-6 text-slate-400" />
+                        )}
+                      </span>
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-base font-bold text-white">
+                        {name}{" "}
+                        <span className="t-chain text-sm text-[var(--color-ink-dim)]">#{d.id}</span>
+                      </p>
+                      <p className="t-chain text-sm text-slate-400">
+                        {d.size} slots · {d.remaining} left
+                        {d.empty ? " · empty" : ""}
+                        {d.vaultUpTo > 0 ? " · has a vault" : ""}
+                        {isHidden ? " · hidden from the catalog" : ""}
+                        {skin ? ` · picture ${skin.status}` : ""}
+                      </p>
+                      <p className="t-addr truncate text-sm text-slate-500">
+                        {d.creator ? `cut by ${d.creator} · takes ${d.creatorBps / 100}%` : "house deck"}
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex flex-wrap items-center gap-2">
-                  {skin && skin.status !== "no" && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {canRecut(d) && (
+                      <RecutButton
+                        open={recut === d.id}
+                        onToggle={() => setRecut(recut === d.id ? null : d.id)}
+                      />
+                    )}
+                    {skin && skin.status !== "no" && (
+                      <Button
+                        size="sm"
+                        variant="quiet"
+                        disabled={busy === d.id}
+                        onClick={() => void act(d.id, "pull")}
+                      >
+                        <ImageOff className="h-4 w-4" />
+                        Pull picture
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       variant="quiet"
                       disabled={busy === d.id}
-                      onClick={() => void act(d.id, "pull")}
+                      onClick={() => void act(d.id, isHidden ? "show" : "hide")}
                     >
-                      <ImageOff className="h-4 w-4" />
-                      Pull picture
+                      {isHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                      {isHidden ? "Show" : "Hide"}
                     </Button>
-                  )}
-                  <Button
-                    size="sm"
-                    variant="quiet"
-                    disabled={busy === d.id}
-                    onClick={() => void act(d.id, isHidden ? "show" : "hide")}
-                  >
-                    {isHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                    {isHidden ? "Show" : "Hide"}
-                  </Button>
+                  </div>
                 </div>
+
+                {recut === d.id && canRecut(d) && (
+                  <RecutPanel deck={d} onDone={() => void game.refetch()} />
+                )}
               </div>
             );
           })}

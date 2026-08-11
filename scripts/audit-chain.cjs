@@ -82,6 +82,7 @@ const usd = (v) => `$${(Number(v) / 1e6).toFixed(2)}`;
       vaultUpTo: Number(d.vaultUpTo),
       vault: BigInt(d.vault),
       unswept: Number(d.unsweptOpens),
+      creator: d.creator,
       tiers: t.map((x) => ({ upTo: Number(x.upTo), weight: Number(x.weight) })),
     });
   }
@@ -100,6 +101,32 @@ const usd = (v) => `$${(Number(v) / 1e6).toFixed(2)}`;
       d.vaultUpTo <= d.size,
       `${d.vaultUpTo} `,
     );
+  }
+
+  //
+  //
+  const boss = await read("owner");
+  for (const d of decks.filter((x) => /^0x0+$/.test(x.creator))) {
+    const fee = await read("deckFee", [d.size]);
+    const args = [d.size, d.tiers.map((t) => t.upTo), d.tiers.map((t) => t.weight), d.vaultUpTo];
+    const override = [{ address: boss, balance: fee + 10n ** 17n }];
+    let why = "";
+    const ok = await client
+      .simulateContract({
+        address: DECK,
+        abi: DECK_ABI,
+        functionName: "createDeck",
+        args,
+        value: fee,
+        account: boss,
+        stateOverride: override,
+      })
+      .then(() => true)
+      .catch((e) => {
+        why = (e.shortMessage || e.message || "").split("\n")[0];
+        return false;
+      });
+    check(0, `#${d.id}: `, ok, ok ? `${fee} wei` : why);
   }
 
   const treasury = BigInt(await read("treasury"));
@@ -317,6 +344,9 @@ const usd = (v) => `$${(Number(v) / 1e6).toFixed(2)}`;
         })(),
       };
     }),
+    //
+    owner: boss,
+    houseDecks: decks.filter((d) => /^0x0+$/.test(d.creator)).map((d) => d.id),
     totals: {
       drawn: decks.reduce((a, d) => a + d.drawn, 0),
       remaining: decks.reduce((a, d) => a + (d.size - d.drawn), 0),

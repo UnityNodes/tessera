@@ -524,6 +524,104 @@ with sync_playwright() as p:
         else:
             check(f"{w}px: ", True, f"{len(pages)} ")
 
+    # ── : ──────────────────────────────────────
+    #
+    # , : owner()
+    # '.
+    # , .
+    # , : , ,
+    # .
+    #
+    # ,
+    # . : ,
+    # , .
+    print("\n── ──")
+    boss = EXPECTED.get("owner")
+    house = EXPECTED.get("houseDecks") or []
+    if not boss:
+        check("", False, "audit-expected.json owner")
+    else:
+        provider = (
+            "(() => {"
+            "  const listeners = {};"
+            "  const provider = {"
+            "    isMetaMask: true,"
+            "    request: async ({ method, params }) => {"
+            f"      if (method === 'eth_accounts' || method === 'eth_requestAccounts') return ['{boss}'];"
+            "      if (method === 'eth_chainId') return '0x14a34';"
+            "      if (method === 'net_version') return '84532';"
+            "      if (method === 'wallet_switchEthereumChain') return null;"
+            "      const r = await fetch('https://sepolia.base.org', {"
+            "        method: 'POST', headers: { 'content-type': 'application/json' },"
+            "        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params: params ?? [] }),"
+            "      });"
+            "      const j = await r.json();"
+            "      if (j.error) throw new Error(j.error.message);"
+            "      return j.result;"
+            "    },"
+            "    on: (e, fn) => { (listeners[e] ||= []).push(fn); return provider; },"
+            "    removeListener: () => provider,"
+            "  };"
+            "  window.ethereum = provider;"
+            "  const info = { uuid: '00000000-0000-4000-8000-000000000001',"
+            "    name: 'Audit Wallet', rdns: 'dev.tessera.audit',"
+            "    icon: 'data:image/svg+xml;base64,PHN2Zy8+' };"
+            "  const announce = () => window.dispatchEvent(new CustomEvent("
+            "    'eip6963:announceProvider', { detail: Object.freeze({ info, provider }) }));"
+            "  window.addEventListener('eip6963:requestProvider', announce);"
+            "  announce();"
+            "})();"
+        )
+        mod = browser.new_context(viewport={"width": 1600, "height": 1000})
+        mod.add_init_script(provider)
+        mp = mod.new_page()
+        mp.goto(URL + "/moderation", wait_until="load")
+        mp.wait_for_timeout(2500)
+        for name in ("Audit Wallet", "Connect wallet", "Connect"):
+            btn = mp.get_by_text(name, exact=False)
+            if btn.count():
+                try:
+                    btn.first.click(timeout=2500)
+                    mp.wait_for_timeout(1500)
+                except Exception:
+                    pass
+        mp.wait_for_timeout(6000)
+
+        body = mp.locator("body").inner_text()
+        check("", "Moderation" in body, body[:60].replace("\n", " "))
+        check(
+            ", ",
+            "cannot be refilled" in body,
+            "" if "cannot be refilled" in body else "",
+        )
+
+        cuts = mp.get_by_role("button", name=re.compile("Cut a fresh copy"))
+        check(
+            "",
+            cuts.count() == len(house),
+            f"{cuts.count()}, {len(house)}",
+        )
+
+        if cuts.count():
+            cuts.first.click()
+            mp.wait_for_timeout(2500)
+            panel = mp.locator("body").inner_text()
+            # Inco , unknown:
+            # , .
+            fee = re.search(r"([\d.]+) ETH", panel)
+            check("", bool(fee), fee.group(0) if fee else "")
+            check(
+                "",
+                "drop table" in panel and "→" in panel,
+                "" if "drop table" in panel else "",
+            )
+            check(
+                "",
+                "does not refill" in panel,
+                "" if "does not refill" in panel else "",
+            )
+        mod.close()
+
     browser.close()
 
 print("\n" + "═" * 62)

@@ -75,6 +75,7 @@ function Drop({ item, mine }: { item: FeedItem; mine: boolean }) {
 
   return (
     <div
+      data-drop
       className="group relative flex h-[6.5rem] w-[6.5rem] shrink-0 flex-col items-center justify-between rounded-[var(--radius-panel)] border p-2 transition-all hover:scale-105 lg:h-28 lg:w-28"
       style={{
         background: "color-mix(in oklab, var(--color-surface) 88%, transparent)",
