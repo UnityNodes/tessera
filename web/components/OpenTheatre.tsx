@@ -140,7 +140,7 @@ export function OpenTheatre({
                     const chest = Math.max(84, Math.min(260, Math.round(1180 / open.batch!.length)));
                     return (
                       <motion.div
-                        key={b.handle}
+                        key={i}
                         initial={{ scale: 0.5, opacity: 0, y: 26 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         transition={{
@@ -196,7 +196,7 @@ export function OpenTheatre({
               <div className="flex w-full flex-col items-center gap-2 overflow-y-auto">
                 {open.batch.map((b, i) => (
                   <div
-                    key={b.handle}
+                    key={i}
                     className="w-full shrink-0"
                     style={{ height: ROLL_H * rollScale(open.batch!.length, vh) }}
                   >
@@ -211,7 +211,9 @@ export function OpenTheatre({
                         pool={pool}
                         urgency={tier}
                         variant={i}
-                        length={open.batch!.length > 5 ? 28 : open.batch!.length > 2 ? 40 : 72}
+                        //
+                        //
+                        length={open.batch!.length > 5 ? 12 : open.batch!.length > 2 ? 16 : 24}
                         onLanded={() => setLanded((s) => new Set(s).add(b.handle))}
                       />
                     </div>

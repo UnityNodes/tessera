@@ -120,17 +120,28 @@ export function ConnectBar({
             value={String(tickets)}
             ink="var(--color-accent-hover)"
           />
-          <Row
-            icon={<Shards size={36} ink="#fff" flat />}
-            name="TESA"
-            note={
-              tesa >= WEIGHT_PER_TICKET
-                ? "enough for a ticket, take it on your shelf"
-                : `${WEIGHT_PER_TICKET - (tesa % WEIGHT_PER_TICKET)} more, then you claim it on your shelf`
-            }
-            value={String(tesa)}
-            ink="var(--color-tier-shard)"
-          />
+          {tesa >= WEIGHT_PER_TICKET ? (
+            <Link href="/profile" className="block">
+              <Row
+                icon={<Shards size={36} ink="#fff" flat />}
+                name="TESA"
+                note={`${Math.floor(tesa / WEIGHT_PER_TICKET)} real ticket${
+                  Math.floor(tesa / WEIGHT_PER_TICKET) > 1 ? "s" : ""
+                } waiting, tap to take ${Math.floor(tesa / WEIGHT_PER_TICKET) > 1 ? "them" : "it"}`}
+                value={String(tesa)}
+                ink="var(--color-tier-shard)"
+                action
+              />
+            </Link>
+          ) : (
+            <Row
+              icon={<Shards size={36} ink="#fff" flat />}
+              name="TESA"
+              note={`${WEIGHT_PER_TICKET - (tesa % WEIGHT_PER_TICKET)} more make a real ticket`}
+              value={String(tesa)}
+              ink="var(--color-tier-shard)"
+            />
+          )}
         </div>
 
         <p className="t-label mt-4 px-3.5">what you can do</p>
@@ -194,15 +205,21 @@ function Row({
   note,
   value,
   ink,
+  action,
 }: {
   icon: React.ReactNode;
   name: string;
   note?: string;
   value: string;
   ink?: string;
+  action?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-[var(--radius-control)] px-3.5 py-2">
+    <div
+      className={`flex items-center gap-3 rounded-[var(--radius-control)] px-3.5 py-2 ${
+        action ? "cursor-pointer transition-colors hover:bg-slate-800" : ""
+      }`}
+    >
       <span className="grid h-10 w-10 shrink-0 place-items-center text-white">{icon}</span>
       <span className="min-w-0 flex-1">
         <span

@@ -114,11 +114,12 @@ export function Roll({
 
   //
   //
+  //
   useEffect(() => {
-    if (landedValue != null || !strip.length) return;
+    if (landedValue != null || running || !strip.length) return;
     const empty = strip.findIndex((s) => !isPrize(s));
     x.set(-STEP * (strip.length + (empty >= 0 ? empty : 0)));
-  }, [strip, landedValue, x]);
+  }, [strip, landedValue, running, x]);
 
   //
   useEffect(() => {

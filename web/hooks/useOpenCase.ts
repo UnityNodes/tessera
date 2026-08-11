@@ -208,7 +208,12 @@ export function useOpenCase(onSettled?: () => void) {
           await approveOnce(config, address, ctl.signal);
         }
 
-        setState({ phase: "signing", waitedMs: 0 });
+        const pending = Array.from({ length: count }, (_, i) => ({
+          handle: `pending-${i}` as `0x${string}`,
+          index: -1,
+        }));
+
+        setState({ phase: "signing", waitedMs: 0, batch: pending });
         const sim = await simulateContract(config, {
           address: DECK_ADDRESS,
           abi: TESSERA_DECK_ABI,
@@ -217,7 +222,13 @@ export function useOpenCase(onSettled?: () => void) {
           account: address,
         });
         const hash = await writeContract(config, sim.request);
-        setState({ phase: "confirming", txHash: hash, txUrl: txUrl(hash), waitedMs: 0 });
+        setState({
+          phase: "confirming",
+          txHash: hash,
+          txUrl: txUrl(hash),
+          waitedMs: 0,
+          batch: pending,
+        });
 
         const receipt = await waitForTransactionReceipt(config, { hash });
         if (receipt.status !== "success") throw new Error("The transaction reverted on chain");
