@@ -27,7 +27,7 @@ run "" bash -c 'cd ../contracts && forge test --summary 2>&1 | tail -22'
 run "→ " node audit-chain.cjs "$URL"
 run "→ " python3 audit-ui.py "$URL"
 run "" python3 audit-runtime.py "$URL"
-run "" python3 audit-brain.py
+run "" python3 audit-brain.py --project=tessera
 
 # , : OPENS=3 ./audit.sh
 if [ -n "${OPENS:-}" ]; then

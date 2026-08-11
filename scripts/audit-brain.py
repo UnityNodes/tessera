@@ -4,7 +4,16 @@
 , , : ,
 , .
 
-    python3 audit-brain.py [brain]
+    python3 audit-brain.py [brain] [--project ]
+
+, .
+`--project` : '
+ccpedia, partiq rampart
+Tessera, .
+.
+
+, : `bugs/` ,
+.
 """
 
 import os
@@ -13,7 +22,12 @@ import sys
 from collections import Counter, defaultdict
 from difflib import SequenceMatcher
 
-BRAIN = os.path.expanduser(sys.argv[1] if len(sys.argv) > 1 else "~/brain")
+argv = [a for a in sys.argv[1:] if not a.startswith("--")]
+BRAIN = os.path.expanduser(argv[0] if argv else "~/brain")
+PROJECT = next(
+    (a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--project=")),
+    None,
+)
 
 rows, fails, notes = [], [], []
 
@@ -39,7 +53,19 @@ def files(sub=""):
     return sorted(out)
 
 
-all_md = files()
+def belongs(path):
+    """, ."""
+    if not PROJECT:
+        return True
+    if PROJECT in os.path.basename(path).lower():
+        return True
+    return PROJECT in open(path, encoding="utf-8", errors="replace").read().lower()
+
+
+everything = files()
+all_md = [f for f in everything if belongs(f)]
+skipped = len(everything) - len(all_md)
+
 by_dir = defaultdict(list)
 for f in all_md:
     by_dir[os.path.relpath(os.path.dirname(f), BRAIN)].append(f)
@@ -47,7 +73,11 @@ for f in all_md:
 print("\n── ──")
 for d in sorted(by_dir):
     print(f"    {d:<16} {len(by_dir[d])}")
-check("", len(all_md) > 0, f"{len(all_md)} ")
+if PROJECT:
+    # .
+    # , .
+    print(f"    {'()':<16} {skipped} ")
+check("", len(all_md) > 0, f"{len(all_md)} " if PROJECT else f"{len(all_md)} ")
 
 # ── ────────────────────────────────────────────────────────────────
 # , : , .
@@ -89,6 +119,12 @@ names = {os.path.basename(f)[:-3] for f in all_md}
 paths = {os.path.relpath(f, BRAIN) for f in all_md}
 broken_wiki, broken_path = [], []
 for f in all_md:
+    # :
+    # , Tessera, Celestia, ccpedia.
+    # ,
+    # .
+    if PROJECT and is_log(f):
+        continue
     body = open(f, encoding="utf-8", errors="replace").read()
     for m in re.findall(r"\[\[([^\]]+)\]\]", body):
         if m not in names:
@@ -120,6 +156,10 @@ if not os.path.exists(idx_path):
 else:
     idx = open(idx_path, encoding="utf-8", errors="replace").read()
     linked = set(re.findall(r"\(([A-Za-z0-9\-_/]+\.md)\)", idx))
+    # ,
+    # . '.
+    if PROJECT:
+        linked = {l for l in linked if PROJECT in l.lower()}
     missing = [l for l in linked if l not in paths and os.path.basename(l)[:-3] not in names]
     check("", not missing, f"{len(missing)}")
     for m in missing[:6]:
