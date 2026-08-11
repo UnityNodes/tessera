@@ -8,6 +8,7 @@
 
 import collections
 import sys
+import re
 import time
 
 from playwright.sync_api import sync_playwright
@@ -128,6 +129,27 @@ with sync_playwright() as p:
     )
     check("", warmed, "" if warmed else "")
     page.close()
+
+    # ── HTML ─────────────────────────────────────────────
+    #
+    # , . '
+    # 0.4 , 12.4: JavaScript,
+    # .
+    # .
+    #
+    # HTML, : ,
+    # , .
+    print("\n── ──")
+    # Playwright, urllib: User-Agent
+    # 403, , .
+    html = browser.new_context().request.get(URL).text()
+    sealed = re.findall(r"(\d+)</strong> sealed", html)
+    check(
+        "HTML",
+        len(sealed) >= 2,
+        f"{len(sealed)}: {', '.join(sealed[:4])}" if sealed else "",
+    )
+
     browser.close()
 
 print("\n" + "═" * 62)

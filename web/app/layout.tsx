@@ -2,6 +2,13 @@ import type { Metadata, Viewport } from "next";
 import { Orbitron, Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { gameNow } from "@/lib/game";
+
+/**
+ *
+ *
+ */
+export const revalidate = 8;
 import { Shell } from "@/components/Shell";
 import { Backdrop } from "@/components/Backdrop";
 
@@ -64,7 +71,7 @@ export default function RootLayout({
     <html lang="en" className={`${orbitron.variable} ${inter.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-[var(--color-bg)] text-[var(--color-ink)]">
         <Backdrop />
-        <Providers>
+        <Providers seed={gameNow()}>
           <Shell>{children}</Shell>
         </Providers>
       </body>

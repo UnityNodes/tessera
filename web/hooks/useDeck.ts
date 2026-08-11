@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { GameSeed } from "@/app/providers";
 import { useAccount, useReadContract, useReadContracts } from "wagmi";
 import { parseAbi, type ContractFunctionParameters } from "viem";
 import { TESSERA_DECK_ABI } from "@/lib/abi";
@@ -27,8 +29,52 @@ export interface DeckInfo extends DeckShape {
  *
  *
  */
+/**
+ *
+ *
+ */
+interface ServerDeck {
+  id: number;
+  size: number;
+  drawn: number;
+  vaultUpTo: number;
+  vault: string;
+  unsweptOpens: string;
+  creator: `0x${string}`;
+  creatorBps: number;
+  cid: string;
+  tiers: { upTo: number; weight: number }[];
+}
+
+interface ServerGame {
+  decks: ServerDeck[];
+  treasury: string;
+  feesClaimable: string;
+  adapter: `0x${string}`;
+  unsweptOpens: string;
+  vaultShareBps: number;
+  maxBatch: number;
+  ticketPrice: string;
+}
+
+function useServerGame() {
+  const seeded = useContext(GameSeed) as ServerGame | null;
+  return useQuery<ServerGame>({
+    initialData: seeded ?? undefined,
+    queryKey: ["game", DECK_ADDRESS],
+    queryFn: async () => {
+      const r = await fetch("/api/game");
+      if (!r.ok) throw new Error("game unavailable");
+      return (await r.json()) as ServerGame;
+    },
+    refetchInterval: 30_000,
+    staleTime: 8_000,
+  });
+}
+
 export function useDeck() {
   const { address } = useAccount();
+  const server = useServerGame();
 
   const head = useReadContracts({
     contracts: [
@@ -44,13 +90,18 @@ export function useDeck() {
     query: { refetchInterval: 12_000 },
   });
 
-  const count = Number((head.data?.[0]?.result as bigint | undefined) ?? 0n);
+  const seed = server.data;
+  const count = Number(
+    (head.data?.[0]?.result as bigint | undefined) ?? BigInt(seed?.decks.length ?? 0),
+  );
   //
-  const vaultShareBps = BigInt((head.data?.[5]?.result as bigint | number | undefined) ?? 5000);
-  const adapter = head.data?.[3]?.result as `0x${string}` | undefined;
+  const vaultShareBps = BigInt(
+    (head.data?.[5]?.result as bigint | number | undefined) ?? seed?.vaultShareBps ?? 5000,
+  );
+  const adapter = (head.data?.[3]?.result as `0x${string}` | undefined) ?? seed?.adapter;
   const ids = useMemo(() => Array.from({ length: count }, (_, i) => i), [count]);
 
-  const maxBatch = Number((head.data?.[6]?.result as number | undefined) ?? 1);
+  const maxBatch = Number((head.data?.[6]?.result as number | undefined) ?? seed?.maxBatch ?? 1);
 
   const rows = useReadContracts({
     contracts: ids.flatMap(
@@ -64,8 +115,11 @@ export function useDeck() {
     query: { enabled: count > 0, refetchInterval: 12_000 },
   });
 
-  const claimable = (head.data?.[2]?.result as bigint | undefined) ?? 0n;
-  const unswept = BigInt((head.data?.[4]?.result as bigint | number | undefined) ?? 0);
+  const claimable =
+    (head.data?.[2]?.result as bigint | undefined) ?? BigInt(seed?.feesClaimable ?? 0);
+  const unswept = BigInt(
+    (head.data?.[4]?.result as bigint | number | undefined) ?? seed?.unsweptOpens ?? 0,
+  );
 
   const decks = useMemo<DeckInfo[]>(() => {
     return ids
@@ -86,6 +140,26 @@ export function useDeck() {
           | readonly { upTo: number; weight: number }[]
           | undefined;
         const cid = (rows.data?.[id * STRIDE + 2]?.result as string | undefined) ?? "";
+        const from = seed?.decks.find((x) => x.id === id);
+        if (!d && from) {
+          return {
+            id,
+            size: from.size,
+            drawn: from.drawn,
+            remaining: from.size - from.drawn,
+            vaultUpTo: from.vaultUpTo,
+            vaultBanked: BigInt(from.vault),
+            vault: BigInt(from.vault),
+            empty: from.size > 0 && from.drawn >= from.size,
+            creator:
+              from.creator && from.creator !== "0x0000000000000000000000000000000000000000"
+                ? from.creator
+                : undefined,
+            creatorBps: from.creatorBps,
+            cid: from.cid,
+            tiers: from.tiers,
+          };
+        }
         if (!d) return null;
 
         const size = Number(d.size);
@@ -115,7 +189,7 @@ export function useDeck() {
         };
       })
       .filter((d): d is DeckInfo => d !== null);
-  }, [ids, rows.data, claimable, unswept, vaultShareBps]);
+  }, [ids, rows.data, claimable, unswept, vaultShareBps, seed]);
 
   const price = useReadContract({
     address: adapter,
@@ -141,7 +215,8 @@ export function useDeck() {
     query: { enabled: Boolean(address), refetchInterval: 12_000 },
   });
 
-  const ticketPrice = (price.data as bigint | undefined) ?? ONE_DOLLAR;
+  const ticketPrice =
+    (price.data as bigint | undefined) ?? (seed ? BigInt(seed.ticketPrice) : ONE_DOLLAR);
   const allowance = (player.data?.[2]?.result as bigint | undefined) ?? 0n;
   const balance = (player.data?.[1]?.result as bigint | undefined) ?? 0n;
   const ticketsBps =
@@ -157,7 +232,7 @@ export function useDeck() {
     drawn: decks.reduce((n, d) => n + d.drawn, 0),
     remaining: decks.reduce((n, d) => n + d.remaining, 0),
     vault: decks.reduce((v, d) => v + d.vault, 0n),
-    treasury: (head.data?.[1]?.result as bigint | undefined) ?? 0n,
+    treasury: (head.data?.[1]?.result as bigint | undefined) ?? BigInt(seed?.treasury ?? 0),
     feesClaimable: claimable,
     adapter,
     ticketPrice,
@@ -176,7 +251,7 @@ export function useDeck() {
     needsApproval: allowance < ticketPrice,
     canAfford: balance >= ticketPrice,
 
-    isLoading: head.isLoading || rows.isLoading || (Boolean(address) && player.isLoading),
+    isLoading: !seed && (head.isLoading || rows.isLoading || (Boolean(address) && player.isLoading)),
     refetch: async () => {
       await Promise.all([head.refetch(), rows.refetch(), player.refetch(), price.refetch()]);
     },

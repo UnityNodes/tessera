@@ -1,12 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { WagmiProvider } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { wagmiConfig } from "@/lib/wagmi";
 import { warmInco } from "@/lib/inco";
 
-export function Providers({ children }: { children: React.ReactNode }) {
+/**
+ *
+ *
+ */
+export const GameSeed = createContext<unknown | null>(null);
+
+export function Providers({
+  children,
+  seed = null,
+}: {
+  children: React.ReactNode;
+  seed?: unknown | null;
+}) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -25,7 +37,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <GameSeed.Provider value={seed}>{children}</GameSeed.Provider>
+      </QueryClientProvider>
     </WagmiProvider>
   );
 }
