@@ -351,9 +351,10 @@ const usd = (v) => `$${(Number(v) / 1e6).toFixed(2)}`;
     url: URL,
     at: new Date().toISOString(),
     decks: decks.map((d) => {
+      //
       const coming =
         d.vaultUpTo > 0 && unsweptTotal > 0n
-          ? ((fees / 2n) * BigInt(d.unswept)) / unsweptTotal
+          ? (((fees * share) / 10_000n) * BigInt(d.unswept)) / unsweptTotal
           : 0n;
       return {
         id: d.id,

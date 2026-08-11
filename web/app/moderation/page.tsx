@@ -10,7 +10,7 @@ import { useDeck } from "@/hooks/useDeck";
 import { UpgradePanel } from "@/components/UpgradePanel";
 import { canRecut, RecutButton, RecutPanel } from "@/components/Recut";
 import { BudgetPanel } from "@/components/BudgetPanel";
-import { bestTier, fitsBudget, totalWeight } from "@/lib/deck";
+import { bestTier, fitsBudget, totalWeight, WEIGHT_PER_TICKET } from "@/lib/deck";
 import { DeckHero } from "@/components/DeckHero";
 
 type Skin = { status: "pending" | "ok" | "no"; by: string; at: number; why?: string };
@@ -167,12 +167,6 @@ export default function ModerationPage() {
                       <p className="t-addr truncate text-sm text-slate-500">
                         {d.creator ? `cut by ${d.creator} · takes ${d.creatorBps / 100}%` : "house deck"}
                       </p>
-                      {!fitsBudget(d, game.vaultShareBps) && (
-                        <p className="t-chain text-sm text-[var(--color-danger)]">
-                          promises {totalWeight(d)} weight, more than {d.size} opens can pay for.
-                          No copy of it can be cut.
-                        </p>
-                      )}
                     </div>
                   </div>
 
@@ -205,6 +199,15 @@ export default function ModerationPage() {
                     </Button>
                   </div>
                 </div>
+
+                {!fitsBudget(d, game.vaultShareBps) && (
+                  <p className="t-chain -mt-1 text-sm text-amber-400">
+                    leans on the board: promises $
+                    {(totalWeight(d) / WEIGHT_PER_TICKET).toFixed(2)}, its own {d.size} opens bring
+                    ${((d.size * 0.1 * (10_000 - game.vaultShareBps)) / 10_000).toFixed(2)}. Plays
+                    fine, but it cannot be copied.
+                  </p>
+                )}
 
                 {recut === d.id && canRecut(d, game.vaultShareBps) && (
                   <RecutPanel deck={d} onDone={() => void game.refetch()} />
