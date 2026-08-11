@@ -277,14 +277,6 @@ export default function CasePage() {
                           : "Open a case • $1"}
                 </Button>
 
-                {deck.vaultUpTo > 0 && open.state.phase !== "done" && (
-                  <ForfeitAction
-                    disabled={busy}
-                    onClick={() =>
-                      open.open({ deckId, needsApproval: game.needsApproval, risk: true })
-                    }
-                  />
-                )}
               </div>
 
               {vaultSlot && vault.state.phase !== "done" && (
@@ -372,29 +364,6 @@ function Chip({ label, value, tone }: { label: string; value: string; tone?: str
   );
 }
 
-/**
- *
- */
-function ForfeitAction({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
-  const ink = "var(--color-tier-vault)";
-  return (
-    <>
-      <Button
-        variant="quiet"
-        disabled={disabled}
-        onClick={onClick}
-        className="px-6 py-3.5 text-base hover:!brightness-110"
-        style={{
-          color: ink,
-          background: "color-mix(in oklab, var(--color-tier-vault) 8%, transparent)",
-          borderColor: "color-mix(in oklab, var(--color-tier-vault) 40%, transparent)",
-        }}
-      >
-        Risk it · give the ticket up
-      </Button>
-    </>
-  );
-}
 
 /**
  *

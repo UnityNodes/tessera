@@ -763,30 +763,6 @@ export const TESSERA_DECK_ABI =
     },
     {
       "type": "function",
-      "name": "openRisk",
-      "inputs": [
-        {
-          "name": "deckId",
-          "type": "uint32",
-          "internalType": "uint32"
-        }
-      ],
-      "outputs": [
-        {
-          "name": "index",
-          "type": "uint16",
-          "internalType": "uint16"
-        },
-        {
-          "name": "handle",
-          "type": "bytes32",
-          "internalType": "bytes32"
-        }
-      ],
-      "stateMutability": "nonpayable"
-    },
-    {
-      "type": "function",
       "name": "owner",
       "inputs": [],
       "outputs": [

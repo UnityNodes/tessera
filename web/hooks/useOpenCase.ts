@@ -123,11 +123,9 @@ export function useOpenCase(onSettled?: () => void) {
     async ({
       deckId,
       needsApproval,
-      risk = false,
     }: {
       deckId: number;
       needsApproval: boolean;
-      risk?: boolean;
     }) => {
       if (!address) return;
       abort.current?.abort();
@@ -144,7 +142,7 @@ export function useOpenCase(onSettled?: () => void) {
         const sim = await simulateContract(config, {
           address: DECK_ADDRESS,
           abi: TESSERA_DECK_ABI,
-          functionName: risk ? "openRisk" : "openCase",
+          functionName: "openCase",
           args: [deckId],
           account: address,
         });
@@ -158,7 +156,6 @@ export function useOpenCase(onSettled?: () => void) {
           txHash: hash,
           txUrl: txUrl(hash),
           waitedMs: 0,
-          risk,
         });
 
         const receipt = await waitForTransactionReceipt(config, { hash });
@@ -173,7 +170,6 @@ export function useOpenCase(onSettled?: () => void) {
           handle,
           txHash: hash,
           at: Date.now(),
-          risk,
         });
 
         onSettled?.();

@@ -61,6 +61,7 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
         euint256 card;
         uint32 deckId;
         uint64 battle;
+        ///
         bool risk;
     }
 
@@ -334,21 +335,6 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
         emit SlotRevealed(msg.sender, i);
     }
 
-    ///
-    ///
-    function openRisk(uint32 deckId) external nonReentrant returns (uint16 index, bytes32 handle) {
-        uint256 price;
-        (index, price) = _forfeitAndDraw(deckId);
-
-        uint256 i = slots[msg.sender].length - 1;
-        Slot storage slot = slots[msg.sender][i];
-        handle = euint256.unwrap(slot.card);
-        _unseal(slot.card, msg.sender);
-
-        emit CaseOpened(msg.sender, deckId, index, handle, price);
-        emit RiskTaken(msg.sender, deckId, index, handle, price - price / WEIGHT_PER_TICKET);
-        emit SlotRevealed(msg.sender, i);
-    }
 
     ///
     ///
@@ -384,25 +370,6 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
         index = _draw(d, deckId, false);
     }
 
-    ///
-    ///
-    function _forfeitAndDraw(uint32 deckId) internal returns (uint16 index, uint256 price) {
-        Deck storage d = _deck(deckId);
-        if (d.drawn >= d.size) revert DeckEmpty();
-        if (d.vaultUpTo == 0) revert DeckHasNoVault();
-
-        price = adapter.ticketPrice();
-        ticketToken.safeTransferFrom(msg.sender, address(this), price);
-
-        uint256 keep = price / WEIGHT_PER_TICKET;
-        // forge-lint: disable-next-line(unsafe-typecast)
-        d.vault += uint128(price - keep);
-        budgetWeight += 1;
-
-        emit VaultGrew(deckId, price - keep, d.vault);
-
-        index = _draw(d, deckId, true);
-    }
 
     function _draw(Deck storage d, uint32 deckId, bool risk) internal returns (uint16 index) {
         index = d.drawn;
