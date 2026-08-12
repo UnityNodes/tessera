@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { Chest, ChestWaiting } from "./Chest";
 import { DeckHero } from "./DeckHero";
 import { Prize } from "./Prize";
-import { specOf, isVault, ticketsLabel, type DeckShape } from "@/lib/deck";
+import { specOf, isVault, isPrize, isShard, ticketsLabel, type DeckShape } from "@/lib/deck";
 
 export type CasePhase = "idle" | "waiting" | "opened";
 
@@ -47,7 +47,7 @@ export function Case({ phase, value, deck, size = 340, onClick, vault, skin, art
   const still = useReducedMotion();
   const spec = phase === "opened" && value != null ? specOf(value, deck) : null;
   const clickable = Boolean(onClick) && phase === "idle";
-  const won = Boolean(spec && (spec.tickets > 0 || isVault(spec)));
+  const won = Boolean(spec && isPrize(spec));
   const paid = spec ? spec.tickets : 0;
 
   if (phase === "waiting") {
@@ -136,7 +136,7 @@ export function Case({ phase, value, deck, size = 340, onClick, vault, skin, art
 
 
 
-          {spec && won && !still && (
+          {spec && won && !isShard(spec) && !still && (
             <Prize
               spec={spec}
               paid={paid}

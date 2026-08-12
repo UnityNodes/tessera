@@ -27,6 +27,9 @@ import {
   bestTier,
   isVault,
   isShard,
+  isPrize,
+  weightOf,
+  WEIGHT_PER_TICKET,
   type DeckShape,
 } from "@/lib/deck";
 
@@ -370,7 +373,7 @@ function Chip({ label, value, tone }: { label: string; value: string; tone?: str
 function BatchResult({ state, deck }: { state: { batch?: { handle: string; index: number; value?: number }[]; phase: string }; deck: DeckShape }) {
   const items = state.batch ?? [];
   const known = items.filter((b) => b.value != null);
-  const worth = known.filter((b) => specOf(b.value!, deck).tickets > 0 || isVault(specOf(b.value!, deck)));
+  const worth = known.filter((b) => isPrize(specOf(b.value!, deck)));
 
   return (
     <div className="mt-5 w-full">
@@ -470,7 +473,8 @@ function Result({
             </p>
           ) : isShard(spec) ? (
             <p className="t-inscription mt-3 text-2xl" style={{ color: spec.ink }}>
-              and the case paid 1 TESA, five make a ticket
+              and the case paid {weightOf(open.value!, deck)} TESA, {WEIGHT_PER_TICKET} make a
+              ticket
             </p>
           ) : (
             <p className="mt-3 text-slate-400">
