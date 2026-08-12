@@ -144,8 +144,9 @@ export function StakePanel({
       )}
       <p className="mt-3 text-sm text-slate-400">
         Risking stakes the bonus, never your money, the dollar you paid already
-        bought a real ticket. Your next case decides it: anything at all doubles
-        the {picked}, an empty slot burns it.
+        bought a real ticket. Your next case decides it: a card that carries TESA
+        or tickets doubles the {picked}; an empty one burns it, and so does the
+        vault card, it pays money, not weight.
       </p>
       {stake.budgetLeft > 0 && (
         <p className="t-label mt-2">

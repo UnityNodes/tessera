@@ -93,7 +93,7 @@ const BY_NAME: Partial<Record<DeckError, Explained>> = {
   TreasuryEmpty: {
     fault: "treasury-empty",
     title: "The game has not earned a ticket yet",
-    next: "Prizes are funded by the referral fee the game earns, and half of that fee goes to the vaults. Nothing expires, the ticket lands once enough cases have been opened, by anyone.",
+    next: "Prizes are funded by the referral fee the game earns, and part of that fee settles into the vaults. Nothing expires, the ticket lands once enough cases have been opened, by anyone.",
     retryable: false,
   },
   BadAttestation: {
