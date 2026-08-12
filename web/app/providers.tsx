@@ -38,8 +38,24 @@ export function Providers({
       }),
   );
 
+  //
+  //
   useEffect(() => {
-    void warmInco().catch(() => {});
+    let cancelled = false;
+    const start = () => {
+      if (cancelled) return;
+      const go = () => void warmInco().catch(() => {});
+      if (typeof requestIdleCallback === "function") requestIdleCallback(go, { timeout: 1500 });
+      else setTimeout(go, 200);
+    };
+
+    if (document.readyState === "complete") start();
+    else window.addEventListener("load", start, { once: true });
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("load", start);
+    };
   }, []);
 
   return (
