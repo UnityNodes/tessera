@@ -5,8 +5,14 @@ systemd-`tessera-web`: `next start -p 3080`
 `npm run build` .
 
 ```bash
-cd /root/tessera/web && npm run build && sudo systemctl restart tessera-web
+cd /root/tessera/web && npm run build && sudo systemctl restart tessera-web && sleep 5 && curl -s -o /dev/null https://tessera.unitynodes.com/
 ```
+
+`curl` , .
+, : `gameNow()`
+() .
+,
+. .
 
 , :
 

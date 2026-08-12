@@ -101,7 +101,9 @@ contract TesseraLiveBudgetTest is Test {
         vm.createSelectFork(vm.envOr("BASE_SEPOLIA_RPC_URL", string("https://sepolia.base.org")));
     }
 
-    function test_liveBoard_isOverPromisedUntilTheShareDrops() public {
+    ///
+    ///
+    function test_liveBoard_coversWhatItPromised() public view {
         TesseraDeck game = TesseraDeck(LIVE);
 
         uint256 slots;
@@ -110,20 +112,13 @@ contract TesseraLiveBudgetTest is Test {
         uint256 promised = (game.budgetWeight() * 1e6) / 5;
         uint256 funded = (slots * 1e5 * (10_000 - game.vaultShareBps())) / 10_000;
 
-        assertGt(promised, funded, unicode": , ");
+        assertGe(funded, promised, unicode"");
 
-        TesseraDeck next = new TesseraDeck();
-        vm.prank(game.owner());
-        game.upgradeToAndCall(address(next), "");
-
-        uint16 max = game.maxVaultShare();
-        assertLt(max, game.vaultShareBps(), unicode"");
-
-        vm.prank(game.owner());
-        game.setVaultShare(max);
-
-        uint256 fundedAfter = (slots * 1e5 * (10_000 - game.vaultShareBps())) / 10_000;
-        assertGe(fundedAfter, promised, unicode"");
+        assertGe(
+            game.maxVaultShare(),
+            game.vaultShareBps(),
+            unicode""
+        );
     }
 
     ///
