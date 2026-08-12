@@ -541,6 +541,77 @@ with sync_playwright() as p:
         "" if "Connect wallet" not in raw else "HTML",
     )
 
+    # ── ────────────────────────────────────────────────────
+    #
+    # wagmi, .
+    # , ,
+    # EIP-6963. .
+    # , `injected()` : wagmi
+    # `rdns`, .
+    # MetaMask , ,
+    # «Injected».
+    #
+    # , .
+    # , ;
+    # , EIP-6963 , ,
+    # . : .
+    print("\n── ──")
+
+    ANNOUNCE = """
+    () => {
+      const info = {
+        uuid: "11111111-2222-3333-4444-555555555555",
+        name: "Nebula Wallet",
+        icon: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciLz4=",
+        rdns: "app.nebula",
+      };
+      const provider = {
+        request: async () => { throw new Error("no"); },
+        on() {}, removeListener() {},
+      };
+      const detail = Object.freeze({ info, provider });
+      const announce = () =>
+        window.dispatchEvent(new CustomEvent("eip6963:announceProvider", { detail }));
+      window.addEventListener("eip6963:requestProvider", announce);
+      announce();
+    }
+    """
+
+    def wallet_names(ctx):
+        page = ctx.new_page()
+        page.goto(URL, wait_until="load")
+        page.wait_for_timeout(2500)
+        page.get_by_text("Connect wallet").first.click()
+        page.wait_for_timeout(700)
+        out = page.eval_on_selector_all(
+            "details div button",
+            "els => els.map(e => e.textContent.trim()).filter(Boolean)",
+        )
+        page.close()
+        return out
+
+    plain = wallet_names(browser.new_context(viewport={"width": 1400, "height": 900}))
+    check("", len(plain) > 0, ", ".join(plain) or "")
+    check(
+        "Injected",
+        "Injected" not in plain,
+        ", ".join(plain),
+    )
+
+    found = browser.new_context(viewport={"width": 1400, "height": 900})
+    found.add_init_script(f"({ANNOUNCE})()")
+    named = wallet_names(found)
+    check(
+        "",
+        named[:1] == ["Nebula Wallet"],
+        ", ".join(named),
+    )
+    check(
+        "",
+        not any(n in ("Injected", "Browser wallet") for n in named),
+        ", ".join(named),
+    )
+
     # ── : ──────────────────────────────────────
     #
     # , : owner()

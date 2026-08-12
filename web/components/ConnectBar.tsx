@@ -15,6 +15,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { Shards } from "./Shards";
+import { WalletButtons } from "./Wallets";
 import { WEIGHT_PER_TICKET } from "@/lib/deck";
 import { Button } from "./ui/Button";
 import { Disclosure } from "./ui/Disclosure";
@@ -47,7 +48,7 @@ export function ConnectBar({
     () => false,
   );
   const { address, chainId, isConnected, status } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
+  const { isPending } = useConnect();
   const { disconnect } = useDisconnect();
   const { switchChain } = useSwitchChain();
   const { mint, minting } = useMint(onMinted);
@@ -80,16 +81,7 @@ export function ConnectBar({
       >
         <Panel>
           <p className="t-label mb-2 px-1">choose a wallet</p>
-          {connectors.map((c) => (
-            <button
-              key={c.uid}
-              type="button"
-              onClick={() => connect({ connector: c })}
-              className="flex min-h-11 w-full cursor-pointer items-center rounded-[var(--radius-control)] px-3 py-2.5 text-left text-sm font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)]"
-            >
-              {c.name}
-            </button>
-          ))}
+          <WalletButtons />
         </Panel>
       </Disclosure>
     );
