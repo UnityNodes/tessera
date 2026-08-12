@@ -4,6 +4,7 @@ pragma solidity ^0.8.29;
 import {Test, console} from "forge-std/Test.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IMegapotV2, MegapotTicket, MegapotV2Reads} from "../src/interfaces/IMegapotV2.sol";
+import {Fork} from "./helpers/Fork.sol";
 
 interface IERC721Like {
     function balanceOf(address owner) external view returns (uint256);
@@ -38,7 +39,7 @@ contract MegapotV2RulesTest is Test {
 
     function setUp() public {
         vm.createSelectFork(
-            vm.envOr("BASE_MAINNET_RPC_URL", string("https://mainnet.base.org")),
+            vm.envOr("BASE_MAINNET_RPC_URL", Fork.BASE_MAINNET),
             vm.envOr("BASE_MAINNET_FORK_BLOCK", uint256(49488308))
         );
         caller = new V2Caller();

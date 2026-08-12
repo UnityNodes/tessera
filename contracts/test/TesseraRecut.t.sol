@@ -6,6 +6,7 @@ import {TesseraDeck} from "../src/TesseraDeck.sol";
 import {DeployTessera} from "./helpers/DeployTessera.sol";
 import {MegapotLegacyAdapter} from "../src/adapters/MegapotLegacyAdapter.sol";
 import {IMegapot} from "../src/interfaces/IMegapot.sol";
+import {Fork} from "./helpers/Fork.sol";
 
 ///
 ///
@@ -19,7 +20,7 @@ contract TesseraRecutTest is Test {
     address stranger = makeAddr("stranger");
 
     function setUp() public {
-        vm.createSelectFork(vm.envOr("BASE_SEPOLIA_RPC_URL", string("https://sepolia.base.org")));
+        vm.createSelectFork(vm.envOr("BASE_SEPOLIA_RPC_URL", Fork.BASE_SEPOLIA));
 
         MegapotLegacyAdapter adapter = new MegapotLegacyAdapter(MEGAPOT);
         game = DeployTessera.behindProxy(adapter, owner);

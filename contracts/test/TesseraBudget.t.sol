@@ -6,6 +6,7 @@ import {TesseraDeck} from "../src/TesseraDeck.sol";
 import {DeployTessera} from "./helpers/DeployTessera.sol";
 import {MegapotLegacyAdapter} from "../src/adapters/MegapotLegacyAdapter.sol";
 import {IMegapot} from "../src/interfaces/IMegapot.sol";
+import {Fork} from "./helpers/Fork.sol";
 
 ///
 ///
@@ -16,7 +17,7 @@ contract TesseraBudgetTest is Test {
     address owner = makeAddr("owner");
 
     function setUp() public {
-        vm.createSelectFork(vm.envOr("BASE_SEPOLIA_RPC_URL", string("https://sepolia.base.org")));
+        vm.createSelectFork(vm.envOr("BASE_SEPOLIA_RPC_URL", Fork.BASE_SEPOLIA));
         MegapotLegacyAdapter adapter = new MegapotLegacyAdapter(MEGAPOT);
         game = DeployTessera.behindProxy(adapter, owner);
         vm.deal(owner, 10 ether);
@@ -98,7 +99,7 @@ contract TesseraLiveBudgetTest is Test {
     address payable constant LIVE = payable(0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1);
 
     function setUp() public {
-        vm.createSelectFork(vm.envOr("BASE_SEPOLIA_RPC_URL", string("https://sepolia.base.org")));
+        vm.createSelectFork(vm.envOr("BASE_SEPOLIA_RPC_URL", Fork.BASE_SEPOLIA));
     }
 
     ///

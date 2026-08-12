@@ -4,6 +4,7 @@ pragma solidity ^0.8.29;
 import {Test, console} from "forge-std/Test.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IMegapot} from "../src/interfaces/IMegapot.sol";
+import {Fork} from "./helpers/Fork.sol";
 
 interface IMintable {
     function mint(address to, uint256 amount) external;
@@ -26,7 +27,7 @@ contract MegapotRulesTest is Test {
     uint256 price;
 
     function setUp() public {
-        vm.createSelectFork(vm.envOr("BASE_SEPOLIA_RPC_URL", string("https://sepolia.base.org")));
+        vm.createSelectFork(vm.envOr("BASE_SEPOLIA_RPC_URL", Fork.BASE_SEPOLIA));
         caller = new Caller();
         price = MEGAPOT.ticketPrice();
         IMintable(address(MPUSDC)).mint(address(caller), 100e6);

@@ -10,6 +10,7 @@ import {DeployTessera} from "./helpers/DeployTessera.sol";
 import {MegapotLegacyAdapter} from "../src/adapters/MegapotLegacyAdapter.sol";
 import {IMegapot} from "../src/interfaces/IMegapot.sol";
 import {IMegapotAdapter} from "../src/interfaces/IMegapotAdapter.sol";
+import {Fork} from "./helpers/Fork.sol";
 
 interface IMintable {
     function mint(address to, uint256 amount) external;
@@ -41,7 +42,7 @@ contract TesseraUpgradeTest is Test {
     address stranger = makeAddr("stranger");
 
     function setUp() public {
-        vm.createSelectFork(vm.envOr("BASE_SEPOLIA_RPC_URL", string("https://sepolia.base.org")));
+        vm.createSelectFork(vm.envOr("BASE_SEPOLIA_RPC_URL", Fork.BASE_SEPOLIA));
 
         adapter = new MegapotLegacyAdapter(MEGAPOT);
         deck = DeployTessera.behindProxy(adapter, owner);
@@ -204,7 +205,7 @@ contract TesseraLiveUpgradeTest is Test {
     address payable constant LIVE = payable(0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1);
 
     function setUp() public {
-        vm.createSelectFork(vm.envOr("BASE_SEPOLIA_RPC_URL", string("https://sepolia.base.org")));
+        vm.createSelectFork(vm.envOr("BASE_SEPOLIA_RPC_URL", Fork.BASE_SEPOLIA));
     }
 
     function test_liveGame_upgradesWithoutLosingTheBoard() public {

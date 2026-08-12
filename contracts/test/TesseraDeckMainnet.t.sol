@@ -10,6 +10,7 @@ import {MegapotLegacyAdapter} from "../src/adapters/MegapotLegacyAdapter.sol";
 import {IMegapotV2} from "../src/interfaces/IMegapotV2.sol";
 import {IMegapot} from "../src/interfaces/IMegapot.sol";
 import {IMegapotAdapter} from "../src/interfaces/IMegapotAdapter.sol";
+import {Fork} from "./helpers/Fork.sol";
 
 interface IERC721Balance {
     function balanceOf(address owner) external view returns (uint256);
@@ -27,7 +28,7 @@ contract TesseraDeckMainnetForkTest is Test {
 
     function setUp() public {
         vm.createSelectFork(
-            vm.envOr("BASE_MAINNET_RPC_URL", string("https://mainnet.base.org")),
+            vm.envOr("BASE_MAINNET_RPC_URL", Fork.BASE_MAINNET),
             vm.envOr("BASE_MAINNET_FORK_BLOCK", uint256(49488308))
         );
         vm.deal(owner, 1 ether);
