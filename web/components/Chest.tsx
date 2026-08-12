@@ -22,11 +22,12 @@ const ART: Record<Rarity, { src: string; open: string; filter?: string; bare?: b
     open: "/chests/sealed-open.webp",
     filter: "saturate(0.14) brightness(0.95)",
   },
+  //
   grout: {
     bare: true,
     src: "/chests/sealed-bare.webp",
     open: "/chests/sealed-open.webp",
-    filter: "saturate(0.1) brightness(0.72)",
+    filter: "saturate(0.12) brightness(0.85)",
   },
   //
   shard: {
@@ -133,7 +134,11 @@ export function Chest({
   const tier = ART[rarity];
   const dress = skinOf(skin);
   const glow = "drop-shadow(0 0 calc(var(--glow, 0) * 26px) var(--metal))";
-  const masked = !(tier.bare && !open) && !art;
+  //
+  //
+  //
+  //
+  const masked = !tier.bare && !art;
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
