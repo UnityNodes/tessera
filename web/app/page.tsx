@@ -149,8 +149,9 @@ export default function Home() {
               ink="var(--color-tier-vault)"
               title="2. The vault grows until someone draws it"
             >
-              One slot in the deck opens the vault and takes everything in it. Until it is drawn,
-              every case that gives its ticket up feeds it. Nobody can pick which slot that is, the deck was shuffled before anyone opened anything.
+              One slot in the deck opens the vault and takes everything in it. It fills from the
+              commission the openings themselves earn, a fixed slice of every case, shared out
+              between the decks by how often each is played. Nobody can pick which slot that is, the deck was shuffled before anyone opened anything.
             </Step>
 
             <Step

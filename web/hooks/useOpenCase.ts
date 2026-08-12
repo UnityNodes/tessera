@@ -36,7 +36,6 @@ export interface OpenState {
   error?: Explained;
   waitedMs: number;
   resumed?: boolean;
-  risk?: boolean;
   /**
    *
    */
@@ -108,7 +107,6 @@ export function useOpenCase(onSettled?: () => void) {
       txHash: p.txHash,
       txUrl: txUrl(p.txHash),
       waitedMs: 0,
-      risk: p.risk,
     });
     awaitReveal(p.handle, ctl).catch((err) => {
       if (ctl.signal.aborted) return;

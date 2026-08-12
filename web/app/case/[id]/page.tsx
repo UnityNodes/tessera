@@ -109,7 +109,7 @@ export default function CasePage() {
     return (
       <div className="w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
         <p className="py-20 text-center text-slate-300">
-          {game.isLoading ? "Reading the chain…" : "No such case."}
+          {game.isLoading || game.decks.length === 0 ? "Reading the chain…" : "No such case."}
         </p>
       </div>
     );
@@ -191,7 +191,6 @@ export default function CasePage() {
                 phase={open.state.phase === "done" && !open.state.batch ? "opened" : "idle"}
                 value={open.state.value}
                 deck={shape}
-                risk={open.state.risk}
                 vault={deck.vault}
                 skin={deck.cid}
                 art={skinUrl(deckId)}
@@ -436,21 +435,12 @@ function Result({
     case "signing":
       return <p className={dim}>Confirm in your wallet.</p>;
     case "confirming":
-      return (
-        <p className={dim}>
-          {open.risk ? "Putting your dollar in the vault…" : "Buying your ticket…"}
-        </p>
-      );
+      return <p className={dim}>Buying your ticket…</p>;
     case "landing":
       return <p className={dim}>&nbsp;</p>;
     case "revealing":
       return open.resumed ? (
         <p className={dim}>Welcome back, this case was already paid for. Fetching it.</p>
-      ) : open.risk ? (
-        <p className={dim}>
-          Ticket given up, dollar in the vault. Now the covalidators decrypt your case, a few
-          seconds we do not control.
-        </p>
       ) : (
         <p className={dim}>
           Ticket bought. Now the covalidators decrypt your case, a few seconds we do not control.
@@ -465,29 +455,6 @@ function Result({
               you found the vault
             </p>
             <p className="mt-3 text-slate-300">Everything it holds is yours. Claim it below.</p>
-          </div>
-        );
-      }
-      if (open.risk) {
-        return (
-          <div>
-            <p className="text-xl text-slate-100">
-              No ticket, your dollar went{" "}
-              <span style={{ color: "var(--color-tier-vault)" }}>into the vault</span>.
-            </p>
-            {spec.tickets > 0 ? (
-              <p className="t-inscription mt-3 text-2xl" style={{ color: spec.ink }}>
-                and the case paid {spec.tickets * 2}, doubled
-              </p>
-            ) : isShard(spec) ? (
-              <p className="t-inscription mt-3 text-2xl" style={{ color: spec.ink }}>
-                and the case paid 1 TESA, worth two, doubled
-              </p>
-            ) : (
-              <p className="mt-3 text-slate-400">
-                The case was empty, and double nothing is nothing. That was the bet.
-              </p>
-            )}
           </div>
         );
       }

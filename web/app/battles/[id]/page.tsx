@@ -313,7 +313,7 @@ function OpenSeat({
               {busy ? "…" : "Take the seat • $1"}
             </Button>
           ) : (
-            <StartHere what="A seat" />
+            <StartHere />
           )}
         </div>
       </div>

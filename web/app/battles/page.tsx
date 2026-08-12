@@ -8,7 +8,7 @@ import { Swords, Plus, Play, Users } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { Tally } from "@/components/ui/Tally";
-import { Chest } from "@/components/Chest";
+import { Chest, skinOf } from "@/components/Chest";
 import { StartHere } from "@/components/StartHere";
 import { useDeck, type DeckInfo } from "@/hooks/useDeck";
 import { useBattleList, type Battle } from "@/hooks/useBattles";
@@ -108,12 +108,15 @@ export default function BattlesPage() {
               <label className="t-label mb-2 block">1. pick the deck you both draw from</label>
               {playable.length === 0 ? (
                 <p className="text-sm text-slate-400">
-                  {game.isLoading ? "Reading the chain…" : "Every deck in this season is empty."}
+                  {game.isLoading || game.decks.length === 0
+                    ? "Reading the chain…"
+                    : "Every deck in this season is empty."}
                 </p>
               ) : (
                 <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
                   {playable.map((d) => {
                     const best = bestTier(d);
+                    const dress = skinOf(d.cid);
                     const on = chosen?.id === d.id;
                     return (
                       <button
@@ -126,9 +129,12 @@ export default function BattlesPage() {
                             : "border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-200"
                         }`}
                       >
-                        <Chest rarity={best?.rarity ?? "sealed"} size={62} />
-                        <span className="truncate text-sm font-bold">
-                          {best?.name ?? "Sealed"}
+                        <Chest rarity={best?.rarity ?? "sealed"} size={62} skin={d.cid} />
+                        <span className="flex w-full items-baseline justify-center gap-1 truncate text-sm font-bold">
+                          <span className="truncate">{dress?.name ?? best?.name ?? "Sealed"}</span>
+                          <span className="t-chain text-xs text-[var(--color-ink-dim)]">
+                            #{d.id}
+                          </span>
                         </span>
                         <span className="t-chain text-sm text-slate-400">
                           {d.remaining} left
@@ -160,7 +166,7 @@ export default function BattlesPage() {
               </div>
 
               {!address || !game.canAfford ? (
-                <StartHere what="A battle" />
+                <StartHere />
               ) : mine ? (
                 <p className="text-sm text-slate-300">
                   You already have a battle on the table. Settle it before opening another.
@@ -273,7 +279,7 @@ function Row({
             <span className="t-label">winner takes both tickets</span>
           </span>
         ) : (
-          <StartHere what="A seat" compact />
+          <StartHere compact />
         ))}
         <Link href={`/battles/${battle.id}`}>
           <Button size="sm" variant="ghost">

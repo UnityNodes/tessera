@@ -14,7 +14,6 @@ interface Props {
   deck: DeckShape;
   size?: number;
   onClick?: () => void;
-  risk?: boolean;
   vault?: bigint;
   /**
    *
@@ -44,12 +43,12 @@ const SHARDS = [
  *
  *
  */
-export function Case({ phase, value, deck, size = 340, onClick, risk = false, vault, skin, art }: Props) {
+export function Case({ phase, value, deck, size = 340, onClick, vault, skin, art }: Props) {
   const still = useReducedMotion();
   const spec = phase === "opened" && value != null ? specOf(value, deck) : null;
   const clickable = Boolean(onClick) && phase === "idle";
   const won = Boolean(spec && (spec.tickets > 0 || isVault(spec)));
-  const paid = spec ? (risk ? spec.tickets * 2 : spec.tickets) : 0;
+  const paid = spec ? spec.tickets : 0;
 
   if (phase === "waiting") {
     return (

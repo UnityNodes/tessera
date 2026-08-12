@@ -4,6 +4,7 @@ import { useAccount, useConnect } from "wagmi";
 import { Wallet, Coins } from "lucide-react";
 import { useDeck } from "@/hooks/useDeck";
 import { useMint } from "@/hooks/useMint";
+import { WalletButtons } from "./Wallets";
 import { chiselSkin } from "./ui/Button";
 
 /**
@@ -17,18 +18,21 @@ export function StartHere({
   what,
   compact = false,
 }: {
-  what: string;
+  /**
+   *
+   */
+  what?: string;
   compact?: boolean;
 }) {
   const { isConnected } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
+  const { isPending } = useConnect();
   const game = useDeck();
   const { mint, minting } = useMint(game.refetch);
 
   if (!isConnected) {
     return (
       <div className={compact ? "relative" : undefined}>
-        {!compact && (
+        {!compact && what && (
           <p className="mb-3 text-sm leading-relaxed text-slate-200">
             {what} costs $1 and buys you a real Megapot lottery ticket. On this testnet the dollars
             are free.
@@ -46,16 +50,7 @@ export function StartHere({
               compact ? "absolute right-0 z-[var(--z-sticky)] mt-2 w-48 shadow-2xl" : "mt-2"
             }`}
           >
-            {connectors.map((c) => (
-              <button
-                key={c.uid}
-                type="button"
-                onClick={() => connect({ connector: c })}
-                className="flex min-h-11 cursor-pointer items-center rounded-[var(--radius-control)] px-3 py-2.5 text-left text-sm font-bold text-slate-200 transition-colors hover:bg-slate-800 hover:text-[var(--color-accent-hover)]"
-              >
-                {c.name}
-              </button>
-            ))}
+            <WalletButtons />
           </div>
         </details>
       </div>
@@ -64,7 +59,7 @@ export function StartHere({
 
   return (
     <div>
-      {!compact && (
+      {!compact && what && (
         <p className="mb-3 text-sm leading-relaxed text-slate-200">
           You need $1 to play. Base Sepolia dollars are free and mint straight to your wallet, the
           money is fake, the ticket contract is not.

@@ -74,7 +74,7 @@ export function OpenTheatre({
 
   const spec = opened && open.value != null ? specOf(open.value, deck) : null;
   const won = Boolean(spec && isPrize(spec));
-  const paid = spec ? (open.risk ? spec.tickets * 2 : spec.tickets) : 0;
+  const paid = spec ? spec.tickets : 0;
 
   //
   const tier =
@@ -289,23 +289,21 @@ export function OpenTheatre({
                       <p
                         className="t-display text-[clamp(2.4rem,6.5vw,4rem)] leading-none"
                         style={{
-                          color: won || open.risk ? spec.ink : "var(--color-accent)",
+                          color: won ? spec.ink : "var(--color-accent)",
                           textShadow: `0 0 70px color-mix(in oklab, ${
-                            won || open.risk ? spec.ink : "var(--color-accent)"
+                            won ? spec.ink : "var(--color-accent)"
                           } 65%, transparent)`,
                         }}
                       >
-                        {won ? spec.name : open.risk ? "empty" : "+1 real ticket"}
+                        {won ? spec.name : "+1 real ticket"}
                       </p>
                       <p className="t-inscription mt-3 text-sm text-[var(--color-ink-dim)]">
                         {isVault(spec)
                           ? "everything the vault holds"
                           : isShard(spec)
-                            ? `five make a real ticket${open.risk ? " · this one counts double" : ""}`
+                            ? "five make a real ticket"
                             : won
-                            ? `${paid} real ticket${paid > 1 ? "s" : ""}${open.risk ? " · doubled" : ""}`
-                            : open.risk
-                              ? "no ticket, and the case was empty, that was the bet"
+                              ? `${paid} real ticket${paid > 1 ? "s" : ""}`
                               : "the case added nothing on top · most do not"}
                       </p>
                       <p className="mt-5 text-sm text-[var(--color-ink-dim)]">
@@ -316,9 +314,7 @@ export function OpenTheatre({
                     <>
                       <p className="t-inscription text-lg text-[var(--color-ink-dim)]">
                         {open.phase === "confirming"
-                          ? open.risk
-                            ? "putting your dollar in the vault"
-                            : "buying your ticket"
+                          ? "buying your ticket"
                           : "the covalidators are decrypting"}
                       </p>
                       <span className="mt-4 flex justify-center gap-2">

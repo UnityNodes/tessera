@@ -13,7 +13,6 @@ export interface PendingOpen {
   handle: `0x${string}`;
   txHash: `0x${string}`;
   at: number;
-  risk?: boolean;
 }
 
 function read(): PendingOpen | null {
