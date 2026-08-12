@@ -25,6 +25,10 @@ run() {
 
 run "" bash -c 'cd ../contracts && forge test --summary 2>&1 | tail -22'
 run "→ " node audit-chain.cjs "$URL"
+# , .
+# : ,
+# audit-chain .
+run "" node audit-create.cjs
 run "→ " python3 audit-ui.py "$URL"
 run "" python3 audit-runtime.py "$URL"
 run "" python3 audit-brain.py --project=tessera

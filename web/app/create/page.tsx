@@ -11,7 +11,14 @@ import { Chest } from "@/components/Chest";
 import { StartHere } from "@/components/StartHere";
 import { useCreateDeck } from "@/hooks/useCreateDeck";
 import { useDeck } from "@/hooks/useDeck";
-import { SHAPES, shapeFor, paysOneIn, totalWeight, type ShapeKind } from "@/lib/shapes";
+import {
+  SHAPES,
+  shapeFor,
+  budgetFor,
+  paysOneIn,
+  totalWeight,
+  type ShapeKind,
+} from "@/lib/shapes";
 
 const HUES = [333, 300, 265, 225, 194, 160, 120, 75, 40, 12];
 
@@ -35,7 +42,11 @@ export default function CreatePage() {
   const [art, setArt] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
 
-  const shape = useMemo(() => shapeFor(kind, size), [kind, size]);
+  const shape = useMemo(
+    () => shapeFor(kind, size, game.vaultShareBps),
+    [kind, size, game.vaultShareBps],
+  );
+  const budget = budgetFor(size, game.vaultShareBps);
   const clean = name.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
   const maxShare = mk.maxBps / 100;
 
@@ -180,7 +191,10 @@ export default function CreatePage() {
               <label className="t-label mb-2 block">5. what it pays</label>
               <div className="grid gap-2.5 sm:grid-cols-3">
                 {SHAPES.map((s) => {
-                  const fits = size >= s.min && shapeFor(s.kind, size) !== null;
+                  const fits = shapeFor(s.kind, size, game.vaultShareBps) !== null;
+                  const bigger = SIZES.find(
+                    (n) => shapeFor(s.kind, n, game.vaultShareBps) !== null,
+                  );
                   return (
                     <button
                       key={s.kind}
@@ -195,7 +209,11 @@ export default function CreatePage() {
                     >
                       <span className="block text-base font-bold text-white">{s.title}</span>
                       <span className="mt-1 block text-sm leading-snug text-slate-400">
-                        {fits ? s.note : `needs ${s.min} cases or more`}
+                        {fits
+                          ? s.note
+                          : bigger
+                            ? `needs ${bigger} cases or more`
+                            : "does not fit any deck this size"}
                       </span>
                     </button>
                   );
@@ -223,8 +241,9 @@ export default function CreatePage() {
                 </span>
               </div>
               <p className="mt-2 text-sm text-slate-400">
-                of the game&apos;s half of the commission, capped at {maxShare}%, the rest pays
-                for turning TESA into real tickets, in your deck too
+                of the commission your deck earns, after the vaults take their slice, capped at{" "}
+                {maxShare}% because the rest pays for turning TESA into real tickets, in your deck
+                too
               </p>
             </section>
           </div>
@@ -271,7 +290,7 @@ export default function CreatePage() {
                 <Line name="a vault inside" value={shape?.vaultSlots ? "yes" : "no"} />
                 <Line
                   name="prize budget"
-                  value={shape ? `${totalWeight(shape)} of ${Math.floor(size / 2)}` : ", "}
+                  value={shape ? `${totalWeight(shape)} of ${budget}` : ", "}
                 />
                 <Line name="your share" value={`${Math.min(share, maxShare)}%`} />
                 <Line
@@ -282,7 +301,7 @@ export default function CreatePage() {
 
               <div className="border-t border-slate-800 pt-4">
                 {!address ? (
-                  <StartHere what="Your own case" />
+                  <StartHere />
                 ) : (
                   <>
                     <Button

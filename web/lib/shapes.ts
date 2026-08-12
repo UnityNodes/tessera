@@ -6,6 +6,14 @@ import { WEIGHT_PER_TICKET } from "./deck";
  */
 export type ShapeKind = "steady" | "jackpot" | "collector";
 
+/**
+ *
+ *
+ */
+export function budgetFor(size: number, vaultShareBps: number): number {
+  return Math.floor((size * (10_000 - vaultShareBps)) / 20_000);
+}
+
 export interface Shape {
   upTo: number[];
   weight: number[];
@@ -16,33 +24,30 @@ export const SHAPES: {
   kind: ShapeKind;
   title: string;
   note: string;
-  min: number;
 }[] = [
   {
     kind: "steady",
     title: "often, small",
     note: "no vault, a ticket here and there, and plenty of TESA",
-    min: 50,
   },
   {
     kind: "jackpot",
     title: "rare, huge",
     note: "one vault, a couple of five-ticket slots, the rest in TESA",
-    min: 160,
   },
   {
     kind: "collector",
     title: "shards only",
     note: "one vault and nothing but TESA, five of them make a ticket",
-    min: 50,
   },
 ];
 
 /**
  *
+ *
  */
-export function shapeFor(kind: ShapeKind, size: number): Shape | null {
-  const budget = Math.floor(size / 2);
+export function shapeFor(kind: ShapeKind, size: number, vaultShareBps: number): Shape | null {
+  const budget = budgetFor(size, vaultShareBps);
 
   if (kind === "steady") {
     const tickets = Math.floor(budget / 2 / WEIGHT_PER_TICKET);
