@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import { createPublicClient, http, parseAbiItem } from "viem";
-import { CHAIN, RPC_URL, DECK_ADDRESS, DECK_FROM_BLOCK } from "@/lib/chain";
+import { createPublicClient, parseAbiItem } from "viem";
+import { CHAIN, chainTransport, DECK_ADDRESS, DECK_FROM_BLOCK } from "@/lib/chain";
 
 /**
  *
@@ -39,10 +39,7 @@ interface Open {
   risk?: boolean;
 }
 
-const client = createPublicClient({
-  chain: CHAIN,
-  transport: http(RPC_URL, { batch: { wait: 16 }, retryCount: 3, retryDelay: 400 }),
-});
+const client = createPublicClient({ chain: CHAIN, transport: chainTransport() });
 
 let scanned = DECK_FROM_BLOCK - 1n;
 const events: Open[] = [];

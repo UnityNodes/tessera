@@ -1,8 +1,9 @@
-import { createConfig, http } from "wagmi";
+import { createConfig } from "wagmi";
 import { injected, coinbaseWallet } from "wagmi/connectors";
-import { CHAIN, RPC_URL } from "./chain";
+import { CHAIN, chainTransport } from "./chain";
 
 /**
+ *
  */
 export const wagmiConfig = createConfig({
   chains: [CHAIN],
@@ -12,12 +13,7 @@ export const wagmiConfig = createConfig({
   ],
   transports: {
     //
-    //
-    [CHAIN.id]: http(RPC_URL, {
-      batch: { wait: 16 },
-      retryCount: 3,
-      retryDelay: 400,
-    }),
+    [CHAIN.id]: chainTransport(),
   },
   ssr: true,
 });

@@ -1,5 +1,5 @@
 import { baseSepolia } from "viem/chains";
-import { parseAbi } from "viem";
+import { fallback, http, parseAbi } from "viem";
 
 /**
  */
@@ -16,8 +16,34 @@ export const TICKET_TOKEN = "0xA4253E7C13525287C56550b8708100f93E60509f" as cons
 
 export const MEGAPOT = "0x6f03c7BCaDAdBf5E6F5900DA3d56AdD8FbDac5De" as const;
 
-export const RPC_URL =
-  process.env.NEXT_PUBLIC_RPC_URL ?? "https://sepolia.base.org";
+/**
+ *
+ *
+ *
+ *
+ *
+ */
+export const RPC_URLS: string[] = [
+  ...new Set(
+    [
+      process.env.NEXT_PUBLIC_RPC_URL,
+      "https://base-sepolia-rpc.publicnode.com",
+      "https://base-sepolia.gateway.tenderly.co",
+      "https://sepolia.base.org",
+      "https://base-sepolia.drpc.org",
+    ].filter((u): u is string => Boolean(u)),
+  ),
+];
+
+/**
+ *
+ *
+ */
+export const chainTransport = () =>
+  fallback(
+    RPC_URLS.map((url) => http(url, { batch: { wait: 16 }, retryCount: 3, retryDelay: 400 })),
+    { rank: false },
+  );
 
 export const EXPLORER = "https://sepolia.basescan.org";
 

@@ -1,12 +1,12 @@
-import { createPublicClient, http } from "viem";
+import { createPublicClient } from "viem";
 import { TESSERA_DECK_ABI } from "@/lib/abi";
-import { CHAIN, RPC_URL, DECK_ADDRESS } from "@/lib/chain";
+import { CHAIN, chainTransport, DECK_ADDRESS } from "@/lib/chain";
 import { judge } from "@/lib/nsfw";
 import { putSkin, setStatus, readIndex, skinMessage } from "@/lib/skinstore";
 
 const MAX_BYTES = 4 * 1024 * 1024;
 
-const client = createPublicClient({ chain: CHAIN, transport: http(RPC_URL) });
+const client = createPublicClient({ chain: CHAIN, transport: chainTransport() });
 
 /**
  *

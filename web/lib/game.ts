@@ -1,6 +1,6 @@
-import { createPublicClient, http } from "viem";
+import { createPublicClient } from "viem";
 import { TESSERA_DECK_ABI } from "@/lib/abi";
-import { CHAIN, RPC_URL, DECK_ADDRESS, ONE_DOLLAR } from "@/lib/chain";
+import { CHAIN, chainTransport, DECK_ADDRESS, ONE_DOLLAR } from "@/lib/chain";
 
 export type ServerGame = Awaited<ReturnType<typeof read>>;
 
@@ -11,7 +11,7 @@ export type ServerGame = Awaited<ReturnType<typeof read>>;
  *
  */
 
-const client = createPublicClient({ chain: CHAIN, transport: http(RPC_URL) });
+const client = createPublicClient({ chain: CHAIN, transport: chainTransport() });
 
 const deck = { address: DECK_ADDRESS, abi: TESSERA_DECK_ABI } as const;
 
