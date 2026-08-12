@@ -495,8 +495,7 @@ function Result({
     default:
       return (
         <p className={dim}>
-          The same ticket sold on megapot.io, bought for you in the same transaction that opens
-          the case.
+          Bought for you by Megapot itself, in the same transaction that opens the case.
         </p>
       );
   }

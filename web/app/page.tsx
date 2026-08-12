@@ -55,10 +55,10 @@ export default function Home() {
           </h1>
 
           <p className="max-w-2xl text-lg leading-relaxed text-slate-300">
-            A case costs $1 and buys you a real Megapot lottery ticket, the same one sold on
-            megapot.io, bought in the transaction that opens the case. What is inside was
-            shuffled once, before anyone opened one, and is drawn in order. A prize someone else
-            takes is gone for everybody.
+            A case costs $1 and buys you a real Megapot lottery ticket, bought by Megapot itself,
+            in the transaction that opens the case. What is inside was shuffled once, before
+            anyone opened one, and is drawn in order. A prize someone else takes is gone for
+            everybody.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
@@ -142,7 +142,8 @@ export default function Home() {
             >
               The $1 does not go into a house balance. It buys a Megapot lottery ticket in the same
               transaction that opens the case, recorded against your wallet in Megapot&apos;s own
-              contract. The case comes on top.
+              contract, on Base Sepolia, that is Megapot&apos;s testnet jackpot, the same contract
+              they run on mainnet. The case comes on top.
             </Step>
 
             <Step
