@@ -143,6 +143,53 @@ contract TesseraStakeTest is Test {
         assertGt(ticketsAfter, ticketsBefore, unicode"");
     }
 
+    ///
+    function test_settle_theVaultCardWinsTheStake() public {
+        uint16[] memory upTo = new uint16[](2);
+        uint16[] memory weight = new uint16[](2);
+        upTo[0] = 1;
+        weight[0] = 0;
+        upTo[1] = 21;
+        weight[1] = 1;
+
+        uint256 fee = deck.deckFee(DECK);
+        vm.deal(owner, 1 ether);
+        vm.prank(owner);
+        uint32 vaulted = deck.createDeck{value: fee}(DECK, upTo, weight, 1);
+
+        vm.startPrank(player);
+        MPUSDC.approve(address(deck), type(uint256).max);
+        for (uint256 i = 0; i < 6; i++) deck.openCase(vaulted);
+        vm.stopPrank();
+
+        _attest(true);
+        uint256[] memory idx = new uint256[](5);
+        uint256[] memory vals = new uint256[](5);
+        bytes[][] memory sigs = new bytes[][](5);
+        for (uint256 i = 0; i < 5; i++) {
+            idx[i] = i;
+            vals[i] = 2;
+            sigs[i] = new bytes[](2);
+        }
+        vm.prank(player);
+        (uint256 staked, uint64 deciding) = deck.stake(idx, vals, sigs);
+        assertEq(staked, 5);
+        assertEq(deciding, 6);
+
+        vm.prank(player);
+        deck.openCase(vaulted); // 6 ,
+
+        vm.prank(player);
+        (bool won, uint256 banked) = deck.settleStake(1, _sigs()); // 1
+
+        assertTrue(won, unicode"");
+        assertEq(banked, 10, unicode"'");
+        assertFalse(
+            deck.shardSpent(deck.handleOf(player, 6)),
+            unicode""
+        );
+    }
+
     function test_claimBanked_buysRealTickets() public {
         _open(player, 25);
         _attest(true);

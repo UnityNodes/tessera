@@ -515,7 +515,8 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
             revert BadAttestation(euint256.unwrap(card));
         }
 
-        won = weightOf(slot.deckId, value) > 0;
+        //
+        won = weightOf(slot.deckId, value) > 0 || _isVaultCard(slot.deckId, value);
         delete stakeOf[msg.sender];
 
         if (won) {
@@ -744,9 +745,14 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
     }
 
     ///
-    function _power(uint32 deckId, uint256 value, uint256 w) internal view returns (uint256) {
+    function _isVaultCard(uint32 deckId, uint256 value) internal view returns (bool) {
         uint16 upTo = decks[deckId].vaultUpTo;
-        if (upTo > 0 && value >= 1 && value <= upTo) return type(uint256).max;
+        return upTo > 0 && value >= 1 && value <= upTo;
+    }
+
+    ///
+    function _power(uint32 deckId, uint256 value, uint256 w) internal view returns (uint256) {
+        if (_isVaultCard(deckId, value)) return type(uint256).max;
         return w;
     }
 
@@ -904,7 +910,7 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
         if (!e.verifyDecryption(card, value, signatures)) revert BadAttestation(handle);
 
         uint32 deckId = slot.deckId;
-        if (value == 0 || value > decks[deckId].vaultUpTo) revert NotTheVault(handle, value);
+        if (!_isVaultCard(deckId, value)) revert NotTheVault(handle, value);
 
         shardSpent[handle] = true;
 
