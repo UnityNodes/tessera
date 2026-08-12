@@ -1,4 +1,4 @@
-import { createPublicClient, http, verifyMessage } from "viem";
+import { createPublicClient, http } from "viem";
 import { TESSERA_DECK_ABI } from "@/lib/abi";
 import { CHAIN, RPC_URL, DECK_ADDRESS } from "@/lib/chain";
 import { judge } from "@/lib/nsfw";
@@ -60,11 +60,13 @@ export async function POST(request: Request) {
     return Response.json({ error: "house decks keep their own art" }, { status: 403 });
   }
 
-  const ok = await verifyMessage({
-    address: creator as `0x${string}`,
-    message: skinMessage(deckId, bytes),
-    signature: signature as `0x${string}`,
-  }).catch(() => false);
+  const ok = await client
+    .verifyMessage({
+      address: creator as `0x${string}`,
+      message: skinMessage(deckId, bytes),
+      signature: signature as `0x${string}`,
+    })
+    .catch(() => false);
   if (!ok) {
     return Response.json({ error: "only the deck's creator can set its picture" }, { status: 403 });
   }
