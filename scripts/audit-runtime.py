@@ -149,6 +149,12 @@ with sync_playwright() as p:
         len(sealed) >= 2,
         f"{len(sealed)}: {', '.join(sealed[:4])}" if sealed else "",
     )
+    drops = html.count("data-drop")
+    check(
+        "HTML",
+        drops > 0,
+        f"{drops} " if drops else "",
+    )
 
     browser.close()
 

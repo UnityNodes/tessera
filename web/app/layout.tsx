@@ -3,6 +3,7 @@ import { Orbitron, Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { gameNow } from "@/lib/game";
+import { feedNow } from "@/lib/opens-server";
 
 /**
  *
@@ -71,7 +72,7 @@ export default function RootLayout({
     <html lang="en" className={`${orbitron.variable} ${inter.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-[var(--color-bg)] text-[var(--color-ink)]">
         <Backdrop />
-        <Providers seed={gameNow()}>
+        <Providers seed={gameNow()} feed={feedNow()}>
           <Shell>{children}</Shell>
         </Providers>
       </body>

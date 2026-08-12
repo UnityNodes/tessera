@@ -12,12 +12,19 @@ import { warmInco } from "@/lib/inco";
  */
 export const GameSeed = createContext<unknown | null>(null);
 
+/**
+ *
+ */
+export const FeedSeed = createContext<unknown | null>(null);
+
 export function Providers({
   children,
   seed = null,
+  feed = null,
 }: {
   children: React.ReactNode;
   seed?: unknown | null;
+  feed?: unknown | null;
 }) {
   const [queryClient] = useState(
     () =>
@@ -38,7 +45,9 @@ export function Providers({
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <GameSeed.Provider value={seed}>{children}</GameSeed.Provider>
+        <GameSeed.Provider value={seed}>
+          <FeedSeed.Provider value={feed}>{children}</FeedSeed.Provider>
+        </GameSeed.Provider>
       </QueryClientProvider>
     </WagmiProvider>
   );
