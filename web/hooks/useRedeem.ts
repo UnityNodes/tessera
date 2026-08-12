@@ -7,7 +7,7 @@ import { TESSERA_DECK_ABI } from "@/lib/abi";
 import { DECK_ADDRESS, txUrl } from "@/lib/chain";
 
 import { explain, type Explained } from "@/lib/errors";
-import type { Slot } from "./useInventory";
+import { useMarkSpent, type Slot } from "./useInventory";
 
 export type RedeemPhase = "idle" | "signing" | "confirming" | "done" | "failed";
 
@@ -27,6 +27,7 @@ export interface RedeemState {
 export function useRedeem(onSettled?: () => void) {
   const config = useConfig();
   const { address } = useAccount();
+  const markSpent = useMarkSpent();
   const [state, setState] = useState<RedeemState>({ phase: "idle" });
 
   const reset = useCallback(() => setState({ phase: "idle" }), []);
@@ -58,6 +59,8 @@ export function useRedeem(onSettled?: () => void) {
         const receipt = await waitForTransactionReceipt(config, { hash });
         if (receipt.status !== "success") throw new Error("The transaction reverted on chain");
 
+        markSpent(five.map((s) => s.index));
+
         const [tickets] = (sim.result as readonly [bigint, bigint]) ?? [0n];
         setState({
           phase: "done",
@@ -72,7 +75,7 @@ export function useRedeem(onSettled?: () => void) {
         onSettled?.();
       }
     },
-    [address, config, onSettled],
+    [address, config, markSpent, onSettled],
   );
 
   return { state, redeem, reset };

@@ -158,6 +158,24 @@ export function useInventory(decks: DeckShape[]) {
   });
 }
 
+/**
+ *
+ *
+ */
+export function useMarkSpent() {
+  const client = useQueryClient();
+  const { address } = useAccount();
+  return useCallback(
+    (indexes: number[]) => {
+      const burned = new Set(indexes);
+      client.setQueriesData<Slot[]>({ queryKey: KEY(address) }, (old) =>
+        old?.map((s) => (burned.has(s.index) ? { ...s, spent: true } : s)),
+      );
+    },
+    [client, address],
+  );
+}
+
 export function useRefreshInventory() {
   const client = useQueryClient();
   const { address } = useAccount();

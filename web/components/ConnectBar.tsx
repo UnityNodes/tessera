@@ -1,5 +1,7 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
+
 import Link from "next/link";
 import { formatUnits } from "viem";
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from "wagmi";
@@ -39,11 +41,32 @@ export function ConnectBar({
   tickets?: number;
   megapotHref?: string;
 } = {}) {
-  const { address, chainId, isConnected } = useAccount();
+  const hydrated = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+  const { address, chainId, isConnected, status } = useAccount();
   const { connect, connectors, isPending } = useConnect();
   const { disconnect } = useDisconnect();
   const { switchChain } = useSwitchChain();
   const { mint, minting } = useMint(onMinted);
+
+  //
+  //
+  //
+  //
+  if (!hydrated || status === "connecting" || status === "reconnecting") {
+    return (
+      <span
+        aria-hidden
+        className="flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] border border-slate-800 px-4 py-2 text-sm font-bold text-slate-600 sm:min-h-0"
+      >
+        <Wallet className="h-[1.125rem] w-[1.125rem]" />
+        <span className="t-chain">·····</span>
+      </span>
+    );
+  }
 
   if (!isConnected) {
     return (

@@ -524,6 +524,23 @@ with sync_playwright() as p:
         else:
             check(f"{w}px: ", True, f"{len(pages)} ")
 
+    # ── , ───────────────────────────────────
+    #
+    # ,
+    # Connect wallet
+    # , .
+    # , .
+    #
+    # : , ',
+    # .
+    print("\n── ──")
+    raw = browser.new_context().request.get(URL).text()
+    check(
+        "",
+        "Connect wallet" not in raw,
+        "" if "Connect wallet" not in raw else "HTML",
+    )
+
     # ── : ──────────────────────────────────────
     #
     # , : owner()
