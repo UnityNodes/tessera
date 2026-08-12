@@ -27,9 +27,12 @@ const inter = Inter({
   display: "swap",
 });
 
-const TITLE = "Tessera, a case, and a real lottery ticket";
+
+const TITLE = "Tessera, $1 buys a real lottery ticket";
 const ABOUT =
-  "One dollar buys a real Megapot ticket. The case comes on top. What is inside lives in an encrypted, finite pool on Inco Lightning, committed before anyone opens anything.";
+  "A real Megapot ticket, bought in the same transaction that opens the case. The pool is finite and public: a prize someone else takes is gone for everybody.";
+
+const OG_IMAGE = "/brand/tessera-og-1200x630.png";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://tessera.unitynodes.com"),
@@ -51,13 +54,20 @@ export const metadata: Metadata = {
     siteName: "Tessera",
     title: TITLE,
     description: ABOUT,
-    images: [{ url: "/brand/tessera-lockup-dark-1600x400.png", width: 1600, height: 400 }],
+    images: [
+      {
+        url: OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: "Tessera, $1 buys a real lottery ticket, the case comes on top",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: TITLE,
     description: ABOUT,
-    images: ["/brand/tessera-lockup-dark-1600x400.png"],
+    images: [OG_IMAGE],
   },
 };
 
