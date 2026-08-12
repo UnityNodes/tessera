@@ -22,6 +22,8 @@ export const MEGAPOT = "0x6f03c7BCaDAdBf5E6F5900DA3d56AdD8FbDac5De" as const;
  *
  *
  *
+ *
+ *
  */
 export const RPC_URLS: string[] = [
   ...new Set(
@@ -29,8 +31,8 @@ export const RPC_URLS: string[] = [
       process.env.NEXT_PUBLIC_RPC_URL,
       "https://base-sepolia-rpc.publicnode.com",
       "https://base-sepolia.gateway.tenderly.co",
-      "https://sepolia.base.org",
       "https://base-sepolia.drpc.org",
+      "https://sepolia.base.org",
     ].filter((u): u is string => Boolean(u)),
   ),
 ];
