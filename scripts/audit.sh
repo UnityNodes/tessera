@@ -23,7 +23,14 @@ run() {
   if "$@"; then echo "── $name: "; else FAILED+=("$name"); echo "── $name: "; fi
 }
 
-run "" bash -c 'cd ../contracts && forge test --summary 2>&1 | tail -22'
+# `| tail` :
+# , tail, .
+# : , '. ,
+# , .
+#
+# pipefail : bash -c .
+# forge PIPESTATUS .
+run "" bash -c 'cd ../contracts && forge test --summary 2>&1 | tail -22; exit ${PIPESTATUS[0]}'
 run "→ " node audit-chain.cjs "$URL"
 # , .
 # : ,
