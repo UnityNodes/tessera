@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { formatUnits } from "viem";
-import { Sparkles, Swords } from "lucide-react";
+import { Sparkles, Swords, TrendingDown, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Chest, skinOf } from "@/components/Chest";
 import { DeckHero } from "@/components/DeckHero";
 import { useDeck, type DeckInfo } from "@/hooks/useDeck";
+import { useOpens } from "@/hooks/useOpens";
+import { PoolCurve } from "@/components/PoolCurve";
 import { useBattleList } from "@/hooks/useBattles";
 import { useSkins } from "@/hooks/useSkins";
 import { useHidden } from "@/hooks/useHidden";
@@ -223,6 +225,14 @@ function useHeroSize(min = 56) {
 }
 
 function DeckCard({ deck, art }: { deck: DeckInfo; art?: string }) {
+  const [flipped, setFlipped] = useState(false);
+  const opens = useOpens();
+  const events = useMemo(() => opens.data ?? [], [opens.data]);
+  const drawnHere = useMemo(
+    () => events.filter((e) => e.deckId === deck.id).length,
+    [events, deck.id],
+  );
+
   const tiers = slotsPerTier(deck);
   const best = bestTier(deck);
   const [heroBox, heroSize] = useHeroSize();
@@ -242,11 +252,24 @@ function DeckCard({ deck, art }: { deck: DeckInfo; art?: string }) {
   const sealedPercent = deck.size > 0 ? Math.max(1, (deck.remaining / deck.size) * 100) : 0;
 
   return (
-    <Link
+     *
+     *
+     */
+    <div
       data-deck={deck.id}
+      className="group/card relative aspect-square [perspective:1200px]"
+    >
+      <div
+        className="relative h-full w-full transition-transform duration-500 [transform-style:preserve-3d] motion-reduce:transition-none"
+        style={{ transform: flipped ? "rotateY(180deg)" : undefined }}
+      >
+    <Link
       href={`/case/${deck.id}`}
+      tabIndex={flipped ? -1 : undefined}
+      aria-hidden={flipped || undefined}
       //
-      className="group relative flex aspect-square flex-col overflow-hidden rounded-[var(--radius-panel)] border bg-slate-900/60 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-slate-900/90"
+      //
+      className="group absolute inset-0 flex flex-col overflow-hidden rounded-[var(--radius-panel)] border bg-slate-900/60 shadow-xl transition-colors duration-300 [backface-visibility:hidden] hover:bg-slate-900/90"
       style={{
         borderColor: `color-mix(in oklab, ${ink} 40%, transparent)`,
         boxShadow: `0 0 25px color-mix(in oklab, ${ink} 22%, transparent)`,
@@ -353,6 +376,66 @@ function DeckCard({ deck, art }: { deck: DeckInfo; art?: string }) {
         {deck.empty ? "empty" : "$1"}
       </span>
     </Link>
+
+        <div
+          inert={!flipped}
+          onClick={() => setFlipped(false)}
+          className="absolute inset-0 flex cursor-pointer flex-col rounded-[var(--radius-panel)] border bg-slate-900/90 p-4 [backface-visibility:hidden] [transform:rotateY(180deg)]"
+          style={{
+            borderColor: `color-mix(in oklab, ${ink} 40%, transparent)`,
+            boxShadow: `0 0 25px color-mix(in oklab, ${ink} 22%, transparent)`,
+            color: "var(--color-ink-dim)",
+          }}
+        >
+          <p className="t-label pl-10">how it emptied</p>
+          <p className="t-chain mt-1 text-2xl font-extrabold text-white">
+            {deck.remaining}
+            <span className="ml-1.5 text-sm font-semibold text-slate-400">of {deck.size} sealed</span>
+          </p>
+
+          <div className="mt-3 mb-1.5 flex min-h-0 flex-1 items-center">
+            <PoolCurve deckId={deck.id} size={deck.size} opens={events} ink={ink} height={78} guides />
+          </div>
+
+          <div className="t-chain flex justify-between text-xs text-slate-400">
+            <span>first open</span>
+            <span>now</span>
+          </div>
+
+          <div className="mt-3 flex items-end justify-between border-t border-slate-800/80 pt-2.5">
+            <span>
+              <span className="t-chain block text-base font-bold text-white">{drawnHere}</span>
+              <span className="t-label">opened</span>
+            </span>
+            <span className="text-right">
+              <span
+                className="t-chain block text-base font-bold"
+                style={{ color: deck.vaultUpTo > 0 ? "var(--color-tier-vault)" : "var(--color-ink-dim)" }}
+              >
+                {deck.vaultUpTo > 0 ? `$${Number(formatUnits(deck.vault, 6)).toFixed(2)}` : ", "}
+              </span>
+              <span className="t-label">vault</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setFlipped((v) => !v)}
+        aria-pressed={flipped}
+        aria-label={flipped ? "Show the case" : "Show how this deck emptied"}
+        title={flipped ? "back to the case" : "how this deck emptied"}
+        className="absolute left-2.5 top-2.5 z-30 grid h-8 w-8 cursor-pointer place-items-center rounded-[var(--radius-chip)] border transition-colors"
+        style={{
+          borderColor: `color-mix(in oklab, ${ink} 35%, transparent)`,
+          background: "color-mix(in oklab, var(--color-surface) 82%, transparent)",
+          color: ink,
+        }}
+      >
+        {flipped ? <Undo2 className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+      </button>
+    </div>
   );
 }
 
