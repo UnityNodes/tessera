@@ -26,7 +26,7 @@ tests run against live Base Sepolia and Base mainnet.
 
 Still open: the mainnet deploy, and Megapot's testnet draw, `runJackpot()`
 reverts on Base Sepolia even for its owner, so no jackpot ever settles there.
-The same contract runs daily on mainnet. See [BRIEF.md](BRIEF.md) for the full
+The same contract runs daily on mainnet. See the addresses below for the
 technical record.
 
 ## How it works
@@ -100,7 +100,6 @@ contracts/test/           Fork tests against live Base Sepolia and Base mainnet.
 web/                      The site: Next.js 16, Tailwind v4, wagmi/viem.
 web/app/api/opens/        Chain history, read once on the server for everyone.
 scripts/                  Latency measurement and the audit suite.
-BRIEF.md                  Full technical record: addresses, measurements, traps.
 ```
 
 Chain history lives on the server rather than in each browser on purpose: the
