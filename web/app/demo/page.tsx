@@ -45,7 +45,7 @@ export default function DemoPage() {
       />
 
       <p className="mt-4 text-sm text-[var(--color-ink-dim)]">
-        No voice-over: the captions carry it. Direct file:{" "}
+        Narrated, with the captions carrying the same words. Direct file:{" "}
         <a
           className="t-chain underline decoration-dotted underline-offset-4 hover:text-[var(--color-accent-hover)]"
           href="/demo/tessera.mp4"

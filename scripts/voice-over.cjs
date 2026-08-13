@@ -4,13 +4,14 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { execFileSync } = require("node:child_process");
+const { execFileSync, spawnSync } = require("node:child_process");
 
 const KEY = process.env.ELEVEN_API_KEY;
 const SRC = process.argv[2] ?? "/tmp/tessera-demo2/tessera-demo.mp4";
 const OUT = process.env.OUT ?? "/tmp/tessera-demo2/tessera-demo-voiced.mp4";
 const WORK = "/tmp/tessera-vo";
-const VOICE = process.env.ELEVEN_VOICE_ID ?? "";
+const VOICE = process.env.ELEVEN_VOICE_ID ?? "onwK4e9ZLuTAKqWW03F9";
+const WORDS_PER_S = 2.7;
 const MODEL = process.env.ELEVEN_MODEL ?? "eleven_multilingual_v2";
 
 /**
@@ -23,7 +24,9 @@ const LINES = [
   { at: 30, text: "A case costs one dollar, and that dollar buys a real Megapot lottery ticket, in the same transaction." },
   { at: 38, text: "The same transaction draws one card. The wait you are watching is the covalidators decrypting it." },
   { at: 46, text: "This one added nothing on top of the ticket, and most do not. That is the honest case, and the game says so plainly." },
+  { at: 55, text: "Either way the ticket is already yours. The case only ever rides on top of it." },
   { at: 62, text: "Up to ten cases in a single transaction. Each strip brakes onto the value the chain returned." },
+  { at: 70, text: "Nothing is decided on our side. The chain answers first, and only then does a strip stop." },
   { at: 82, text: "Here, TESA. Five shards make one more real ticket." },
   { at: 90, text: "The pool moved: one hundred ninety four of two hundred still sealed. Anyone can recount it." },
   { at: 98, text: "And anyone can cut their own deck, write its drop table, and take a share of the commission it earns." },
@@ -52,6 +55,15 @@ async function pickVoice() {
 
   const voice = await pickVoice();
 
+  for (let i = 0; i < LINES.length; i++) {
+    const gap = (LINES[i + 1]?.at ?? 110.32) - LINES[i].at;
+    const words = LINES[i].text.split(/\s+/).length;
+    const need = words / WORDS_PER_S;
+    if (need > gap) {
+      say(`  ⚠ ${i + 1}: ${words} ≈ ${need.toFixed(1)}${gap.toFixed(1)}`);
+    }
+  }
+
   const parts = [];
   for (const [i, line] of LINES.entries()) {
     const r = await fetch(
@@ -79,18 +91,27 @@ async function pickVoice() {
     say(`  ${String(line.at).padStart(5)}s  ${dur.toFixed(1)}s  ${line.text.slice(0, 58)}…`);
   }
 
-  for (let i = 1; i < parts.length; i++) {
-    const end = parts[i - 1].at + parts[i - 1].dur;
-    if (end > parts[i].at) {
-      say(`  ⚠ ${i} ${(end - parts[i].at).toFixed(1)}`);
+  //
+  //
+  let cursor = 0;
+  for (const part of parts) {
+    part.start = Math.max(part.at, cursor);
+    if (part.start > part.at + 0.05) {
+      say(`  ↳ ${part.text.slice(0, 34)}…+${(part.start - part.at).toFixed(1)}`);
     }
+    cursor = part.start + part.dur + 0.3;
+  }
+  if (cursor > 110.5) {
+    say(`  ⚠ ${(cursor - 110.32).toFixed(1)}`);
   }
 
   const inputs = parts.flatMap((p) => ["-i", p.file]);
   const delays = parts
-    .map((p, i) => `[${i + 1}:a]adelay=${Math.round(p.at * 1000)}|${Math.round(p.at * 1000)}[a${i}]`)
+    .map((p, i) => `[${i + 1}:a]adelay=${Math.round(p.start * 1000)}|${Math.round(p.start * 1000)}[a${i}]`)
     .join(";");
-  const mix = `${parts.map((_, i) => `[a${i}]`).join("")}amix=inputs=${parts.length}:normalize=0[voice]`;
+  //
+  const mix =
+    `${parts.map((_, i) => `[a${i}]`).join("")}amix=inputs=${parts.length}:normalize=0,apad[voice]`;
 
   execFileSync(
     "ffmpeg",
@@ -103,6 +124,15 @@ async function pickVoice() {
     ],
     { stdio: "inherit" },
   );
+  //
+  const probe = (filter) =>
+    spawnSync("ffmpeg", ["-hide_banner", "-i", OUT, "-af", filter, "-f", "null", "-"], {
+      encoding: "utf8",
+    }).stderr ?? "";
+  const vol = probe("volumedetect").match(/mean_volume: (-?[\d.]+) dB/);
+  const gaps = [...probe("silencedetect=n=-50dB:d=4").matchAll(/silence_duration: ([\d.]+)/g)];
+  say(`\n${vol ? vol[1] : "?"} dB (≈ -26)`);
+  say(`4: ${gaps.length}${gaps.length ? " " + gaps.map((g) => g[1] + "").join(", ") : ""}`);
   say(`\n: ${OUT}`);
 })().catch((e) => {
   console.error(":", e.message);
