@@ -1,15 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  animate,
-  useMotionValue,
-  useMotionValueEvent,
-  useTransform,
-  useVelocity,
-  motion,
-  useReducedMotion,
-} from "motion/react";
+import { animate, useMotionValue, useTransform, motion, useReducedMotion } from "motion/react";
 import {
   slotsPerTier,
   specFor,
@@ -37,25 +29,22 @@ const STEP = ITEM + GAP;
 /**
  *
  *
- */
-/**
- *
  *
  */
-const DRIFT_STEPS = 200;
-const DRIFT_S = 40;
+const CRUISE = 13;
+const RAMP_S = 0.8;
+const RUN_S = 240;
 
 /**
  *
  */
-const COPIES = 5;
+const COPIES = 3;
 
 /**
  */
 const DECAY = 2;
 
 /**
- *
  */
 export const SETTLE_MS = 950;
 
@@ -107,16 +96,6 @@ export function Roll({
     box.current?.setAttribute("data-mounts", String(n));
   }, [id]);
 
-  /**
-   *
-   *
-   *
-   */
-  const velocity = useVelocity(x);
-  const lastVelocity = useRef(0);
-  useMotionValueEvent(velocity, "change", (v) => {
-    if (Math.abs(v) > 1) lastVelocity.current = v;
-  });
   const box = useRef<HTMLDivElement>(null);
   const runs = useRef({ drift: 0, settle: 0, cut: 0 });
   const settling = useRef(false);
@@ -124,6 +103,11 @@ export function Roll({
    *
    */
   const drifting = useRef<{ stop: () => void } | null>(null);
+  /**
+   *
+   *
+   */
+  const endAt = useRef<number | null>(null);
 
   const key = `${deck.tiers.length}|${deck.vaultUpTo}|${variant}|${length}|${pool?.tiers.map((t) => `${t.weight}:${t.left}`).join(",") ?? ""}`;
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -184,14 +168,21 @@ export function Roll({
     const from = -(Math.abs(x.get()) % copy) - copy;
     x.set(from);
 
-    //
-    const room = (COPIES - 2) * copy;
     runs.current.drift++;
     box.current?.setAttribute("data-drifts", String(runs.current.drift));
-    const drift = animate(x, from - Math.min(STEP * DRIFT_STEPS, room), {
-      duration: DRIFT_S,
-      ease: [0.06, 0.5, 0.28, 1],
-    });
+
+    //
+    //
+    const speed = STEP * CRUISE;
+    const drift = animate(
+      x,
+      [from, from - speed * RAMP_S, from - speed * (RAMP_S + RUN_S)],
+      {
+        duration: RAMP_S + RUN_S,
+        times: [0, RAMP_S / (RAMP_S + RUN_S), 1],
+        ease: [[0.55, 0, 0.6, 0.6], "linear"],
+      },
+    );
     drifting.current = drift;
     return () => {
       drifting.current = null;
@@ -202,20 +193,27 @@ export function Roll({
 
   //
   useEffect(() => {
-    if (still || landedValue == null) return;
+    if (landedValue == null) return;
     drifting.current?.stop();
     drifting.current = null;
     const items = frozen?.strip ?? base;
     const target = specOf(landedValue, deck).name;
     const len = items.length;
 
-    //
-    //
-    const v = Math.abs(lastVelocity.current) / STEP;
-    box.current?.setAttribute("data-vel", String(Math.round(lastVelocity.current)));
+    if (still) {
+      const at = items.findIndex((it) => it.name === target);
+      if (at < 0) return;
+      const end = -((at + len) * STEP);
+      endAt.current = end;
+      x.set(end);
+      box.current?.setAttribute("data-endx", String(at + len));
+      onLanded?.();
+      return;
+    }
 
     //
-    const reach = Math.min(24, Math.max(3, (v * (SETTLE_MS / 1000)) / DECAY));
+    //
+    const reach = (CRUISE * (SETTLE_MS / 1000)) / DECAY;
 
     const from = Math.abs(x.get()) / STEP;
 
@@ -234,6 +232,7 @@ export function Roll({
     runs.current.settle++;
     box.current?.setAttribute("data-settles", String(runs.current.settle));
     const end = -(idx * STEP);
+    endAt.current = end;
 
     /**
      *
@@ -283,22 +282,20 @@ export function Roll({
   /**
    *
    *
-   *
-   *
    */
   useEffect(() => {
-    if (still && landedValue == null) return;
-    if (landedValue == null || settling.current) return;
+    if (landedValue == null) {
+      endAt.current = null;
+      return;
+    }
+    if (settling.current) return;
+    const end = endAt.current;
+    if (end == null) return;
     drifting.current?.stop();
     drifting.current = null;
-    const items = frozen?.strip ?? base;
-    const target = specOf(landedValue, deck).name;
-    const at = items.findIndex((it) => it.name === target);
-    if (at < 0) return;
-    const want = -((at + items.length) * STEP);
-    if (Math.abs(x.get() - want) > 0.5) {
-      x.set(want);
-      box.current?.setAttribute("data-endx", String(at + items.length));
+    if (Math.abs(x.get() - end) > 0.5) {
+      x.set(end);
+      box.current?.setAttribute("data-fix", "1");
     }
   });
 

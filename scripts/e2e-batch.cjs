@@ -85,7 +85,7 @@ const P = "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1";
             const r = el.getBoundingClientRect();
             return r.left <= mark && r.right >= mark;
           });
-          return { expected: roll.dataset.landed || "", under: hit ? hit.dataset.tierName : null, idx: roll.dataset.idx, len: roll.dataset.len, want: roll.dataset.want, reach: roll.dataset.reach, vel: roll.dataset.vel, endx: roll.dataset.endx, mounts: roll.dataset.mounts, drifts: roll.dataset.drifts, settles: roll.dataset.settles, cut: roll.dataset.cut, nowx: (() => { const m = roll.querySelector("[style*='translate']"); const t = m && getComputedStyle(m).transform; const mm = t && t.match(/matrix.*?\(([^)]+)\)/); return mm ? Math.round(parseFloat(mm[1].split(',')[4]) / 182) : null; })() };
+          return { expected: roll.dataset.landed || "", under: hit ? hit.dataset.tierName : null, idx: roll.dataset.idx, len: roll.dataset.len, want: roll.dataset.want, reach: roll.dataset.reach, endx: roll.dataset.endx, fix: roll.dataset.fix, mounts: roll.dataset.mounts, drifts: roll.dataset.drifts, settles: roll.dataset.settles, cut: roll.dataset.cut, nowx: (() => { const m = roll.querySelector("[style*='translate']"); const t = m && getComputedStyle(m).transform; const mm = t && t.match(/matrix.*?\(([^)]+)\)/); return mm ? Math.round(parseFloat(mm[1].split(',')[4]) / 182) : null; })() };
         });
       });
       if (rows.length) seen = rows;
@@ -106,7 +106,7 @@ const P = "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1";
                 });
                 return { expected: roll.dataset.landed || "", under: hit ? hit.dataset.tierName : null,
                   idx: roll.dataset.idx, len: roll.dataset.len, want: roll.dataset.want,
-                  reach: roll.dataset.reach, vel: roll.dataset.vel, endx: roll.dataset.endx,
+                  reach: roll.dataset.reach, endx: roll.dataset.endx, fix: roll.dataset.fix,
                   mounts: roll.dataset.mounts, drifts: roll.dataset.drifts,
                   settles: roll.dataset.settles, cut: roll.dataset.cut };
               }),
@@ -154,7 +154,7 @@ const P = "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1";
     if (rows.length && !single) {
       for (const [i, r] of rows.entries()) {
         const mark = r.expected === r.under ? "✓" : "✗";
-        console.log(`      ${i + 1}: ${r.expected}, ${r.under ?? ""}${mark}  [${r.idx}/${r.len}, ${r.vel}, ${r.reach}, ${r.want}| ${r.mounts}, ${r.drifts}, ${r.settles}, ${r.cut ?? 0}, ${r.endx}]`);
+        console.log(`      ${i + 1}: ${r.expected}, ${r.under ?? ""}${mark}  [${r.idx}/${r.len}, ${r.reach} , ${r.want}| ${r.mounts}, ${r.drifts}, ${r.settles}, ${r.cut ?? 0}, ${r.endx}${r.fix ? ", " : ""}]`);
       }
     }
 
