@@ -79,6 +79,7 @@ const usd = (v) => `$${(Number(v) / 1e6).toFixed(2)}`;
       id,
       size: Number(d.size),
       drawn: Number(d.drawn),
+      cut: Number(await read("reseals", [id])),
       vaultUpTo: Number(d.vaultUpTo),
       vault: BigInt(d.vault),
       unswept: Number(d.unsweptOpens),
@@ -107,7 +108,7 @@ const usd = (v) => `$${(Number(v) / 1e6).toFixed(2)}`;
   //
   const share = BigInt(await read("vaultShareBps"));
   const promisedWeight = BigInt(await read("budgetWeight"));
-  const slotsAll = decks.reduce((a, d) => a + BigInt(d.size), 0n);
+  const slotsAll = decks.reduce((a, d) => a + BigInt(d.size) * BigInt(1 + d.cut), 0n);
   const promised = (promisedWeight * 1_000_000n) / 5n;
   const funded = (slotsAll * 100_000n * (10_000n - share)) / 10_000n;
   check(
@@ -271,7 +272,7 @@ const usd = (v) => `$${(Number(v) / 1e6).toFixed(2)}`;
   for (const r of vals) {
     const ev = byHandle.get(r.handle.toLowerCase());
     if (!ev) continue;
-    const k = `${ev.deckId}:${r.value}`;
+    const k = `${ev.deckId}#${ev.cut ?? 0}:${r.value}`;
     if (seen.has(k)) dupes.push(k);
     seen.set(k, r.handle);
   }
@@ -337,7 +338,7 @@ const usd = (v) => `$${(Number(v) / 1e6).toFixed(2)}`;
   );
 
   for (const d of decks) {
-    const fromApi = theirs.filter((e) => e.deckId === d.id).length;
+    const fromApi = theirs.filter((e) => e.deckId === d.id && (e.cut ?? 0) === d.cut).length;
     const sealedInBattles = waiting.filter((id) => id === d.id).length;
     check(
       2,

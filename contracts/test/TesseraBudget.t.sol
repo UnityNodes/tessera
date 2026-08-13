@@ -108,7 +108,9 @@ contract TesseraLiveBudgetTest is Test {
         TesseraDeck game = TesseraDeck(LIVE);
 
         uint256 slots;
-        for (uint32 i = 0; i < game.deckCount(); i++) slots += game.deckAt(i).size;
+        for (uint32 i = 0; i < game.deckCount(); i++) {
+            slots += uint256(game.deckAt(i).size) * (1 + game.reseals(i));
+        }
 
         uint256 promised = (game.budgetWeight() * 1e6) / 5;
         uint256 funded = (slots * 1e5 * (10_000 - game.vaultShareBps())) / 10_000;

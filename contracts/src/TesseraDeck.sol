@@ -997,7 +997,9 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
     function maxVaultShare() external view returns (uint16) {
         uint256 sold = _slotsCut();
         if (sold == 0) return 10_000;
-        uint256 need = (budgetWeight * 2 * 10_000) / sold;
+        //
+        //
+        uint256 need = (budgetWeight * 2 * 10_000 + sold - 1) / sold;
         // forge-lint: disable-next-line(unsafe-typecast)
         return need >= 10_000 ? 0 : uint16(10_000 - need);
     }

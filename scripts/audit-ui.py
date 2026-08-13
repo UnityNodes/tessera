@@ -682,10 +682,23 @@ with sync_playwright() as p:
 
         body = mp.locator("body").inner_text()
         check("", "Moderation" in body, body[:60].replace("\n", " "))
+        # , .
+        # ,
+        # , . cannot be refilled
+        # .
+        deals = "deals itself again" in body
         check(
             ", ",
-            "cannot be refilled" in body,
-            "" if "cannot be refilled" in body else "",
+            deals,
+            "" if deals else "",
+        )
+        # . ,
+        # , .
+        fund = "Reseal fund" in body
+        check(
+            ", ",
+            fund,
+            "" if fund else "",
         )
 
         cuts = mp.get_by_role("button", name=re.compile("Cut a fresh copy"))
