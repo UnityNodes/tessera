@@ -8,6 +8,7 @@ import { TESSERA_DECK_ABI } from "@/lib/abi";
 import { DECK_ADDRESS } from "@/lib/chain";
 import { useDeck } from "@/hooks/useDeck";
 import { UpgradePanel } from "@/components/UpgradePanel";
+import { ResealFund } from "@/components/ResealFund";
 import { canRecut, RecutButton, RecutPanel } from "@/components/Recut";
 import { BudgetPanel } from "@/components/BudgetPanel";
 import { bestTier, fitsBudget, totalWeight, WEIGHT_PER_TICKET } from "@/lib/deck";
@@ -118,6 +119,8 @@ export default function ModerationPage() {
         <BudgetPanel decks={game.decks} owner={mine} />
 
         <UpgradePanel owner={mine} />
+
+        <ResealFund decks={game.decks} />
 
         <h2 className="t-label mt-2">
           decks on chain · {game.decks.length}
