@@ -868,6 +868,25 @@ export const TESSERA_DECK_ABI =
     },
     {
       "type": "function",
+      "name": "reseals",
+      "inputs": [
+        {
+          "name": "",
+          "type": "uint32",
+          "internalType": "uint32"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint32",
+          "internalType": "uint32"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
       "name": "resolveBattle",
       "inputs": [
         {
@@ -1582,6 +1601,37 @@ export const TESSERA_DECK_ABI =
           "type": "uint16",
           "indexed": false,
           "internalType": "uint16"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "DeckResealed",
+      "inputs": [
+        {
+          "name": "deckId",
+          "type": "uint32",
+          "indexed": true,
+          "internalType": "uint32"
+        },
+        {
+          "name": "cut",
+          "type": "uint32",
+          "indexed": true,
+          "internalType": "uint32"
+        },
+        {
+          "name": "size",
+          "type": "uint16",
+          "indexed": false,
+          "internalType": "uint16"
+        },
+        {
+          "name": "why",
+          "type": "uint8",
+          "indexed": false,
+          "internalType": "uint8"
         }
       ],
       "anonymous": false

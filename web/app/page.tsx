@@ -58,9 +58,8 @@ export default function Home() {
 
           <p className="max-w-2xl text-lg leading-relaxed text-slate-300">
             A case costs $1 and buys you a real Megapot lottery ticket, bought by Megapot itself,
-            in the transaction that opens the case. What is inside was shuffled once, before
-            anyone opened one, and is drawn in order. A prize someone else takes is gone for
-            everybody.
+            in the transaction that opens the case. What is inside was shuffled before anyone
+            opened one, and is drawn in order. A prize someone else takes is gone for everybody, until the deck runs out or its vault is taken, and the contract deals it again.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
@@ -394,7 +393,7 @@ function DeckCard({ deck, art }: { deck: DeckInfo; art?: string }) {
           </p>
 
           <div className="mt-3 mb-1.5 flex min-h-0 flex-1 items-center">
-            <PoolCurve deckId={deck.id} size={deck.size} opens={events} ink={ink} height={78} guides />
+            <PoolCurve deckId={deck.id} cut={deck.cut} size={deck.size} opens={events} ink={ink} height={78} guides />
           </div>
 
           <div className="t-chain flex justify-between text-xs text-slate-400">

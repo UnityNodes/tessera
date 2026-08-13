@@ -28,14 +28,15 @@ export interface PoolState {
  *
  *
  */
-export function usePool(deck: DeckShape, drawn: number, deckId: number) {
+export function usePool(deck: DeckShape, drawn: number, deckId: number, cut = 0) {
   //
   const opens = useOpens();
-  const events = (opens.data ?? []).filter((o) => o.deckId === deckId);
+  //
+  const events = (opens.data ?? []).filter((o) => o.deckId === deckId && (o.cut ?? 0) === cut);
   const handles = events.map((o) => o.handle);
 
   return useQuery({
-    queryKey: ["pool", deckId, deck.size, drawn, deck.tiers.length, deck.vaultUpTo, handles.length],
+    queryKey: ["pool", deckId, cut, deck.size, drawn, deck.tiers.length, deck.vaultUpTo, handles.length],
     enabled: deck.size > 0 && deck.tiers.length > 0,
     staleTime: 20_000,
     queryFn: async (): Promise<PoolState> => {

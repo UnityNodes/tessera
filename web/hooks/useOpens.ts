@@ -11,6 +11,10 @@ export interface OpenEvent {
   handle: `0x${string}`;
   block: bigint;
   risk?: boolean;
+  /**
+   *
+   */
+  cut?: number;
 }
 
 /**

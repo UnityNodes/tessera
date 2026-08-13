@@ -104,11 +104,12 @@ export default function ModerationPage() {
             for good; the deck falls back to a plain chest.
           </p>
           <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-300">
-            A deck that runs out cannot be refilled, its cards were shuffled once and sealed, and
-            re-dealing them would rewrite a pool people already paid into. What you can do is cut a
-            fresh copy: a new deck with the same size, the same drop table and the same vault rule,
-            standing next to the old one. Player decks are not copied from here, only their creator
-            can renew one, from the create page, so the share they paid for follows them.
+            A deck deals itself again, same size, same drop table, same vault rule, when its last
+            card is drawn or when its vault is taken. Nobody triggers it: the contract does it inside
+            the next player's transaction, and pays the covalidators from its own ETH balance. Top
+            that balance up and the decks keep themselves alive; let it run dry and they simply end,
+            exactly as they used to. What you can do here is cut a fresh copy standing next to the
+            old one, a second deck, with its own vault and its own pool.
           </p>
         </div>
 

@@ -10,6 +10,7 @@ import type { OpenEvent } from "@/hooks/useOpens";
  */
 export function PoolCurve({
   deckId,
+  cut = 0,
   size,
   opens,
   ink,
@@ -18,6 +19,10 @@ export function PoolCurve({
   className,
 }: {
   deckId: number;
+  /**
+   *
+   */
+  cut?: number;
   size: number;
   opens: OpenEvent[];
   ink: string;
@@ -30,7 +35,7 @@ export function PoolCurve({
 
   const path = useMemo(() => {
     const mine = opens
-      .filter((e) => e.deckId === deckId)
+      .filter((e) => e.deckId === deckId && (e.cut ?? 0) === cut)
       .sort((a, b) => (a.block < b.block ? -1 : a.block > b.block ? 1 : 0));
     if (mine.length === 0 || size === 0) return null;
 
@@ -45,7 +50,7 @@ export function PoolCurve({
     const line = pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
     const endY = pts[pts.length - 1][1].toFixed(1);
     return { line, area: `0,0 ${line} ${W},${endY} ${W},0`, end: pts[pts.length - 1] };
-  }, [deckId, size, opens, H]);
+  }, [deckId, cut, size, opens, H]);
 
   if (!path) {
     return (
@@ -56,7 +61,7 @@ export function PoolCurve({
     );
   }
 
-  const id = `pool-${deckId}-${H}`;
+  const id = `pool-${deckId}-${cut}-${H}`;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className={className} style={{ display: "block", width: "100%", height: "auto" }}>
       <defs>

@@ -44,7 +44,7 @@ async function read() {
 
   const rows = await Promise.all(
     ids.map(async (id) => {
-      const [d, tiers, cid] = await Promise.all([
+      const [d, tiers, cid, cut] = await Promise.all([
         client.readContract({ ...deck, functionName: "deckAt", args: [id] }) as Promise<{
           size: number;
           drawn: number;
@@ -58,6 +58,7 @@ async function read() {
           readonly { upTo: number; weight: number }[]
         >,
         client.readContract({ ...deck, functionName: "deckMeta", args: [id] }) as Promise<string>,
+        client.readContract({ ...deck, functionName: "reseals", args: [id] }) as Promise<number>,
       ]);
       return {
         id,
@@ -68,6 +69,7 @@ async function read() {
         unsweptOpens: d.unsweptOpens.toString(),
         creator: d.creator,
         creatorBps: Number(d.creatorBps ?? 0),
+        cut: Number(cut ?? 0),
         cid,
         tiers: tiers.map((t) => ({ upTo: Number(t.upTo), weight: Number(t.weight) })),
       };

@@ -56,7 +56,7 @@ export default function CasePage() {
   const inventory = useInventory(game.decks);
   const refreshInventory = useRefreshInventory();
   const refreshOpens = useRefreshOpens();
-  const pool = usePool(shape, deck?.drawn ?? 0, deckId);
+  const pool = usePool(shape, deck?.drawn ?? 0, deckId, deck?.cut ?? 0);
   const megapot = useMegapot();
   const skinUrl = useSkins();
 

@@ -17,6 +17,13 @@ const RISK_TAKEN = parseAbiItem(
   "event RiskTaken(address indexed player, uint32 indexed deckId, uint16 index, bytes32 handle, uint256 toVault)",
 );
 
+/**
+ *
+ */
+const DECK_RESEALED = parseAbiItem(
+  "event DeckResealed(uint32 indexed deckId, uint32 indexed cut, uint16 size, uint8 why)",
+);
+
 const WINDOW = 1900n;
 
 /**
@@ -37,12 +44,14 @@ interface Open {
   handle: `0x${string}`;
   block: string;
   risk?: boolean;
+  cut?: number;
 }
 
 const client = createPublicClient({ chain: CHAIN, transport: chainTransport() });
 
 let scanned = DECK_FROM_BLOCK - 1n;
 const events: Open[] = [];
+const cuts = new Map<number, number>();
 let inflight: Promise<void> | null = null;
 
 /**
@@ -133,6 +142,7 @@ function restore() {
     if (raw.deck !== DECK_ADDRESS || raw.from !== String(DECK_FROM_BLOCK)) return;
     scanned = BigInt(raw.scanned);
     events.push(...raw.events);
+    for (const [id, cut] of raw.cuts ?? []) cuts.set(Number(id), Number(cut));
     for (const r of raw.revealed ?? []) revealed.set(r.handle.toLowerCase(), r);
   } catch {
   }
@@ -150,6 +160,7 @@ function save() {
         deck: DECK_ADDRESS,
         from: String(DECK_FROM_BLOCK),
         scanned: String(scanned),
+        cuts: [...cuts],
         events,
         revealed: [...revealed.values()],
       }),
@@ -166,7 +177,7 @@ async function catchUp() {
     const to = from + WINDOW - 1n > latest ? latest : from + WINDOW - 1n;
     const logs = await client.getLogs({
       address: DECK_ADDRESS,
-      events: [CASE_OPENED, RISK_TAKEN],
+      events: [CASE_OPENED, RISK_TAKEN, DECK_RESEALED],
       fromBlock: from,
       toBlock: to,
     });
@@ -179,15 +190,21 @@ async function catchUp() {
     }
 
     for (const l of logs) {
+      if (l.eventName === "DeckResealed") {
+        cuts.set(Number(l.args.deckId ?? 0), Number(l.args.cut ?? 0));
+        continue;
+      }
       if (l.eventName !== "CaseOpened") continue;
       if (!l.args.player || !l.args.handle) continue;
+      const deckId = Number(l.args.deckId ?? 0);
       events.push({
         player: l.args.player,
-        deckId: Number(l.args.deckId ?? 0),
+        deckId,
         index: Number(l.args.index ?? 0),
         handle: l.args.handle,
         block: String(l.blockNumber ?? 0n),
         risk: risky.has(l.args.handle.toLowerCase()) || undefined,
+        cut: cuts.get(deckId) || undefined,
       });
     }
 
@@ -212,7 +229,7 @@ export async function opensPayload() {
 
   void revealSome();
 
-  return { scanned: String(scanned), events, revealed: [...revealed.values()] };
+  return { scanned: String(scanned), cuts: [...cuts], events, revealed: [...revealed.values()] };
 }
 
 /**

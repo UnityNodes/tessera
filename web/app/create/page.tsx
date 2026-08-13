@@ -90,8 +90,10 @@ export default function CreatePage() {
           </Link>
           <h1 className="t-page mt-2 text-white">Cut your own case</h1>
           <p className="mt-2 max-w-2xl text-base leading-relaxed text-slate-300">
-            Anyone can. The deck is shuffled once by the contract and nobody, not you, not us, can see or change what is inside afterwards. You take a share of the commission it
-            earns; the dollar players pay still buys them a whole real ticket.
+            Anyone can. The contract shuffles the deck and nobody, not you, not us, can see or
+            change what is inside, or re-deal it on a whim: it deals itself again only when it runs
+            out or when its vault is taken. You take a share of the commission it earns; the dollar
+            players pay still buys them a whole real ticket.
           </p>
         </div>
 

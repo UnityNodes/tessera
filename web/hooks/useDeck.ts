@@ -20,6 +20,10 @@ export interface DeckInfo extends DeckShape {
   vaultBanked: bigint;
   vault: bigint;
   empty: boolean;
+  /**
+   *
+   */
+  cut: number;
   creator: `0x${string}` | undefined;
   creatorBps: number;
   cid: string;
@@ -42,6 +46,7 @@ interface ServerDeck {
   unsweptOpens: string;
   creator: `0x${string}`;
   creatorBps: number;
+  cut: number;
   cid: string;
   tiers: { upTo: number; weight: number }[];
 }
@@ -110,6 +115,7 @@ export function useDeck() {
           { ...deck, functionName: "deckAt", args: [id] },
           { ...deck, functionName: "tiers", args: [id] },
           { ...deck, functionName: "deckMeta", args: [id] },
+          { ...deck, functionName: "reseals", args: [id] },
         ] as ContractFunctionParameters[],
     ),
     query: { enabled: count > 0, refetchInterval: 12_000 },
@@ -124,7 +130,7 @@ export function useDeck() {
   const decks = useMemo<DeckInfo[]>(() => {
     return ids
       .map((id) => {
-        const STRIDE = 3;
+        const STRIDE = 4;
         const d = rows.data?.[id * STRIDE]?.result as
           | {
               size: number;
@@ -140,6 +146,7 @@ export function useDeck() {
           | readonly { upTo: number; weight: number }[]
           | undefined;
         const cid = (rows.data?.[id * STRIDE + 2]?.result as string | undefined) ?? "";
+        const cut = Number((rows.data?.[id * STRIDE + 3]?.result as number | undefined) ?? 0);
         const from = seed?.decks.find((x) => x.id === id);
         if (!d && from) {
           return {
@@ -151,6 +158,7 @@ export function useDeck() {
             vaultBanked: BigInt(from.vault),
             vault: BigInt(from.vault),
             empty: from.size > 0 && from.drawn >= from.size,
+            cut: from.cut ?? 0,
             creator:
               from.creator && from.creator !== "0x0000000000000000000000000000000000000000"
                 ? from.creator
@@ -179,6 +187,7 @@ export function useDeck() {
           vaultBanked: d.vault,
           vault: d.vault + coming,
           empty: size > 0 && drawn >= size,
+          cut,
           creator:
             d.creator && d.creator !== "0x0000000000000000000000000000000000000000"
               ? d.creator
