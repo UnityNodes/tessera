@@ -20,6 +20,11 @@ import {
   type DeckShape,
 } from "@/lib/deck";
 import { Chest } from "./Chest";
+
+/**
+ *
+ */
+const mounts = new Map<string, number>();
 import type { PoolState } from "@/hooks/usePool";
 
 /**
@@ -68,7 +73,9 @@ export function Roll({
   variant = 0,
   length = 72,
   onLanded,
+  id,
 }: {
+  id?: string;
   running: boolean;
   /**
    *
@@ -92,6 +99,13 @@ export function Roll({
 }) {
   const still = useReducedMotion();
   const x = useMotionValue(0);
+
+  useEffect(() => {
+    if (!id) return;
+    const n = (mounts.get(id) ?? 0) + 1;
+    mounts.set(id, n);
+    box.current?.setAttribute("data-mounts", String(n));
+  }, [id]);
 
   /**
    *

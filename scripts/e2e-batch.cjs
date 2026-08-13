@@ -75,18 +75,66 @@ const P = "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1";
     await p.locator(".fixed[role=dialog]").waitFor({ timeout: 60000 });
 
     let rows = [];
-    for (let i = 0; i < 60; i++) {
-      rows = await p.evaluate(() =>
-        [...document.querySelectorAll(".fixed [data-opened]")].map((el) => ({
-          shown: el.dataset.opened,
-        })));
-      if (rows.length && rows.every((r) => r.shown)) break;
+    let seen = [];
+    for (let i = 0; i < 45; i++) {
       await p.waitForTimeout(1000);
+      rows = await p.evaluate(() => {
+        const mark = window.innerWidth / 2;
+        return [...document.querySelectorAll(".fixed [data-roll]")].map((roll) => {
+          const hit = [...roll.querySelectorAll("[data-tier-name]")].find((el) => {
+            const r = el.getBoundingClientRect();
+            return r.left <= mark && r.right >= mark;
+          });
+          return { expected: roll.dataset.landed || "", under: hit ? hit.dataset.tierName : null, idx: roll.dataset.idx, len: roll.dataset.len, want: roll.dataset.want, reach: roll.dataset.reach, vel: roll.dataset.vel, endx: roll.dataset.endx, mounts: roll.dataset.mounts, drifts: roll.dataset.drifts, settles: roll.dataset.settles, cut: roll.dataset.cut, nowx: (() => { const m = roll.querySelector("[style*='translate']"); const t = m && getComputedStyle(m).transform; const mm = t && t.match(/matrix.*?\(([^)]+)\)/); return mm ? Math.round(parseFloat(mm[1].split(',')[4]) / 182) : null; })() };
+        });
+      });
+      if (rows.length) seen = rows;
+      if (rows.length && rows.every((r) => r.expected)) {
+        //
+        //
+        let byGrid = null;
+        for (let k = 0; k < 60; k++) {
+          const snap = await p.evaluate(() => {
+            const rolls = [...document.querySelectorAll(".fixed [data-roll]")];
+            const grid = [...document.querySelectorAll(".fixed [data-opened]")];
+            const mark = window.innerWidth / 2;
+            return {
+              rolls: rolls.map((roll) => {
+                const hit = [...roll.querySelectorAll("[data-tier-name]")].find((el) => {
+                  const r = el.getBoundingClientRect();
+                  return r.left <= mark && r.right >= mark;
+                });
+                return { expected: roll.dataset.landed || "", under: hit ? hit.dataset.tierName : null,
+                  idx: roll.dataset.idx, len: roll.dataset.len, want: roll.dataset.want,
+                  reach: roll.dataset.reach, vel: roll.dataset.vel, endx: roll.dataset.endx,
+                  mounts: roll.dataset.mounts, drifts: roll.dataset.drifts,
+                  settles: roll.dataset.settles, cut: roll.dataset.cut };
+              }),
+              grid: grid.map((el) => ({ expected: el.dataset.opened, under: el.dataset.opened })),
+            };
+          });
+          if (snap.rolls.length && snap.rolls.every((r) => r.endx !== undefined)) {
+            rows = snap.rolls;
+            break;
+          }
+          if (!snap.rolls.length && snap.grid.length && snap.grid.every((g) => g.expected)) {
+            byGrid = snap.grid;
+            break;
+          }
+          await p.waitForTimeout(300);
+        }
+        if (byGrid) rows = byGrid;
+        if (rows.length) seen = rows;
+        rows = seen;
+        break;
+      }
+      const done = await p.evaluate(() => Boolean(document.querySelector(".fixed [data-card]")));
+      if (done) break;
     }
 
     const single = n === 1;
     const okCount = single ? rows.length <= 1 : rows.length === n;
-    const okLanded = rows.length > 0 && rows.every((r) => r.shown);
+    const okLanded = rows.length > 0 && rows.every((r) => r.expected && r.expected === r.under);
     let after = before;
     for (let i = 0; i < 20; i++) {
       after = await pub.readContract({ address: P, abi: deckAbi, functionName: "countOf", args: [acc.address] });
@@ -103,9 +151,10 @@ const P = "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1";
       ` | +${Number(after - before)} ${okSlots ? "✓" : "✗"}`
     );
 
-    if (!okLanded && rows.length) {
+    if (rows.length && !single) {
       for (const [i, r] of rows.entries()) {
-        console.log(`      ${i + 1}: ${r.shown || ""}`);
+        const mark = r.expected === r.under ? "✓" : "✗";
+        console.log(`      ${i + 1}: ${r.expected}, ${r.under ?? ""}${mark}  [${r.idx}/${r.len}, ${r.vel}, ${r.reach}, ${r.want}| ${r.mounts}, ${r.drifts}, ${r.settles}, ${r.cut ?? 0}, ${r.endx}]`);
       }
     }
 
