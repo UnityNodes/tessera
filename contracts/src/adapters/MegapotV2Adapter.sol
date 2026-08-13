@@ -10,7 +10,19 @@ interface IERC721Balance {
     function balanceOf(address owner) external view returns (uint256);
 }
 
+/// An adapter for the new Base mainnet jackpot 0x3bAe643002069dBCbcd62B1A4eb4C4A397d042a2.
 ///
+/// Here a ticket is five distinct numbers and a bonus ball rather than a sum.
+/// The player chooses nothing: the game buys a quick pick, because the whole
+/// point of Tessera is one click. The rules for the set were taken from the
+/// contract's behaviour (test/MegapotV2Rules.t.sol), since it is not verified:
+///   - five numbers, all distinct, from the range [1, normalBallMax]
+///   - order does not matter
+///   - a bonus ball from [1, getDrawingState()[10]], a ceiling of its own per
+///     drawing that matches neither bonusballMin nor the soft/hard cap
+///   - identical tickets within one drawing are allowed
+///   - referrers may be left empty, and referring yourself is allowed here
+///     (unlike the legacy jackpot)
 contract MegapotV2Adapter is IMegapotAdapter {
     using SafeERC20 for IERC20;
     using MegapotV2Reads for IMegapotV2;
@@ -45,6 +57,8 @@ contract MegapotV2Adapter is IMegapotAdapter {
         return megapot.allowTicketPurchases() && !megapot.emergencyMode();
     }
 
+    /// Here a ticket is an NFT, so the counter is an NFT balance rather than bps.
+    /// All the game needs is monotonicity: fewer before the purchase, more after.
     function ticketsOf(address user) external view returns (uint256) {
         return _ticketNft.balanceOf(user);
     }
@@ -62,6 +76,7 @@ contract MegapotV2Adapter is IMegapotAdapter {
         tickets[0] = _quickPick(recipient);
 
         (address[] memory referrers, uint256[] memory split) = _referral(referrer);
+        // a source tag, seven bytes in a bytes32, so nothing is truncated
         // forge-lint: disable-next-line(unsafe-typecast)
         megapot.buyTickets(tickets, recipient, referrers, split, bytes32("tessera"));
     }
@@ -72,6 +87,10 @@ contract MegapotV2Adapter is IMegapotAdapter {
 
     // ── quick-pick ────────────────────────────────────────────────────────────
 
+    /// The numbers come from a weak seed on purpose: they affect nothing. The
+    /// win is decided by Pyth entropy inside Megapot itself, identical tickets
+    /// are allowed, and the player does not pick the numbers anyway. What is
+    /// needed here is variety, not unpredictability.
     function _quickPick(address recipient) internal view returns (MegapotTicket memory t) {
         uint256 drawingId = megapot.currentDrawingId();
         uint256[13] memory state = megapot.getDrawingState(drawingId);
@@ -84,6 +103,8 @@ contract MegapotV2Adapter is IMegapotAdapter {
             keccak256(abi.encode(block.prevrandao, block.number, recipient, _ticketNft.balanceOf(recipient), drawingId))
         );
 
+        // A partial Fisher-Yates shuffle: five distinct numbers in a fixed
+        // number of steps, without a "draw until it fits" loop.
         uint8[] memory pool = new uint8[](normalMax);
         for (uint8 i = 0; i < normalMax; i++) {
             pool[i] = i + 1;
@@ -98,6 +119,7 @@ contract MegapotV2Adapter is IMegapotAdapter {
         }
 
         t.normals = normals;
+        // a remainder of a uint8 ceiling always fits in a uint8
         // forge-lint: disable-next-line(unsafe-typecast)
         t.bonusball = uint8(seed % bonusCap) + 1;
     }
