@@ -51,6 +51,11 @@ export function OpenTheatre({
   //
   const [landed, setLanded] = useState<Set<string>>(new Set());
   const allLanded = Boolean(open.batch?.every((b) => landed.has(b.handle)));
+  /**
+   *
+   *
+   */
+  const rollDone = open.batch ? allLanded : landed.has(open.handle ?? "single");
 
   const [vh, setVh] = useState(() => (typeof window === "undefined" ? 900 : window.innerHeight));
   useEffect(() => {
@@ -58,7 +63,7 @@ export function OpenTheatre({
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
-  const opened = open.phase === "done";
+  const opened = open.phase === "done" && rollDone;
 
   /**
    *
@@ -240,10 +245,12 @@ export function OpenTheatre({
               <div className="w-full">
                 <Roll
                   running={open.phase !== "confirming"}
+                  id={open.handle}
                   landedValue={open.value}
                   deck={deck}
                   pool={pool}
                   urgency={tier}
+                  onLanded={() => setLanded((s) => new Set(s).add(open.handle ?? "single"))}
                 />
               </div>
             ) : (

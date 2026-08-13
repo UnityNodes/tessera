@@ -45,6 +45,12 @@ const COPIES = 3;
 const DECAY = 2;
 
 /**
+ *
+ */
+const MIN_REACH = 5;
+
+/**
+ *
  */
 export const SETTLE_MS = 950;
 
@@ -213,19 +219,21 @@ export function Roll({
 
     //
     //
-    const reach = (CRUISE * (SETTLE_MS / 1000)) / DECAY;
-
+    //
+    //
     const from = Math.abs(x.get()) / STEP;
-
-    let idx = Math.ceil(from + reach);
+    let idx = Math.ceil(from + MIN_REACH);
     for (let i = 0; i < len; i++) {
       if (items[(idx + i) % len].name === target) {
         idx += i;
         break;
       }
     }
+    const dist = idx - from;
+    const dur = (DECAY * dist) / CRUISE;
 
-    box.current?.setAttribute("data-reach", String(Math.round(reach)));
+    box.current?.setAttribute("data-reach", String(Math.round(dist)));
+    box.current?.setAttribute("data-dur", String(Math.round(dur * 1000)));
     box.current?.setAttribute("data-idx", String(idx));
     box.current?.setAttribute("data-len", String(len));
     box.current?.setAttribute("data-want", String(items[idx % len]?.name ?? "?"));
@@ -260,7 +268,7 @@ export function Roll({
     }
 
     const settle = animate(x, end, {
-      duration: SETTLE_MS / 1000,
+      duration: dur,
       ease: [0.33, 0.66, 0.66, 1],
       onComplete: finish,
     });
@@ -268,7 +276,7 @@ export function Roll({
     const guard = setTimeout(() => {
       settle.stop();
       finish();
-    }, SETTLE_MS + 150);
+    }, dur * 1000 + 150);
     return () => {
       runs.current.cut++;
       box.current?.setAttribute("data-cut", String(runs.current.cut));
