@@ -200,7 +200,7 @@ async function ensureConnected(page) {
   let gotPrize = false;
 
   for (let round = 1; round <= ROUNDS && !gotPrize; round++) {
-    const openBtn = page.getByRole("button", { name: /Open a case|Open another|Approve once/ });
+    const openBtn = page.getByRole("button", { name: /^Open\b|Open another|Approve once/ });
     await openBtn.waitFor({ timeout: 20000 });
     //
     await page.evaluate(() => {
@@ -299,7 +299,7 @@ async function ensureConnected(page) {
     console.log(`  : ${reach} `);
 
     await page.getByRole("dialog", { name: /Opening a case/ }).click({ position: { x: 8, y: 8 } });
-    await page.getByRole("button", { name: /Open a case/ }).waitFor({ timeout: 30000 });
+    await page.getByRole("button", { name: /^Open\b/ }).waitFor({ timeout: 30000 });
   }
   if (!gotPrize) console.log(`  ${ROUNDS} `);
 
@@ -307,7 +307,7 @@ async function ensureConnected(page) {
     const second = await ctx.newPage();
     await second.goto(URL, { waitUntil: "domcontentloaded" });
     await ensureConnected(second);
-    const btn = second.getByRole("button", { name: /Open a case|Approve once/ });
+    const btn = second.getByRole("button", { name: /^Open\b|Approve once/ });
     await btn.waitFor({ timeout: 30000 });
     await btn.click();
     await second.getByText(/covalidators decrypt/).waitFor({ timeout: 90000 });

@@ -274,9 +274,9 @@ export default function CasePage() {
                       ? `Open again • $${take}`
                       : game.needsApproval
                         ? `Approve once • $${take}`
-                        : take > 1
-                          ? `Open ${take} • $${take}`
-                          : "Open a case • $1"}
+                          take > 1
+                            ? `Open ${take} • $${take}`
+                            : "Open • $1"}
                 </Button>
 
               </div>

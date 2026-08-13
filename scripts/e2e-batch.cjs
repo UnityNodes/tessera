@@ -63,17 +63,19 @@ const P = "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1";
   await p.getByRole("button", { name: "x1", exact: true }).waitFor({ timeout: 25000 });
 
   let bad = 0;
-  for (const n of [1, 2, 3, 4, 5, 10]) {
+  const MULTS = (process.env.MULTS ?? "1,2,3,4,5,10").split(",").map(Number).filter(Boolean);
+  for (const n of MULTS) {
     const before = await pub.readContract({ address: P, abi: deckAbi, functionName: "countOf", args: [acc.address] });
 
     await p.getByRole("button", { name: `x${n}`, exact: true }).click();
     await p.waitForTimeout(300);
-    const openBtn = p.getByRole("button", { name: n > 1 ? new RegExp(`Open ${n}`) : /Open a case/ }).first();
+    const openBtn = p.getByRole("button", { name: n > 1 ? new RegExp(`Open ${n}`) : /^Open\b(?!\s*\d)/ }).first();
     await openBtn.click();
 
     await p.locator(".fixed[role=dialog]").waitFor({ timeout: 60000 });
 
     let rows = [];
+    let seen = [];
     for (let i = 0; i < 45; i++) {
       await p.waitForTimeout(1000);
       rows = await p.evaluate(() => {
@@ -83,20 +85,20 @@ const P = "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1";
             const r = el.getBoundingClientRect();
             return r.left <= mark && r.right >= mark;
           });
-          return { expected: roll.dataset.landed || "", under: hit ? hit.dataset.tierName : null };
+          return { expected: roll.dataset.landed || "", under: hit ? hit.dataset.tierName : null, idx: roll.dataset.idx, len: roll.dataset.len, want: roll.dataset.want, reach: roll.dataset.reach, vel: roll.dataset.vel, endx: roll.dataset.endx, drifts: roll.dataset.drifts, settles: roll.dataset.settles, cut: roll.dataset.cut, nowx: (() => { const m = roll.querySelector("[style*='translate']"); const t = m && getComputedStyle(m).transform; const mm = t && t.match(/matrix.*?\(([^)]+)\)/); return mm ? Math.round(parseFloat(mm[1].split(',')[4]) / 182) : null; })() };
         });
       });
+      if (rows.length) seen = rows;
       if (rows.length && rows.every((r) => r.expected)) {
-        let prev = "";
-        for (let k = 0; k < 15; k++) {
-          await p.waitForTimeout(600);
-          const now = await p.evaluate(() =>
-            [...document.querySelectorAll(".fixed [data-roll] [style*='translate']")]
-              .map((e) => e.getAttribute("style"))
-              .join("|"));
-          if (now === prev) break;
-          prev = now;
+        //
+        for (let k = 0; k < 40; k++) {
+          const allDone = await p.evaluate(() =>
+            [...document.querySelectorAll(".fixed [data-roll]")]
+              .every((r) => r.dataset.endx !== undefined));
+          if (allDone) break;
+          await p.waitForTimeout(400);
         }
+        await p.waitForTimeout(250);
         rows = await p.evaluate(() => {
           const mark = window.innerWidth / 2;
           return [...document.querySelectorAll(".fixed [data-roll]")].map((roll) => {
@@ -104,9 +106,14 @@ const P = "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1";
               const r = el.getBoundingClientRect();
               return r.left <= mark && r.right >= mark;
             });
-            return { expected: roll.dataset.landed || "", under: hit ? hit.dataset.tierName : null };
+            return { expected: roll.dataset.landed || "", under: hit ? hit.dataset.tierName : null,
+              idx: roll.dataset.idx, len: roll.dataset.len, want: roll.dataset.want, reach: roll.dataset.reach,
+              vel: roll.dataset.vel, endx: roll.dataset.endx,
+              drifts: roll.dataset.drifts, settles: roll.dataset.settles, cut: roll.dataset.cut };
           });
         });
+        if (rows.length) seen = rows;
+        rows = seen;
         break;
       }
       const done = await p.evaluate(() => Boolean(document.querySelector(".fixed [data-card]")));
@@ -115,7 +122,7 @@ const P = "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1";
 
     const single = n === 1;
     const okCount = single ? rows.length <= 1 : rows.length === n;
-    const okLanded = rows.every((r) => r.expected && r.expected === r.under);
+    const okLanded = rows.length > 0 && rows.every((r) => r.expected && r.expected === r.under);
     let after = before;
     for (let i = 0; i < 20; i++) {
       after = await pub.readContract({ address: P, abi: deckAbi, functionName: "countOf", args: [acc.address] });
@@ -131,6 +138,13 @@ const P = "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1";
       ` ${okCount ? "✓" : "✗"} | ${single ? "" : okLanded ? "✓" : "✗"}` +
       ` | +${Number(after - before)} ${okSlots ? "✓" : "✗"}`
     );
+
+    if (!okLanded && rows.length) {
+      for (const [i, r] of rows.entries()) {
+        const mark = r.expected === r.under ? "✓" : "✗";
+        console.log(`      ${i + 1}: ${r.expected}, ${r.under ?? ""}${mark}  [${r.idx}/${r.len}, ${r.vel}, ${r.reach}, ${r.want}| ${r.drifts}, ${r.settles}, ${r.cut ?? 0}, ${r.endx}]`);
+      }
+    }
 
     for (let i = 0; i < 20; i++) {
       if (!(await p.locator(".fixed[role=dialog]").count())) break;

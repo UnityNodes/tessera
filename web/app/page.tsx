@@ -67,7 +67,7 @@ export default function Home() {
             <Link href={`/case/${first?.id ?? 0}`}>
               <Button className="px-8 py-4 text-base">
                 <Sparkles className="h-5 w-5 fill-[var(--color-on-accent)]" />
-                Open a case • $1
+                Open • $1
               </Button>
             </Link>
             <Link href="/battles">

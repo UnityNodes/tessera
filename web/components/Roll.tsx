@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { animate, useMotionValue, useTransform, motion, useReducedMotion } from "motion/react";
+import {
+  animate,
+  useMotionValue,
+  useMotionValueEvent,
+  useTransform,
+  useVelocity,
+  motion,
+  useReducedMotion,
+} from "motion/react";
 import {
   slotsPerTier,
   specFor,
@@ -84,7 +92,24 @@ export function Roll({
 }) {
   const still = useReducedMotion();
   const x = useMotionValue(0);
+
+  /**
+   *
+   *
+   *
+   */
+  const velocity = useVelocity(x);
+  const lastVelocity = useRef(0);
+  useMotionValueEvent(velocity, "change", (v) => {
+    if (Math.abs(v) > 1) lastVelocity.current = v;
+  });
   const box = useRef<HTMLDivElement>(null);
+  const runs = useRef({ drift: 0, settle: 0, cut: 0 });
+  const settling = useRef(false);
+  /**
+   *
+   */
+  const drifting = useRef<{ stop: () => void } | null>(null);
 
   const key = `${deck.tiers.length}|${deck.vaultUpTo}|${variant}|${length}|${pool?.tiers.map((t) => `${t.weight}:${t.left}`).join(",") ?? ""}`;
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -94,16 +119,30 @@ export function Roll({
    *
    *
    *
+   *
+   */
+  const [locked, setLocked] = useState<TierSpec[] | null>(null);
+
+  if (running && locked === null) {
+    setLocked(built);
+  } else if (!running && landedValue == null && locked !== null) {
+    setLocked(null);
+  }
+
+  const base = locked ?? built;
+
+  /**
+   *
    */
   const [frozen, setFrozen] = useState<{ value: number; strip: TierSpec[] } | null>(null);
 
   if (landedValue != null && frozen?.value !== landedValue) {
-    setFrozen({ value: landedValue, strip: withLanded(built, specOf(landedValue, deck)) });
+    setFrozen({ value: landedValue, strip: withLanded(base, specOf(landedValue, deck)) });
   } else if (landedValue == null && frozen !== null) {
     setFrozen(null);
   }
 
-  const strip = frozen?.strip ?? built;
+  const strip = frozen?.strip ?? base;
 
   /**
    *
@@ -133,24 +172,33 @@ export function Roll({
 
     //
     const room = (COPIES - 2) * copy;
+    runs.current.drift++;
+    box.current?.setAttribute("data-drifts", String(runs.current.drift));
     const drift = animate(x, from - Math.min(STEP * DRIFT_STEPS, room), {
       duration: DRIFT_S,
       ease: [0.06, 0.5, 0.28, 1],
     });
-    return () => drift.stop();
+    drifting.current = drift;
+    return () => {
+      drifting.current = null;
+      drift.stop();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, landedValue, x, still]);
 
   //
   useEffect(() => {
     if (still || landedValue == null) return;
-    const items = frozen?.strip ?? built;
+    drifting.current?.stop();
+    drifting.current = null;
+    const items = frozen?.strip ?? base;
     const target = specOf(landedValue, deck).name;
     const len = items.length;
 
     //
     //
-    const v = Math.abs(x.getVelocity()) / STEP;
+    const v = Math.abs(lastVelocity.current) / STEP;
+    box.current?.setAttribute("data-vel", String(Math.round(lastVelocity.current)));
 
     //
     const reach = Math.min(24, Math.max(3, (v * (SETTLE_MS / 1000)) / DECAY));
@@ -166,15 +214,80 @@ export function Roll({
     }
 
     box.current?.setAttribute("data-reach", String(Math.round(reach)));
-    const settle = animate(x, -(idx * STEP), {
+    box.current?.setAttribute("data-idx", String(idx));
+    box.current?.setAttribute("data-len", String(len));
+    box.current?.setAttribute("data-want", String(items[idx % len]?.name ?? "?"));
+    runs.current.settle++;
+    box.current?.setAttribute("data-settles", String(runs.current.settle));
+    const end = -(idx * STEP);
+
+    /**
+     *
+     *
+     *
+     */
+    /**
+     *
+     *
+     */
+    let done = false;
+    settling.current = true;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      settling.current = false;
+      x.set(end);
+      box.current?.setAttribute("data-endx", String(idx));
+      onLanded?.();
+    };
+
+    if (runs.current.drift === 0) {
+      finish();
+      return;
+    }
+
+    const settle = animate(x, end, {
       duration: SETTLE_MS / 1000,
       ease: [0.33, 0.66, 0.66, 1],
-      onComplete: () => onLanded?.(),
+      onComplete: finish,
     });
-    return () => settle.stop();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    const guard = setTimeout(() => {
+      settle.stop();
+      finish();
+    }, SETTLE_MS + 150);
+    return () => {
+      runs.current.cut++;
+      box.current?.setAttribute("data-cut", String(runs.current.cut));
+      clearTimeout(guard);
+      settling.current = false;
+      settle.stop();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [landedValue, still, x]);
+
+  /**
+   *
+   *
+   *
+   *
+   */
+  useEffect(() => {
+    if (still && landedValue == null) return;
+    if (landedValue == null || settling.current) return;
+    drifting.current?.stop();
+    drifting.current = null;
+    const items = frozen?.strip ?? base;
+    const target = specOf(landedValue, deck).name;
+    const at = items.findIndex((it) => it.name === target);
+    if (at < 0) return;
+    const want = -((at + items.length) * STEP);
+    if (Math.abs(x.get() - want) > 0.5) {
+      x.set(want);
+      box.current?.setAttribute("data-endx", String(at + items.length));
+    }
+  });
+
 
   return (
     <div
