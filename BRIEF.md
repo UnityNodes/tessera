@@ -9,12 +9,15 @@ Inco Summer Game Jam. .
 .
 
 ```
-TesseraDeck           0x7BD35cF4ddA6fd8f5c2C7Ca4337c3cA863c97887  45072152
-MegapotLegacyAdapter  0xcEFd98581bb131a505e9De53d7f9b191fe94E074
-#0  100 · · 10 5
-#1  200 · · 1 25
-#2  100 · · 2 10
+TesseraDeck (ERC-1967)  0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1  45283259
+MegapotLegacyAdapter           0x5Ac6bB03e8Fb6435A46EEb70b2f1F692a108030e
 ```
+
+: -,
+,
+. -, ,
+. : `deckAt`,
+`tiers`, `remaining`, `reseals`.
 
 , .
 , :

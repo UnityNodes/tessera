@@ -7,7 +7,8 @@ What's inside the case lives in an encrypted, finite pool on **Inco Lightning**:
 the contents exist and are committed before anyone opens anything, but nobody, including us, can see them until a slot is drawn and revealed.
 
 Because the pool is drawn without replacement, the counter *"3 legendaries left
-out of 400 slots"* is verifiable rather than a marketing claim.
+out of 200 slots"* is verifiable rather than a marketing claim, and when the
+deck is spent, or its vault is taken, the contract deals it again by itself.
 
 > In Rome, a *tessera* was a token that granted entry, to the games, to the grain
 > dole. It was also a single piece of a mosaic. The name is about both the ticket
@@ -108,29 +109,33 @@ the whole season a window at a time before the drop feed said anything.
 
 | | |
 |---|---|
-| TesseraDeck | `0x7BD35cF4ddA6fd8f5c2C7Ca4337c3cA863c97887` |
-| MegapotLegacyAdapter | `0xcEFd98581bb131a505e9De53d7f9b191fe94E074` |
+| TesseraDeck (ERC-1967 proxy) | `0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1` |
+| MegapotLegacyAdapter | `0x5Ac6bB03e8Fb6435A46EEb70b2f1F692a108030e` |
 
-Three decks, 400 slots between them. Five weight makes one real ticket.
+The proxy address is the game. The logic behind it is replaceable and the
+decks, slots, vaults and open battles survive the swap, which is the whole
+reason it is there.
 
-| deck | slots | what is in it |
-|---|---|---|
-| #0 | 100 | 10 slots at weight 5, one ticket each. No vault. |
-| #1 | 200 | the vault, and 1 slot at weight 25, five tickets at once. |
-| #2 | 100 | the vault, and 2 slots at weight 10, two tickets each. |
-
-Everything else is Grout: nothing. The shape of a deck is fixed when it is cut
-and cannot be edited afterwards, so the table above is a property of the chain,
-not a claim on this page.
-
-How much is left is deliberately *not* written here, it changes with every
-open, and a number frozen in a README is exactly the marketing claim this
-project exists to avoid. The counters on the site are read from the chain, and
+How many decks there are, how big they are and what is in them is deliberately
+*not* written here. Anyone can cut a deck, so the catalogue changes without a
+commit, and a table frozen in a README would be out of date the first time
+somebody used the site. The shape of each deck is fixed at the moment it is
+cut and cannot be edited afterwards, so the chain is the only honest place to
+read it from: the counters on the site do exactly that, and
 `scripts/audit-chain.cjs` recomputes them independently to check.
+
+Five weight makes one real ticket. Everything at weight zero is Grout: the
+case added nothing on top of the ticket the dollar already bought.
 
 Because every opened slot is publicly revealed, anyone can count whether the
 heavy slot is still in the pool. That is the game: not a stated probability,
 but a finite pile you can watch empty.
+
+A deck deals itself again, same size, same drop table, same vault rule, when
+its last card is drawn or when its vault is taken. Nobody triggers it: the
+contract does it inside the next player's transaction, and pays the Inco
+covalidators from its own ETH balance, which anyone can top up. So the pile is
+finite *within a deal*, and the deal it belongs to is on every open.
 
 ## Addresses in use
 
