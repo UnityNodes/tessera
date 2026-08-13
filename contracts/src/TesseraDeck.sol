@@ -232,32 +232,23 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
         address creator,
         uint16 creatorBps
     ) internal returns (uint32 deckId) {
-        require(n > 0, "n=0");
         if (vaultSlots > n) revert BadTierTable();
         if (upTo.length == 0 || upTo.length != weight.length) revert BadTierTable();
 
-        uint256 totalWeight;
         uint16 prev;
         for (uint256 i = 0; i < upTo.length; i++) {
             if (upTo[i] <= prev || upTo[i] > n) revert BadTierTable();
-            totalWeight += uint256(upTo[i] - prev) * uint256(weight[i]);
             prev = upTo[i];
         }
 
         //
         //
-        if (totalWeight * 2 * 10_000 > uint256(n) * (10_000 - vaultShareBps)) {
-            revert TooManyShardSlots();
-        }
-
-        elist cards = e.shuffledRange(1, n + 1, ETypes.Uint256);
-        e.allowThis(cards);
 
         // forge-lint: disable-next-line(unsafe-typecast)
         deckId = uint32(decks.length);
         decks.push(
             Deck({
-                cards: cards,
+                cards: elist.wrap(bytes32(0)),
                 size: n,
                 drawn: 0,
                 vaultUpTo: vaultSlots,
@@ -268,12 +259,17 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
             })
         );
 
-        budgetWeight += totalWeight;
-
         Tier[] storage t = tiersOfDeck[deckId];
         for (uint256 i = 0; i < upTo.length; i++) {
             t.push(Tier({upTo: upTo[i], weight: weight[i]}));
         }
+
+        uint256 totalWeight = _tableWeight(deckId);
+        if (totalWeight * 2 * 10_000 > uint256(n) * (10_000 - vaultShareBps)) {
+            revert TooManyShardSlots();
+        }
+        budgetWeight += totalWeight;
+        _shuffleInto(decks[deckId]);
 
         // forge-lint: disable-next-line(unsafe-typecast)
         emit DeckCreated(deckId, n, uint16(totalWeight), msg.value, creator, creatorBps);
@@ -345,7 +341,7 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
     ///
     function _escrowAndDraw(uint32 deckId) internal returns (uint16 index, uint256 price) {
         Deck storage d = _deck(deckId);
-        if (d.drawn >= d.size) revert DeckEmpty();
+        //
         if (!adapter.purchasingAllowed()) revert PurchasingDisabled();
 
         price = adapter.ticketPrice();
@@ -358,7 +354,6 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
     ///
     function _buyAndDraw(uint32 deckId) internal returns (uint16 index, uint256 price) {
         Deck storage d = _deck(deckId);
-        if (d.drawn >= d.size) revert DeckEmpty();
         if (!adapter.purchasingAllowed()) revert PurchasingDisabled();
 
         d.unsweptOpens += 1;
@@ -376,7 +371,43 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
     }
 
 
+    function _tableWeight(uint32 deckId) internal view returns (uint256 total) {
+        Tier[] storage t = tiersOfDeck[deckId];
+        uint16 prev;
+        for (uint256 i = 0; i < t.length; i++) {
+            total += uint256(t[i].upTo - prev) * uint256(t[i].weight);
+            prev = t[i].upTo;
+        }
+    }
+
+    ///
+    function _shuffleInto(Deck storage d) internal {
+        elist cards = e.shuffledRange(1, d.size + 1, ETypes.Uint256);
+        e.allowThis(cards);
+        d.cards = cards;
+        d.drawn = 0;
+    }
+
+    ///
+    ///
+    ///
+    function _reseal(uint32 deckId, uint8 why) internal {
+        Deck storage d = decks[deckId];
+
+        budgetWeight += _tableWeight(deckId);
+        _shuffleInto(d);
+
+        uint32 cut = reseals[deckId] + 1;
+        reseals[deckId] = cut;
+        emit DeckResealed(deckId, cut, d.size, why);
+    }
+
+    ///
     function _draw(Deck storage d, uint32 deckId, bool risk) internal returns (uint16 index) {
+        if (d.drawn >= d.size) {
+            if (address(this).balance < deckFee(d.size)) revert DeckEmpty();
+            _reseal(deckId, RESEAL_DRAWN_OUT);
+        }
         index = d.drawn;
         d.drawn = index + 1;
 
@@ -592,6 +623,21 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
     mapping(uint256 => uint128) public battlePaidB;
 
     uint64 public constant BATTLE_TIMEOUT = 15 minutes;
+
+    //
+    //
+    //
+    //
+    //
+
+    ///
+    mapping(uint32 => uint32) public reseals;
+
+    ///
+    event DeckResealed(uint32 indexed deckId, uint32 indexed cut, uint16 size, uint8 why);
+
+    uint8 constant RESEAL_DRAWN_OUT = 0;
+    uint8 constant RESEAL_VAULT_TAKEN = 1;
 
     event BattleOpened(uint256 indexed id, address indexed a, uint64 slotA);
     event BattleJoined(uint256 indexed id, address indexed b, uint64 slotB);
@@ -922,22 +968,34 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
 
         ticketToken.safeTransfer(msg.sender, paid);
         emit VaultOpened(msg.sender, deckId, handle, paid);
+
+        //
+        if (address(this).balance >= deckFee(decks[deckId].size)) {
+            _reseal(deckId, RESEAL_VAULT_TAKEN);
+        }
     }
 
     ///
     ///
     function setVaultShare(uint16 bps) external onlyOwner {
         if (bps > 10_000) revert ShareTooBig();
-        uint256 sold;
-        for (uint256 i = 0; i < decks.length; i++) sold += decks[i].size;
+        uint256 sold = _slotsCut();
         if (budgetWeight * 2 * 10_000 > sold * (10_000 - bps)) revert ShareStarvesPrizes();
         vaultShareBps = bps;
     }
 
     ///
+    ///
+    function _slotsCut() internal view returns (uint256 sold) {
+        for (uint256 i = 0; i < decks.length; i++) {
+            // forge-lint: disable-next-line(unsafe-typecast)
+            sold += uint256(decks[i].size) * (1 + uint256(reseals[uint32(i)]));
+        }
+    }
+
+    ///
     function maxVaultShare() external view returns (uint16) {
-        uint256 sold;
-        for (uint256 i = 0; i < decks.length; i++) sold += decks[i].size;
+        uint256 sold = _slotsCut();
         if (sold == 0) return 10_000;
         uint256 need = (budgetWeight * 2 * 10_000) / sold;
         // forge-lint: disable-next-line(unsafe-typecast)
@@ -995,5 +1053,8 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
         owner = to;
     }
 
+    ///
+    ///
+    ///
     receive() external payable {}
 }
