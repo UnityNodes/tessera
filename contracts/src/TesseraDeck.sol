@@ -9,40 +9,103 @@ import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.s
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {IMegapotAdapter} from "./interfaces/IMegapotAdapter.sol";
 
+/// A case and a lottery ticket in one transaction.
 ///
+/// The player pays the Megapot ticket price. The contract buys them a real
+/// ticket, naming itself as the referrer, and in the same transaction draws a
+/// slot from an encrypted, exhaustible pool on Inco. The pool is shuffled once
+/// per season through e.shuffledRange and slots are drawn without replacement,
+/// so the counter "N big prizes left" is something you can verify rather than
+/// something we declare.
 ///
+/// The Inco fee is paid only when a deck is created. Opening a case costs gas.
 ///
+/// The purchase is made by the adapter, not by this contract: Megapot reverts
+/// with "Cannot refer yourself" when the referrer equals msg.sender. So the
+/// game stays the referrer and the adapter does the calling.
 ///
+/// The contract lives behind a proxy (UUPS). Changing a rule is a logic
+/// upgrade, not a new game: decks, slots, vaults and open battles all stay
+/// where they are. Without a proxy every deploy wiped the board, which means
+/// destroying what players had already bought.
 ///
+/// One thing worth spelling out: Inco handles are issued to `address(this)`.
+/// Behind a proxy that is the PROXY address, and it does not change on an
+/// upgrade, so cards already drawn stay readable. This is also why "move the
+/// state into a new contract" is no substitute for a proxy: the handles are
+/// bound to the old address.
 contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient {
     using SafeERC20 for IERC20;
 
+    // ── storage ───────────────────────────────────────────────────────────────
     //
+    // The order of these fields is part of the contract with every slot already
+    // sold. An upgrade may only APPEND new fields at the end. Reordering,
+    // removing or narrowing a type is not allowed: the storage stays as it was
+    // and a field quietly starts reading somebody else's bytes. That failure
+    // does not revert, it drifts.
     //
+    // The parents take no slots: Initializable and UUPSUpgradeable keep theirs
+    // at named ERC-7201 addresses, ReentrancyGuardTransient keeps its own in
+    // transient storage. So the numbering starts at adapter.
 
+    /// Not immutable, even though it never changes.
     ///
+    /// An immutable lives in the BYTECODE of the implementation, not in
+    /// storage. Behind a proxy that would mean the adapter has to be passed
+    /// correctly to the constructor of EVERY new implementation, and a typo in
+    /// some future upgrade would silently point the game at a different Megapot
+    /// with a different token. In storage the value is set once and an upgrade
+    /// cannot reach it. The price is measured below, in the comment on
+    /// initialize.
     IMegapotAdapter public adapter;
     IERC20 public ticketToken;
 
     address public owner;
 
+    /// One rung of the drop table: every value up to and including `upTo`
+    /// weighs `weight`. Rungs go in increasing order of upTo; anything above
+    /// the last one weighs nothing.
     struct Tier {
         uint16 upTo;
         uint16 weight;
     }
 
+    /// A single deck.
     ///
+    /// Several exist at once and they live in parallel: a cheap one with
+    /// frequent small prizes, an expensive one with a rare large vault. The
+    /// player picks what to play rather than taking whatever happens to be up.
     ///
+    /// A deck's drop table is fixed forever and judges only its own slots.
+    /// Without that, a redemption would price an old slot against somebody
+    /// else's table: a more generous neighbouring deck would retroactively make
+    /// cosmetics dearer and pay for them out of a treasury that never earned
+    /// those fees.
     struct Deck {
         elist cards;
         uint16 size;
         uint16 drawn;
+        /// Values 1..vaultUpTo open THIS deck's vault.
         uint16 vaultUpTo;
+        /// Every deck has its own vault.
         uint128 vault;
+        /// How many times it was opened since fees were last swept.
+        /// This number is what splits the commission between decks.
         uint64 unsweptOpens;
+        /// Who cut the deck. Zero means a house deck.
         ///
+        /// The creator holds no power over it: they cannot reshuffle it, change
+        /// the drop table or stop the sale, and neither can the contract owner.
+        /// It is simply the address that owns a share of the commission.
         address creator;
+        /// What share of the TREASURY half of the commission the creator takes.
         ///
+        /// Not a share of the dollar. The dollar still goes whole into a real
+        /// Megapot ticket, which is the one promise the game makes without
+        /// conditions, and nobody gets to sell pieces of it, the creator
+        /// included. Only the commission Megapot returns to the referrer is
+        /// divided.
         uint16 creatorBps;
     }
 
@@ -50,48 +113,97 @@ contract TesseraDeck is Initializable, UUPSUpgradeable, ReentrancyGuardTransient
 
     mapping(uint256 => Tier[]) private tiersOfDeck;
 
+    /// Total opens since the last sweep.
     uint64 public unsweptOpens;
 
+    /// How much weight adds up to one real ticket.
     ///
+    /// Weight is the "shard" as a unit of measure. A slot worth 1 is an eighth
+    /// of a ticket, a slot worth 25 is five tickets at once. A steep drop table
+    /// is possible precisely because the weights differ: almost always zero,
+    /// rarely a lot.
     uint256 public constant WEIGHT_PER_TICKET = 5;
 
+    /// How many cases one transaction may open.
     uint8 public constant MAX_BATCH = 10;
 
+    /// A slot remembers which deck it was drawn from.
     struct Slot {
         euint256 card;
         uint32 deckId;
+        /// The battle this slot is locked into. Zero means free.
         uint64 battle;
+        /// A slot the player gave up their Megapot ticket for. Weighs double.
         ///
+        /// There will be no new ones: the forfeit mode was taken out of the
+        /// game. The field stays because a slot taken under that rule is
+        /// already on the board and its weight is computed from this very flag.
+        /// Removing the field would mean changing somebody else's slot after
+        /// the fact.
         bool risk;
     }
 
     mapping(address => Slot[]) private slots;
 
+    /// The prize budget of the game: the total weight of every deck ever cut.
     ///
+    /// A ceiling, not a target. However much anyone doubles up, the game cannot
+    /// hand out more weight than it put into the decks, and by construction no
+    /// deck weighs more than half of its own slots. So payouts are bounded
+    /// forever by the commission those same opens brought in.
     ///
+    /// One counter for the whole game rather than one per season: a stake can
+    /// outlive a change of deck, and splitting it by season would only offer a
+    /// way to get insolvency wrong.
     uint256 public budgetWeight;
 
+    /// How much weight has already been paid out in tickets.
     uint256 public paidWeight;
 
+    /// A player's unsettled stake.
     struct Stake {
+        /// How much weight is at stake.
         uint128 weight;
+        /// The slot that will decide the stake, the next one opened.
         uint64 slotIndex;
         bool open;
     }
 
     mapping(address => Stake) public stakeOf;
 
+    /// Weight won and not yet redeemed for tickets.
     mapping(address => uint256) public bankedWeight;
 
+    // ── the vault ─────────────────────────────────────────────────────────────
     //
+    // Half of the commission is not handed out ticket by ticket, it accumulates
+    // instead. One slot in a deck opens the whole vault at once.
     //
+    // The same money, gathered into a heap: "fifty players each got a ticket"
+    // and "one person took the whole vault" cost exactly the same, and only the
+    // second is worth spinning for. And since both the vault and the number of
+    // cases left are on screen, the exhaustible pool finally works for the
+    // thrill rather than only for honesty.
 
+    /// What share of swept commission goes to the vaults. Set in initialize.
     uint16 public vaultShareBps;
 
+    /// A prize burns on redemption. Keyed by handle, because a handle is
+    /// unique forever and does not depend on how a player's slots are numbered.
     mapping(bytes32 => bool) public shardSpent;
 
+    // ── player decks ──────────────────────────────────────────────────────────
     //
+    // Anyone can cut a deck, and that is safer than it sounds: the same
+    // break-even limit that applies to house decks makes it impossible to
+    // create one that costs the game more than it earns. Someone who wants a
+    // more generous drop simply cannot have it; the contract refuses while the
+    // transaction is still being simulated.
     //
+    // Three ways to do harm remain, and each has a lock:
+    //   spam with tiny decks     -> a minimum size and a cutting fee;
+    //   pull more out of the game -> a ceiling on the creator's share;
+    //   eat the redemption fund   -> creatorOwed is subtracted from spendable().
 
     mapping(uint32 => string) public deckMeta;
 

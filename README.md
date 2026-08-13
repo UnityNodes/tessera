@@ -4,13 +4,14 @@ Onchain case-opening game on Base, built for the **Inco Summer Game Jam 2026**.
 
 One dollar buys a **real Megapot lottery ticket**, and the case comes on top of it.
 What's inside the case lives in an encrypted, finite pool on **Inco Lightning**:
-the contents exist and are committed before anyone opens anything, but nobody, including us, can see them until a slot is drawn and revealed.
+the contents exist and are committed before anyone opens anything, but nobody,
+including us, can see them until a slot is drawn and revealed.
 
 Because the pool is drawn without replacement, the counter *"3 legendaries left
-out of 200 slots"* is verifiable rather than a marketing claim, and when the
+out of 200 slots"* is verifiable rather than a marketing claim. And when the
 deck is spent, or its vault is taken, the contract deals it again by itself.
 
-> In Rome, a *tessera* was a token that granted entry, to the games, to the grain
+> In Rome, a *tessera* was a token that granted entry: to the games, to the grain
 > dole. It was also a single piece of a mosaic. The name is about both the ticket
 > and the shards that assemble into one.
 
@@ -33,7 +34,7 @@ technical record.
 1. Player pays **1 USDC**
 2. The contract buys a real Megapot ticket, with itself as referrer
 3. The same transaction draws one slot from the encrypted pool and reveals it
-4. Most slots are Grout, nothing. The rare ones carry **weight**
+4. Most slots are Grout, worth nothing. The rare ones carry **weight**
 5. Five weight redeems for another real Megapot ticket, funded entirely by the
    10% referral fee the game earns on every purchase
 
@@ -48,23 +49,24 @@ once. Same money, but a pot you can watch grow while the number of remaining
 cases falls.
 
 Or don't take the ticket: **stake what you won** instead. Your next case
-decides it, anything at all doubles the stake, an empty slot burns it. You
+decides it: anything at all doubles the stake, an empty slot burns it. You
 never risk money, only the bonus; the dollar already bought a real ticket
 either way.
 
 Or play it against someone: **the arena**. Two players open a case each, the
 heavier card takes both bonuses, equal weight is a draw and each keeps their
-own. The loser still keeps the real ticket their dollar bought, the bonus is
+own. The loser still keeps the real ticket their dollar bought; the bonus is
 all that moves.
 
 The card of whoever opens the battle stays sealed until a challenger pays.
 That is the whole reason the arena works: if the card were visible, nobody
 would ever take a bad matchup and there would be no market. A battle nobody
 joins can be abandoned after fifteen minutes, and anyone at all can settle a
-joined one, the loser cannot freeze it by staying away.
+joined one, so the loser cannot freeze it by staying away.
 
 No external funding. The prize pool pays for itself out of its own turnover,
-and the contract cannot pay out more weight than its decks were built with, that ceiling is enforced in code, not policy.
+and the contract cannot pay out more weight than its decks were built with,
+that ceiling is enforced in code, not policy.
 
 ## Verified numbers
 
@@ -86,7 +88,7 @@ player ends up holding **eleven** real tickets. The eleventh was bought by the
 game out of the referral fees the first ten produced.
 
 The covalidator wait dominates and is outside our control. The roulette animation
-is therefore **adaptive**, it loops until the result lands rather than running a
+is therefore **adaptive**: it loops until the result lands rather than running a
 fixed duration.
 
 ## Layout
@@ -131,7 +133,7 @@ Because every opened slot is publicly revealed, anyone can count whether the
 heavy slot is still in the pool. That is the game: not a stated probability,
 but a finite pile you can watch empty.
 
-A deck deals itself again, same size, same drop table, same vault rule, when
+A deck deals itself again, with the same size, drop table and vault rule, when
 its last card is drawn or when its vault is taken. Nobody triggers it: the
 contract does it inside the next player's transaction, and pays the Inco
 covalidators from its own ETH balance, which anyone can top up. So the pile is
@@ -168,7 +170,7 @@ cd scripts && npm install && node e2e-open.cjs <contract> <privateKey>
 cd scripts && node e2e-redeem.cjs <contract> <privateKey>
 ```
 
-Requires `.env`, copy `.env.example` and fill it in. Base Sepolia only;
+Requires `.env`: copy `.env.example` and fill it in. Base Sepolia only;
 MPUSDC mints freely, so nothing here costs real money.
 
 ## Checking it
@@ -180,7 +182,7 @@ cd scripts && set -a && . ../.env && set +a && ./audit.sh
 Five levels, in this order: the contracts, then the chain against the server,
 then the server against what is actually painted on the screen, then load and
 cold-visit timing. `OPENS=3 ./audit.sh` adds a real browser run with a stubbed
-wallet, that one spends real slots out of a deck.
+wallet, which spends real slots out of a deck.
 
 `audit-chain.cjs` deliberately does **not** import any site code. It reads the
 chain with its own client and compares. A check assembled from the same code it
