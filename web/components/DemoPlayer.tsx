@@ -6,6 +6,8 @@ import { Download, Play, Pause } from "lucide-react";
 /**
  *
  *
+ *
+ *
  */
 export interface Chapter {
   at: number;
@@ -63,8 +65,6 @@ export function DemoPlayer({
     return () => window.removeEventListener("keydown", onKey);
   }, [toggle]);
 
-  const pct = total > 0 ? (at / total) * 100 : 0;
-
   return (
     <div className="mt-9 grid gap-5 lg:grid-cols-[1.62fr_1fr]">
       <div>
@@ -77,6 +77,7 @@ export function DemoPlayer({
             className="block w-full"
             src={src}
             poster={poster}
+            controls
             playsInline
             preload="metadata"
             onLoadedMetadata={(e) => setTotal(e.currentTarget.duration)}
@@ -87,7 +88,6 @@ export function DemoPlayer({
             }}
             onPause={() => setPlaying(false)}
             onEnded={() => setPlaying(false)}
-            onClick={toggle}
           />
 
           {!started && (
@@ -95,7 +95,7 @@ export function DemoPlayer({
               type="button"
               onClick={toggle}
               aria-label="Play the demo"
-              className="absolute inset-0 grid cursor-pointer place-items-center bg-black/25 transition-colors hover:bg-black/10"
+              className="absolute inset-x-0 top-0 bottom-12 grid cursor-pointer place-items-center bg-black/25 transition-colors hover:bg-black/10"
             >
               <span
                 className="grid h-20 w-20 place-items-center rounded-full transition-transform hover:scale-105 motion-reduce:transition-none"
@@ -113,18 +113,13 @@ export function DemoPlayer({
             </button>
           )}
 
-          <span className="pointer-events-none absolute bottom-3 left-3 rounded-[var(--radius-chip)] bg-black/70 px-3 py-1.5">
-            <span className="t-chain text-xs font-bold text-white">
-              {clock(total || 110)} · sound on
+          {!started && (
+            <span className="pointer-events-none absolute left-3 top-3 rounded-[var(--radius-chip)] bg-black/70 px-3 py-1.5">
+              <span className="t-chain text-xs font-bold text-white">
+                {clock(total || 110)} · sound on
+              </span>
             </span>
-          </span>
-
-          <span className="absolute inset-x-0 bottom-0 h-[3px] bg-white/10">
-            <span
-              className="block h-full transition-[width] duration-200 motion-reduce:transition-none"
-              style={{ width: `${pct}%`, background: "var(--color-accent)" }}
-            />
-          </span>
+          )}
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-3">
