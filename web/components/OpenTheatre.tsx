@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Chest } from "./Chest";
 import { Prize } from "./Prize";
@@ -18,16 +18,7 @@ import type { PoolState } from "@/hooks/usePool";
  *
  */
 
-const ROLL_H = 204;
 
-/**
- *
- *
- */
-function rollScale(n: number, viewport: number) {
-  const room = viewport * 0.82 - 90; //
-  return Math.max(0.26, Math.min(1, room / (n * (ROLL_H + 8))));
-}
 
 const LIVE = new Set(["confirming", "revealing", "landing", "done"]);
 
@@ -47,17 +38,6 @@ export function OpenTheatre({
   const still = useReducedMotion();
   const on = LIVE.has(open.phase);
 
-  //
-  //
-  const [landed, setLanded] = useState<Set<string>>(new Set());
-  const allLanded = Boolean(open.batch?.every((b) => landed.has(b.handle)));
-
-  const [vh, setVh] = useState(() => (typeof window === "undefined" ? 900 : window.innerHeight));
-  useEffect(() => {
-    const onResize = () => setVh(window.innerHeight);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
   const opened = open.phase === "done";
 
   /**
@@ -127,13 +107,13 @@ export function OpenTheatre({
           {open.batch ? (
             <div className="relative flex max-h-[80vh] w-full flex-col items-center gap-2 px-6 pb-8">
               <p className="t-label mb-1">
-                {opened && allLanded
+                {opened
                   ? `${open.batch.length} cases opened`
                   : `opening ${open.batch.length} cases`}
               </p>
-              {opened && allLanded ? (
+
                  *
-                <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-4 px-2">
+              <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-4 px-2">
                   {open.batch.map((b, i) => {
                     const sp = b.value != null ? specOf(b.value, deck) : null;
                     const prize = Boolean(sp && isPrize(sp));
@@ -141,6 +121,7 @@ export function OpenTheatre({
                     return (
                       <motion.div
                         key={i}
+                        data-opened={sp ? sp.name : ""}
                         initial={{ scale: 0.5, opacity: 0, y: 26 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         transition={{
@@ -192,36 +173,7 @@ export function OpenTheatre({
                     );
                   })}
                 </div>
-              ) : (
-              <div className="flex w-full flex-col items-center gap-2 overflow-y-auto">
-                {open.batch.map((b, i) => (
-                  <div
-                    key={i}
-                    className="w-full shrink-0"
-                    style={{ height: ROLL_H * rollScale(open.batch!.length, vh) }}
-                  >
-                    <div
-                      className="w-full origin-top"
-                      style={{ transform: `scale(${rollScale(open.batch!.length, vh)})` }}
-                    >
-                      <Roll
-                        running={open.phase !== "confirming"}
-                        landedValue={b.value}
-                        deck={deck}
-                        pool={pool}
-                        urgency={tier}
-                        variant={i}
-                        //
-                        //
-                        length={open.batch!.length > 5 ? 12 : open.batch!.length > 2 ? 16 : 24}
-                        onLanded={() => setLanded((s) => new Set(s).add(b.handle))}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              )}
-              {opened && allLanded && (
+              {opened && (
                 <button
                   type="button"
                   onClick={onClose}
