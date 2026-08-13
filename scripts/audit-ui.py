@@ -146,7 +146,12 @@ with sync_playwright() as p:
         # 95 sealed', .
         # , ,
         # , .
-        m_sealed = re.search(r"([\d\s,]+)\s+sealed", txt)
+        # \s , ,
+        # , :
+        # · 30 TESA\n4 sealed\n4, float()
+        # 4\n0. , #4
+        # . : .
+        m_sealed = re.search(r"(\d[\d ,]*)\s+sealed", txt)
         same(f"#{d['id']}: sealed", d["remaining"], whole(num(m_sealed.group(1)) if m_sealed else None))
 
         # TESA ,
