@@ -24,10 +24,28 @@ export function StartHere({
   what?: string;
   compact?: boolean;
 }) {
-  const { isConnected } = useAccount();
+  const { isConnected, status } = useAccount();
   const { isPending } = useConnect();
   const game = useDeck();
   const { mint, minting } = useMint(game.refetch);
+
+  /**
+   *
+   *
+   */
+  if (status === "connecting" || status === "reconnecting") {
+    return (
+      <div className={compact ? "relative" : undefined} aria-busy>
+        {!compact && what && <p className="mb-3 text-sm leading-relaxed text-transparent">&nbsp;</p>}
+        <span
+          className={`${chiselSkin(compact ? "sm" : "md")} ${compact ? "" : "w-full"} pointer-events-none opacity-40`}
+        >
+          <Wallet className={compact ? "h-4 w-4" : "h-5 w-5"} />
+          {compact ? "…" : "Checking your wallet…"}
+        </span>
+      </div>
+    );
+  }
 
   if (!isConnected) {
     return (

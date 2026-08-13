@@ -149,6 +149,11 @@ export function useDeck() {
         const cut = Number((rows.data?.[id * STRIDE + 3]?.result as number | undefined) ?? 0);
         const from = seed?.decks.find((x) => x.id === id);
         if (!d && from) {
+          //
+          const soon =
+            from.vaultUpTo > 0 && unswept > 0n
+              ? (((claimable * vaultShareBps) / 10_000n) * BigInt(from.unsweptOpens)) / unswept
+              : 0n;
           return {
             id,
             size: from.size,
@@ -156,7 +161,7 @@ export function useDeck() {
             remaining: from.size - from.drawn,
             vaultUpTo: from.vaultUpTo,
             vaultBanked: BigInt(from.vault),
-            vault: BigInt(from.vault),
+            vault: BigInt(from.vault) + soon,
             empty: from.size > 0 && from.drawn >= from.size,
             cut: from.cut ?? 0,
             creator:
