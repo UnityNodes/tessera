@@ -8,7 +8,13 @@ import { DECK_ADDRESS, txUrl } from "@/lib/chain";
 import { explain, type Explained } from "@/lib/errors";
 
 /**
+ * Open the vault.
  *
+ * Half of the commission is not handed out ticket by ticket but accumulates, and
+ * one slot in the deck takes all of it. The same money gathered into a heap,
+ * which is exactly why it is worth spinning for, and exactly why an exhaustible
+ * pool finally works for the thrill: both the vault and the number of cases left
+ * are on screen.
  */
 export function useVault(onSettled?: () => void) {
   const config = useConfig();

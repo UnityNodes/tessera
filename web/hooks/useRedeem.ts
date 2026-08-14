@@ -15,14 +15,24 @@ export interface RedeemState {
   phase: RedeemPhase;
   txHash?: `0x${string}`;
   txUrl?: string;
+  /** The slots that burned. Shown so a redemption does not look like a disappearance. */
   burned?: number[];
+  /** How many real tickets were bought. */
   tickets?: number;
   error?: Explained;
 }
 
 /**
+ * Redeeming slots for real tickets.
  *
+ * The contract cannot see what a player drew, so the proof is brought by the
+ * player: a covalidator attestation for each of their handles. The signatures
+ * are already gathered by the inventory, and all that is left here is to submit
+ * them.
  *
+ * The money comes from the game's treasury, and when there is not enough there,
+ * redeem() collects the accrued commission from Megapot in the same transaction.
+ * No operator is needed anywhere in this chain.
  */
 export function useRedeem(onSettled?: () => void) {
   const config = useConfig();
@@ -59,6 +69,9 @@ export function useRedeem(onSettled?: () => void) {
         const receipt = await waitForTransactionReceipt(config, { hash });
         if (receipt.status !== "success") throw new Error("The transaction reverted on chain");
 
+        // The slots burned, which is a fact of the chain rather than our
+        // assumption: the receipt succeeded. We mark them at once so the shelf
+        // does not show "Claimed" beside stale counters while the re-read runs.
         markSpent(five.map((s) => s.index));
 
         const [tickets] = (sim.result as readonly [bigint, bigint]) ?? [0n];

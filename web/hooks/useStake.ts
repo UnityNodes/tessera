@@ -16,14 +16,23 @@ export interface StakeState {
   phase: StakePhase;
   txHash?: `0x${string}`;
   txUrl?: string;
+  /** How much weight was staked or won, depending on the action. */
   weight?: number;
   won?: boolean;
   error?: Explained;
 }
 
 /**
+ * Risk it or take it.
  *
+ * The player stakes their weight and the stake is decided by their NEXT open:
+ * anything at all doubles the weight, an empty slot burns it. They are not
+ * risking money in the process: the dollar for each slot has already become a
+ * real Megapot ticket and stays theirs whatever happens.
  *
+ * The stake is closed by a separate transaction, and it cannot be otherwise: the
+ * contract cannot see inside a slot until the player brings a covalidator
+ * attestation. Which is exactly why the moment of truth is its own click.
  */
 export function useStake(onSettled?: () => void) {
   const config = useConfig();
@@ -83,9 +92,12 @@ export function useStake(onSettled?: () => void) {
     state,
     reset: useCallback(() => setState({ phase: "idle" }), []),
 
+    /** There is an open stake. */
     open,
     stakedWeight,
+    /** The stake already has something to settle with: the player opened a case after it. */
     ready: open && slotCount > decidingSlot,
+    /** The index of the slot that decides the stake. */
     decidingSlot,
     bankedWeight: Number((status.data?.[1]?.result as bigint | undefined) ?? 0n),
     budgetLeft: Number((status.data?.[3]?.result as bigint | undefined) ?? 0n),

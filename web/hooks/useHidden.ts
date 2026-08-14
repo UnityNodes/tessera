@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+/** Decks hidden from the catalogue by the owner. By direct link they are alive. */
 export function useHidden() {
   const q = useQuery({
     queryKey: ["hidden"],

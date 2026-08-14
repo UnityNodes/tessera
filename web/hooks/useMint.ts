@@ -6,7 +6,11 @@ import { writeContract, waitForTransactionReceipt } from "wagmi/actions";
 import { TICKET_TOKEN, TOKEN_ABI } from "@/lib/chain";
 
 /**
+ * The test dollar faucet.
  *
+ * The network is a testnet, the coin mints free and by anyone, and without it
+ * nobody plays. It lives in its own hook because the faucet hangs in two places:
+ * the plus beside the balance in the header, and the wallet menu.
  */
 export function useMint(onMinted?: () => void) {
   const { address } = useAccount();

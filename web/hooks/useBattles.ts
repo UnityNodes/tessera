@@ -15,6 +15,7 @@ const deck = { address: DECK_ADDRESS, abi: TESSERA_DECK_ABI } as const;
 
 export const ZERO = "0x0000000000000000000000000000000000000000";
 
+/** How many recent battles we keep in the list. Beyond that it is an archive, not a game. */
 const RECENT = 24;
 
 export interface Battle {
@@ -23,10 +24,13 @@ export interface Battle {
   b: `0x${string}`;
   slotA: number;
   slotB: number;
+  /** Which deck both are drawing from. */
   deckId: number;
   openedAt: number;
   resolved: boolean;
+  /** An opponent joined, so both cards are public already. */
   joined: boolean;
+  /** Still looking for an opponent. */
   waiting: boolean;
 }
 
@@ -39,12 +43,18 @@ export interface BattleState {
 }
 
 /**
+ * Shared write machinery. Both the list and the battle page write to one
+ * contract in the same steps, so the phases and the error explanations are
+ * shared too.
  */
 function useBattleWrites(onSettled?: () => void) {
   const config = useConfig();
   const { address } = useAccount();
   const [state, setState] = useState<BattleState>({ phase: "idle" });
 
+  // Returns the RECEIPT rather than the hash. Nobody here needed the hash, and
+  // every caller threw it away, while the receipt carries the events, and it is
+  // from those that you learn the id of the battle just opened.
   const run = useCallback(
     async (fn: () => Promise<`0x${string}`>) => {
       try {
@@ -64,6 +74,7 @@ function useBattleWrites(onSettled?: () => void) {
     [config, onSettled],
   );
 
+  /** The dollar is charged exactly as for an ordinary case, and the approval is one time too. */
   const pay = useCallback(
     async (needsApproval: boolean) => {
       if (!needsApproval) return;
@@ -126,7 +137,11 @@ function toBattle(id: bigint, r: unknown): Battle | null {
 }
 
 /**
+ * The list of battles.
  *
+ * We read the last `RECENT` by id rather than only the open ones: the page has
+ * to show both what is running and what has just finished, otherwise an empty
+ * list looks like a broken game rather than a quiet moment.
  */
 export function useBattleList(onSettled?: () => void) {
   const writes = useBattleWrites(onSettled);
@@ -174,8 +189,17 @@ export function useBattleList(onSettled?: () => void) {
     refetch,
 
     /**
+     * Open a battle and report WHICH one opened.
      *
+     * The id comes from the BattleOpened event in the receipt rather than from
+     * battleCount() after the transaction. The difference is not theoretical:
+     * the counter is a separate request made afterwards, and between those two
+     * moments another player manages to open theirs. Then a person pays a dollar
+     * and lands in somebody else's room. The event, on the other hand, sits in
+     * their OWN receipt and speaks about exactly what was paid for.
      *
+     * Returns undefined when the transaction did not go through: then there is
+     * nowhere to lead them, and the error is already shown by the state.
      */
     create: async (deckId: number, needsApproval: boolean) => {
       const receipt = await writes.run(async () => {
@@ -202,7 +226,11 @@ export function useBattleList(onSettled?: () => void) {
 }
 
 /**
+ * A single battle.
  *
+ * The cards come from the chain and are revealed at foreground priority: this is
+ * the same moment of truth as an ordinary open, and it should not queue behind
+ * the inventory or the feed.
  */
 export function useBattle(id: bigint | undefined, onSettled?: () => void) {
   const writes = useBattleWrites(onSettled);
@@ -237,6 +265,9 @@ export function useBattle(id: bigint | undefined, onSettled?: () => void) {
     enabled: Boolean(handleA && handleB),
     staleTime: Infinity,
     queryFn: async () => {
+      // Both or neither. Half a table is not "partly shown" but a card labelled
+      // with somebody else's name: places in the result follow the order of the
+      // handles, and one missing would shift the other to its neighbour.
       const [a, b] = await revealHandles([handleA!, handleB!], { waitForAll: true });
       if (!a || !b) throw new Error("covalidators have not turned both cards over yet");
       return { a, b };
@@ -247,6 +278,7 @@ export function useBattle(id: bigint | undefined, onSettled?: () => void) {
     ...writes,
     battle,
     cards: cards.data,
+    /** The cards are on the table, but the covalidators have not turned them over yet. */
     revealing: Boolean(battle?.joined) && !cards.data,
     refetch: read.refetch,
 

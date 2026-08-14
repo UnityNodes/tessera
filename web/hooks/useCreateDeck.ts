@@ -24,12 +24,18 @@ export interface DeckPlan {
   upTo: number[];
   weight: number[];
   vaultSlots: number;
+  /** The creator's share in percent. It goes to the contract in bps. */
   sharePercent: number;
+  /** Their own picture. Optional: without it the deck takes a chest in its own colour. */
   art?: File;
 }
 
 /**
+ * Cut your own deck.
  *
+ * Two payments, and they must not be confused: the Inco fee is paid in ETH along
+ * with the call, being the price of shuffling the season, while the fee to the
+ * game goes in the ticket token and needs a separate approval. So both are read.
  */
 export function useCreateDeck() {
   const { address } = useAccount();
@@ -39,6 +45,7 @@ export function useCreateDeck() {
     phase: CreatePhase;
     txUrl?: string;
     deckId?: number;
+    /** What happened to the picture: undefined means none was given, a string is a refusal. */
     art?: string;
     error?: Explained;
   }>({ phase: "idle" });
@@ -67,6 +74,8 @@ export function useCreateDeck() {
     async (plan: DeckPlan) => {
       if (!address) return undefined;
       try {
+        // Approve only when the allowance is short: a needless approve is a
+        // needless transaction and a needless signature in the wallet for nothing.
         if (allowance < fee) {
           setState({ phase: "approving" });
           const sim = await simulateContract(config, {
@@ -81,6 +90,10 @@ export function useCreateDeck() {
         }
 
         setState({ phase: "signing" });
+        // The Inco fee is read right before sending: it depends on the deck
+        // size, and the size is what the player has just chosen.
+        // readContract rather than simulateContract: deckFee is a view, and
+        // there is nothing to simulate about a read.
         const incoFee = (await readContract(config, {
           ...deck,
           functionName: "deckFee",
@@ -107,6 +120,9 @@ export function useCreateDeck() {
         const receipt = await waitForTransactionReceipt(config, { hash });
         if (receipt.status !== "success") throw new Error("The transaction reverted on chain");
 
+        // The deck id comes from an event in their OWN receipt rather than from
+        // deckCount() afterwards: between the call and the read somebody else
+        // manages to cut theirs, and the person would land on the wrong page.
         const made = parseEventLogs({
           abi: TESSERA_DECK_ABI,
           eventName: "DeckCreated",
@@ -114,7 +130,13 @@ export function useCreateDeck() {
         });
         const id = Number((made[0]?.args as { deckId?: number } | undefined)?.deckId ?? 0);
 
+        // The picture travels AFTER the cut, and it cannot be otherwise: it is
+        // tied to the deck number, and the number exists only from the moment
+        // the transaction landed in a block.
         //
+        // A failure here does not cancel the deck. The deck is already on chain
+        // and already playing, simply with a chest in its own colour. That is
+        // the whole reason for keeping the picture off chain.
         let art: string | undefined;
         if (plan.art) {
           try {
@@ -146,7 +168,11 @@ export function useCreateDeck() {
 }
 
 /**
+ * Put a deck's picture in place.
  *
+ * The signature proves not "I am the creator" but "I am giving THIS deck THIS
+ * file": the message includes the hash of the contents. The server assembles the
+ * same string on its side and checks it against the creator read from the chain.
  */
 async function putArt(
   deckId: number,
