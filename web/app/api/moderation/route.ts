@@ -3,7 +3,11 @@ import { readHidden, setHidden } from "@/lib/hidden";
 import { readIndex, setStatus } from "@/lib/skinstore";
 
 /**
+ * Moderation: hide a deck from the catalogue and take its picture down.
  *
+ * There are exactly two different actions here and that is no accident. The
+ * deck does not disappear from the chain, only the card is hidden; the picture,
+ * on the other hand, lives off chain and comes down for real.
  */
 export async function GET() {
   return Response.json(

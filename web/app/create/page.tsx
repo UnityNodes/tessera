@@ -20,13 +20,24 @@ import {
   type ShapeKind,
 } from "@/lib/shapes";
 
+/** The shades to choose from. Equal steps around the circle rather than a set of flavours. */
 const HUES = [333, 300, 265, 225, 194, 160, 120, 75, 40, 12];
 
 const SIZES = [100, 200, 400];
 
 /**
+ * Cut your own deck.
  *
+ * Until now only the console could do this: the contract is open to everyone,
+ * but `createCustomDeck` had to be called by a script. Here is the same thing
+ * without knowing the ABI.
  *
+ * The form deliberately does not show `upTo[]` and `weight[]`. That is an honest
+ * way to describe a deck and a terrible way to order one: a person who wants
+ * "rarely, but a big prize" should not have to add up total weight and remember
+ * the break even line. They choose a character, a size and a colour, and the
+ * code computes the rest and shows it with the same number the deck is later
+ * signed with in the catalogue.
  */
 export default function CreatePage() {
   const { address } = useAccount();
@@ -42,6 +53,10 @@ export default function CreatePage() {
   const [art, setArt] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
 
+  // The vault share comes from the chain, because how much a deck may promise
+  // depends on it. While the form split the size in half, it offered tables of
+  // 100 weight where the chain allowed 90: the "Cut the deck" button worked, the
+  // wallet asked for a signature, and the transaction failed.
   const shape = useMemo(
     () => shapeFor(kind, size, game.vaultShareBps),
     [kind, size, game.vaultShareBps],
@@ -50,6 +65,9 @@ export default function CreatePage() {
   const clean = name.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
   const maxShare = mk.maxBps / 100;
 
+  // An empty name, a character that does not suit this size, a wallet that is
+  // not connected: each reason on its own, because "the button is grey" explains
+  // nothing by itself.
   const problem = !address
     ? "connect a wallet first"
     : !clean
@@ -90,7 +108,7 @@ export default function CreatePage() {
           </Link>
           <h1 className="t-page mt-2 text-white">Cut your own case</h1>
           <p className="mt-2 max-w-2xl text-base leading-relaxed text-slate-300">
-            Anyone can. The contract shuffles the deck and nobody, not you, not us, can see or
+            Anyone can. The contract shuffles the deck and nobody, not you and not us, can see or
             change what is inside, or re-deal it on a whim: it deals itself again only when it runs
             out or when its vault is taken. You take a share of the commission it earns; the dollar
             players pay still buys them a whole real ticket.
@@ -98,6 +116,7 @@ export default function CreatePage() {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-12">
+          {/* -- the choice ------------------------------------------------ */}
           <div className="space-y-7 lg:col-span-7">
             <section>
               <label className="t-label mb-2 block" htmlFor="deck-name">
@@ -107,9 +126,19 @@ export default function CreatePage() {
                 id="deck-name"
                 value={name}
                 onChange={(e) => setName(e.target.value.slice(0, 20))}
+                // The placeholder was the name of a LIVE deck, kungfumode, and
+                // in an empty field it read as somebody else's name already
+                // typed in. Now it is the same word the preview on the right
+                // shows while there is no name. The form demands a name all the
+                // same: without one the button says "give it a name".
                 placeholder="unnamed"
                 className="w-full rounded-[var(--radius-control)] border border-slate-800 bg-slate-950 px-4 py-3 text-lg text-white outline-none placeholder:text-slate-500 focus:border-[var(--color-accent)]"
               />
+              {/* Latin letters and digits, and that is not a whim: the name goes
+                  into the chain and becomes the case's signature everywhere, in
+                  the catalogue, in the strip, in the result. A character that
+                  fails to render somewhere can no longer be fixed: the metadata
+                  is immutable. */}
               <p className="mt-2 text-sm text-slate-400">
                 letters and digits only, it goes on chain and cannot be changed later
                 {clean && clean !== name.trim().toLowerCase() ? ` · will be saved as “${clean}”` : ""}
@@ -120,6 +149,18 @@ export default function CreatePage() {
               <label className="t-label mb-2 block" htmlFor="deck-art">
                 2. its picture, or just a colour
               </label>
+              {/* A picture is NOT required, and that is deliberate. A deck
+                  without one takes a chest in the chosen colour and works the
+                  same; the file only makes it its own. A required field here
+                  would mean you cannot cut a case without an artist. */}
+              {/* Our own button rather than the system one.
+                  The caption on a native <input type="file"> is drawn by the
+                  browser, and it takes it from the SYSTEM language: on a
+                  Ukrainian machine, in the middle of an English site, up came
+                  "Choose file / No file chosen" in Ukrainian. That caption cannot
+                  be changed at all, so the input itself is hidden and what you
+                  see is a label we write ourselves. The keyboard did not suffer:
+                  the <label> is bound to the input, and Tab reaches it. */}
               <label
                 htmlFor="deck-art"
                 className="flex cursor-pointer items-center gap-3 rounded-[var(--radius-control)] border border-slate-800 bg-slate-950 p-2 transition-colors hover:border-slate-700"
@@ -144,7 +185,7 @@ export default function CreatePage() {
               />
               <p className="mt-2 text-sm text-slate-400">
                 PNG on a transparent background, up to 4 MB. Every upload is checked
-                automatically, anything explicit is refused and the deck keeps the plain chest.
+                automatically. Anything explicit is refused and the deck keeps the plain chest.
               </p>
             </section>
 
@@ -194,6 +235,9 @@ export default function CreatePage() {
               <div className="grid gap-2.5 sm:grid-cols-3">
                 {SHAPES.map((s) => {
                   const fits = shapeFor(s.kind, size, game.vaultShareBps) !== null;
+                  // Not "you need N cases" but the smallest size offered HERE:
+                  // advice has to name a button visible on the screen rather
+                  // than a number there is no button for.
                   const bigger = SIZES.find(
                     (n) => shapeFor(s.kind, n, game.vaultShareBps) !== null,
                   );
@@ -242,6 +286,13 @@ export default function CreatePage() {
                   {Math.min(share, maxShare)}%
                 </span>
               </div>
+              {/* "Half the fee" stood here from the days when the vaults really
+                  did take half. The share lives in the chain and is no longer a
+                  half, so it cannot be named as a number: the line would tell an
+                  untruth the very next day it is changed again. The ceiling, on
+                  the other hand, is not our whim but a solvency condition: with
+                  the rest of the treasury share the game pays for exchanges of
+                  TESA into real tickets, including in this same deck. */}
               <p className="mt-2 text-sm text-slate-400">
                 of the commission your deck earns, after the vaults take their slice, capped at{" "}
                 {maxShare}% because the rest pays for turning TESA into real tickets, in your deck
@@ -250,6 +301,7 @@ export default function CreatePage() {
             </section>
           </div>
 
+          {/* -- what comes out -------------------------------------------- */}
           <div className="lg:col-span-5">
             <div
               className="sticky top-28 flex flex-col gap-4 rounded-[var(--radius-window)] border p-6"
@@ -287,12 +339,12 @@ export default function CreatePage() {
                 <Line name="cases in the deck" value={String(size)} />
                 <Line
                   name="pays"
-                  value={shape ? `1 in ${paysOneIn(shape, size)}` : ", "}
+                  value={shape ? `1 in ${paysOneIn(shape, size)}` : "pick a shape"}
                 />
                 <Line name="a vault inside" value={shape?.vaultSlots ? "yes" : "no"} />
                 <Line
                   name="prize budget"
-                  value={shape ? `${totalWeight(shape)} of ${budget}` : ", "}
+                  value={shape ? `${totalWeight(shape)} of ${budget}` : "pick a shape"}
                 />
                 <Line name="your share" value={`${Math.min(share, maxShare)}%`} />
                 <Line
@@ -302,6 +354,10 @@ export default function CreatePage() {
               </dl>
 
               <div className="border-t border-slate-800 pt-4">
+                {/* StartHere without `what`: the explanation is not printed
+                    here, because the price of the cut was just named by the "it
+                    costs you" line, and the dollar per open has nothing to do
+                    with this page. */}
                 {!address ? (
                   <StartHere />
                 ) : (
@@ -333,6 +389,8 @@ export default function CreatePage() {
                     )}
                   </p>
                 )}
+                {/* The picture was rejected and the deck is alive, which is
+                    exactly why it is stored off chain. */}
                 {mk.state.art && (
                   <p className="mt-3 text-sm text-[var(--color-danger)]">
                     The deck is cut, but its picture was refused: {mk.state.art}. It shows the
@@ -340,7 +398,7 @@ export default function CreatePage() {
                   </p>
                 )}
                 <p className="mt-3 text-sm leading-snug text-slate-400">
-                  Once cut, nothing about it can be changed, not the drop table, not the name,
+                  Once cut, nothing about it can be changed: not the drop table, not the name,
                   not your share. {game.decks.length} decks are live right now.
                 </p>
               </div>

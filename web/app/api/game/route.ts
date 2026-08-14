@@ -1,7 +1,11 @@
 import { gameFresh } from "@/lib/game";
 
 /**
+ * The game state for the browser.
  *
+ * All of the work is in lib/game: the same cache serves both this route and
+ * the server render of the page. Two caches would drift apart, and the HTML
+ * would show one set of numbers and the first refresh another.
  */
 export async function GET() {
   try {

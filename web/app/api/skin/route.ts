@@ -4,12 +4,18 @@ import { CHAIN, chainTransport, DECK_ADDRESS } from "@/lib/chain";
 import { judge } from "@/lib/nsfw";
 import { putSkin, setStatus, readIndex, skinMessage } from "@/lib/skinstore";
 
+/** The largest file. A chest on screen is never larger than 300 pixels. */
 const MAX_BYTES = 4 * 1024 * 1024;
 
 const client = createPublicClient({ chain: CHAIN, transport: chainTransport() });
 
 /**
+ * A deck picture: upload and the list of approved ones.
  *
+ * Who is uploading is proved by a signature rather than by a word. The server
+ * reads the deck creator from the CHAIN and compares it with the address that
+ * signed the message. Without that anyone could swap somebody else's picture
+ * knowing only the deck number.
  */
 export async function GET() {
   const all = readIndex();
@@ -39,11 +45,14 @@ export async function POST(request: Request) {
   }
 
   const bytes = Buffer.from(await file.arrayBuffer());
+  // PNG and only PNG, and it is checked by content rather than by name: the
+  // extension proves nothing, and the file goes to a decoder next.
   const isPng = bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
   if (!isPng) {
     return Response.json({ error: "PNG only" }, { status: 400 });
   }
 
+  // -- who this is ---------------------------------------------------
   let creator: string;
   try {
     const deck = (await client.readContract({
@@ -60,6 +69,13 @@ export async function POST(request: Request) {
     return Response.json({ error: "house decks keep their own art" }, { status: 403 });
   }
 
+  // It is the chain CLIENT that checks, not viem's plain verifyMessage, and
+  // that is not pedantry. The plain function knows exactly one way of signing,
+  // ECDSA with a private key. But among the wallets that can be connected here
+  // is Coinbase Smart Wallet: it has no key behind the address, it signs over
+  // ERC-1271, and a plain check answers "not the creator" to a signature by the
+  // real creator. The client can do both, because it can ask the wallet
+  // contract itself. `lib/ownercheck` does the same.
   const ok = await client
     .verifyMessage({
       address: creator as `0x${string}`,
@@ -71,10 +87,13 @@ export async function POST(request: Request) {
     return Response.json({ error: "only the deck's creator can set its picture" }, { status: 403 });
   }
 
+  // -- what this is --------------------------------------------------
   let verdict;
   try {
     verdict = await judge(bytes);
   } catch {
+    // Could not read or classify it, so it does not get through. Letting
+    // something you did not look at pass is worse than refusing.
     return Response.json({ error: "could not read that image" }, { status: 400 });
   }
 

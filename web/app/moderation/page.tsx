@@ -17,11 +17,25 @@ import { DeckHero } from "@/components/DeckHero";
 type Skin = { status: "pending" | "ok" | "no"; by: string; at: number; why?: string };
 
 /**
+ * Moderation, for the contract owner and nobody else.
  *
+ * The rights here come neither from a config nor from a password: the page asks
+ * the chain for `owner()` and compares it with the connected wallet. The right to
+ * moderate passes along with transferOwnership, and a list in a file would fall
+ * behind reality silently.
  *
+ * Two actions, and they differ in substance:
  *
+ *   hide a deck, remove the card from the catalogue. The deck does not disappear
+ *   from the CHAIN and cannot: a pool people paid into is not cancelled
+ *   retroactively. It keeps working over a direct link.
  *
+ *   take a picture down, remove it for real. It lives off chain for exactly that
+ *   reason.
  *
+ *   cut a copy, the only action that CREATES anything, and the only one that
+ *   costs money. A played out deck cannot be refilled by anything, so renewing
+ *   means a new deck beside the old one.
  */
 export default function ModerationPage() {
   const { address } = useAccount();
@@ -38,6 +52,7 @@ export default function ModerationPage() {
   const [skins, setSkins] = useState<Record<string, Skin>>({});
   const [busy, setBusy] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /** Which deck is currently showing the recut panel. One at a time. */
   const [recut, setRecut] = useState<number | null>(null);
 
   const load = useCallback(async () => {
@@ -91,6 +106,7 @@ export default function ModerationPage() {
     );
   }
   if (!mine) {
+    // No details: whoever is not the owner has nothing to know.
     return <div className="w-full px-4 py-20 text-center text-slate-300">Nothing here.</div>;
   }
 
@@ -100,28 +116,45 @@ export default function ModerationPage() {
         <div className="border-b border-slate-800 pb-6">
           <h1 className="t-page text-white">Moderation</h1>
           <p className="mt-2 max-w-2xl text-base leading-relaxed text-slate-300">
-            Hiding a deck removes its card from the catalog, the deck itself stays on chain and
+            Hiding a deck removes its card from the catalog. The deck itself stays on chain and
             keeps working for whoever is already playing it. Pulling a picture removes the picture
             for good; the deck falls back to a plain chest.
           </p>
+          {/* The third action differs from the first two in that it costs money
+              and cannot be undone. So it is explained in a paragraph of its own
+              rather than a row in a list: a person has to read "a new one beside
+              it, the old one stays" BEFORE pressing, not after. */}
           <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-300">
             A deck deals itself again, same size, same drop table, same vault rule, when its last
             card is drawn or when its vault is taken. Nobody triggers it: the contract does it inside
             the next player's transaction, and pays the covalidators from its own ETH balance. Top
             that balance up and the decks keep themselves alive; let it run dry and they simply end,
             exactly as they used to. What you can do here is cut a fresh copy standing next to the
-            old one, a second deck, with its own vault and its own pool.
+            old one: a second deck, with its own vault and its own pool.
           </p>
         </div>
 
         {error && <p className="text-sm text-[var(--color-danger)]">{error}</p>}
 
+        {/* The budget stands FIRST, above the logic and deck updates.
+            It is the only panel that answers the question "can the game pay what
+            it promises at all", and if the answer is no, none of the other
+            decisions matter. */}
         <BudgetPanel decks={game.decks} owner={mine} />
 
         <UpgradePanel owner={mine} />
 
+        {/* The reshuffle fund stands right under the logic on purpose: both
+            panels are about what the game lives on from here, not about an
+            individual deck. */}
         <ResealFund decks={game.decks} />
 
+        {/* Naming a deck by number is not enough.
+            The row used to say "deck #1" and nothing more, and by such a label
+            you cannot tell a house deck from someone else's, a live one from an
+            exhausted one, and deciding why it does not belong here is impossible.
+            So the row now holds what a deck is recognised by: the chest of its
+            best tier, the size, how much is left and whose it is. */}
         <h2 className="t-label mt-2">
           decks on chain · {game.decks.length}
         </h2>
@@ -138,6 +171,8 @@ export default function ModerationPage() {
                 className="flex flex-col gap-4 rounded-[var(--radius-panel)] border border-slate-800 p-4"
                 style={{ background: "var(--color-surface)" }}
               >
+                {/* The row became a column for the sake of the recut panel: a
+                    drop table cannot be read in a column two buttons wide. */}
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="flex min-w-0 items-center gap-4">
                     {skin?.status === "ok" ? (
@@ -148,6 +183,13 @@ export default function ModerationPage() {
                         className="h-16 w-16 shrink-0 rounded-[var(--radius-control)] object-contain"
                       />
                     ) : (
+                      /* The same look as in the catalogue rather than a chest
+                         by the deck tier.
+                         kungfumode takes its face from its own name in deckMeta,
+                         and the admin page drew it as an ordinary purple crate,
+                         that is, showed a different deck from the one being
+                         moderated. Now DeckHero stands here with the same skin as
+                         on the home page. */
                       <span className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-[var(--radius-control)] border border-slate-800">
                         {best || d.cid ? (
                           <DeckHero deck={d} size={52} skin={d.cid} />
@@ -204,6 +246,10 @@ export default function ModerationPage() {
                   </div>
                 </div>
 
+                {/* The explanation stands as a SEPARATE row under the header
+                    rather than inside it. In the header it pushed flex-wrap
+                    apart, and the "Hide" buttons slid underneath: the row broke
+                    on exactly the decks that already looked problematic. */}
                 {!fitsBudget(d, game.vaultShareBps) && (
                   <p className="t-chain -mt-1 text-sm text-amber-400">
                     leans on the board: promises $

@@ -1,11 +1,23 @@
 @import "tailwindcss";
 
-/* ═══════════════════════════════════════════════════════════════════════
+/* =======================================================================
+   The Tessera 3 language, a design system out of the "Case opening game site"
+   archive.
 
+   One rule governs every colour choice, and it is written in the system itself:
+   COLOUR MAY ONLY SPEAK ABOUT RARITY. Everything else, the ground, the surface,
+   the ink, lives on a greenish neutral scale, and a saturated colour appears only
+   where it names an item tier.
 
-   ═══════════════════════════════════════════════════════════════════════ */
+   Action is one green. Red is errors only. There are no other saturated colours
+   anywhere in the interface.
+   ======================================================================= */
 
 @theme {
+  /* -- the ground -------------------------------------------------------
+     Steps rather than one colour. The header is darker than the page, the footer
+     darker than the header, a section lighter, and the boundary between them is
+     seen before the eye finds a line. */
   --color-bg: #0a0f0a;
   --color-sunk: #060a06;
   --color-header: #080d09;
@@ -15,36 +27,73 @@
   --color-section-deep: #0c130e;
   --color-modal: #0f1712;
 
+  /* The system surface. One for every panel. */
   --color-surface: #0f1712;
   --color-raised: #1c2420;
 
+  /* -- the ink ----------------------------------------------------------
+     Three rungs, and each has a JOB rather than merely a lightness. Measured by
+     the WCAG formula against the site's three real grounds, #0a0f0a, #0f1712 and
      #1c2420:
 
+       ink       9.8 to 11   what is read first: numbers, names, actions
+       ink-dim   4.7 to 5.7  a caption, a note, the second thought in a line
+       ink-faint 3.1 to 3.8  NOT TEXT
 
+     The last line is a limit rather than advice. 3.1 against the 4.5 required
+     means that whatever is set in it simply cannot be read, and twenty four
+     pieces of text across the site were set in exactly that. It stays only where
+     unreadability IS the message: a disabled button, a drawn slot, the losing
+     side. The standard does not count such states either.
 
+     The previous comment here claimed this rung was "already readable". Nobody
+     had measured it; when it was measured, 3.6. */
   --color-ink: #e8f5ec;
   --color-ink-dim: #7c9083;
   --color-ink-faint: #5f7368;
 
+  /* -- the action -------------------------------------------------------
+     One green for the whole interface: everything that can be pressed is this
+     colour, and nothing else is.
 
+     There is no exception for battles any more, and that is a fix rather than a
+     simplification. Red was painted SIMULTANEOUSLY on five arena buttons and all
+     seven error messages, that is, "play against a person" and "the transaction
+     failed" had one colour. Guess which of them is being said to you.
 
+     An action in a battle is recognised by words and place: the page is called
+     "Case battles arena", the tab is "battles", the button says "Start battle"
+     and "Take the seat". Colour added nothing there, while it did stop red from
+     meaning the one thing it is needed for at all. */
   --color-accent: #39ff88;
   --color-accent-hover: #6dffab;
   --color-accent-press: #1fcf6c;
   --color-accent-bright: #6dffab;
+  /* Ink ON a green fill. White text on #39ff88 has a contrast of 1.8. */
   --color-on-accent: #06170d;
 
-       common → uncommon → rare → epic → legendary.
+  /* -- the tiers --------------------------------------------------------
+     The rarity ladder from the design system, bottom to top:
+       common -> uncommon -> rare -> epic -> legendary.
 
+     The mapping is not invented but taken from the system itself: there `bank`
+     (our vault) is marked legendary and "+5 TICKETS" is epic. So the gold goes to
+     the vault rather than to porphyry, even though porphyry pays the most in
+     tickets: the vault pays in money, and there is one of it per deck.
 
+     There is no shard in the system, its rung is below denarius, so it takes the
+     same green, dimmed. */
   --color-tier-grout: #9099a6;
   --color-tier-shard: #2fb567;
   --color-tier-denarius: #4dff88;
   --color-tier-aureus: #4d9fff;
   --color-tier-porphyry: #b34dff;
   --color-tier-vault: #ffd23f;
+  /* Sealed is a state rather than a tier: it promises nothing, so it takes no
+     rarity colour. The quietest grey of the ladder. */
   --color-tier-sealed: #9099a6;
 
+  /* The bed under a tier, from the same system, one per rung. */
   --tint-grout: #14181a;
   --tint-shard: #0b1a10;
   --tint-denarius: #0d1f14;
@@ -52,17 +101,37 @@
   --tint-porphyry: #1a0f26;
   --tint-vault: #26200d;
 
+  /* -- the chest --------------------------------------------------------
+     The lightness of the planes of the drawn chest; the hue arrives from the
+     --metal of its own tier. */
   --shell-top: 78%;
   --shell-front: 58%;
   --shell-side: 40%;
   --shell-line: #060a06;
 
+  /* Red has exactly one meaning: SOMETHING WENT WRONG.
+     Not "battle", not "attention", not "important", an error. It is the one
+     interface colour that names nothing and invites nothing, and that is exactly
+     why it must not be spent on decoration. */
   --color-danger: #ff2d55;
   --color-danger-soft: #ff5577;
 
+  /* -- the size scale ---------------------------------------------------
+     The three lowest rungs are raised by one step: 12 to 13, 14 to 15, 16 to 17.
 
+     This is not "make it bigger" but a fix to the scale itself. It stood on the
+     Tailwind default, and the two smallest rungs, 12 and 14, carried almost all
+     the text on the site: eighty two uses out of a hundred and thirty. Twelve
+     pixels is the size of a caption under a picture, not the size you explain
+     where a dollar went in.
 
+     It is fixed in one place rather than in each of the eighty two. The top of
+     the scale is untouched: headings start at 18 and up as it is, and the case
+     page fits into exactly one screen, where an extra step would cost scrolling.
 
+     The line height grows along with the size. Without that the line gets bigger
+     while the air between lines stays as it was, and the paragraph reads WORSE
+     than it did. */
   --text-xs: 0.8125rem;
   --text-xs--line-height: 1.45;
   --text-sm: 0.9375rem;
@@ -72,18 +141,36 @@
 
   --font-display: var(--font-orbitron), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /* Data is Orbitron too: that is how the system has it. It is square, so digits
+     stand level in a column without tabular figures. */
   --font-mono: var(--font-orbitron), ui-monospace, monospace;
 
+  /* The reference corner: 8 on something small, 12 on a button, 16 on a panel,
+     24 on a window. */
   --radius-chip: 999px;
   --radius-control: 11px;
   --radius-panel: 16px;
   --radius-window: 24px;
 
+  /* The glow under an action.
+     The same turquoise in eight places was written out as raw rgba with different
+     opacities: Tailwind does not allow var() inside a shorthand shadow, and
+     everyone who placed a button copied the number. Now the shadow lives whole in
+     a variable, and shadow-[var(--glow-accent)] takes it as it is. */
   --glow-accent: 0 0 22px rgb(57 255 136 / 0.3);
   --glow-accent-lift: 0 0 32px rgb(57 255 136 / 0.45);
   --glow-accent-soft: 0 0 10px rgb(57 255 136 / 0.28);
 
+  /* -- the neutral scale ------------------------------------------------
+     The interface is written in slate-* classes, and there are sixty of them.
+     Rather than rewriting each one, we redefine the scale itself: the design
+     system has its own greenish neutral ramp, and its documented values land
+     exactly on the rungs that are used here, 400 and 500 for ink, 800 for raised,
+     900 for surface, 950 for ground.
 
+     There is no blue left in the neutrals anywhere: it was blue that pulled the
+     page towards "yet another dark crypto site" and argued with the tier
+     colours. */
   --color-slate-50: #eef7f1;
   --color-slate-100: #dcebe1;
   --color-slate-200: #c7d6cd;
@@ -101,6 +188,11 @@
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* A tier is read through three channels, and each works at its own distance.
+   --glow    the strength of the glow: seen first, from across the screen;
+   --metal   the fittings and the lock: works at a medium size;
+   --tint    mixed into the hull: it saves a small card in a strip, where the
+             neighbours' glows congeal into a single patch. */
 [data-tier="grout"] {
   --metal: var(--color-tier-grout);
   --metal-l: #c9d0d8;
@@ -115,6 +207,11 @@
   --glow: 0.45;
   --tint: 0.14;
 }
+/* A shard is the lowest prize that is still a prize. The same green of the
+   ladder but dimmed on all three channels: on its own it is not worth a ticket,
+   five make one. Its own colour rather than the colour of emptiness, because these
+   are different events, and confusing them means telling the player "nothing"
+   where they won a fifth of a ticket. */
 [data-tier="shard"] {
   --metal: var(--color-tier-shard);
   --metal-l: #7ee0a6;
@@ -143,6 +240,8 @@
   --glow: 1;
   --tint: 0.24;
 }
+/* The vault is the top of the ladder and at the same time the only tier that
+   pays in money rather than tickets. That is why it glows the strongest. */
 [data-tier="vault"] {
   --metal: var(--color-tier-vault);
   --metal-l: #ffe999;
@@ -152,9 +251,15 @@
 }
 
 :root {
+  /* The system's borders: white at 10% and at 18%. There are no coloured borders
+     in the interface: a frame has no right to name a tier, that is the job of the
+     item's own colour. */
   --edge: rgb(255 255 255 / 0.1);
   --edge-strong: rgb(255 255 255 / 0.18);
 
+  /* The stacking scale. The bars under the header have levels of their own not
+     for looks: each of them has a backdrop-filter, and that creates a stacking
+     context. */
   --z-backdrop: 0;
   --z-feed: 20;
   --z-stats: 30;
@@ -176,10 +281,17 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* No grain and no vignette. The reference holds to clean planes: anything
+     lying over the page as a film dimmed the very colours this language is built
+     on. */
 }
 
 @layer components {
+  /* -- the setting -------------------------------------------------- */
 
+  /* Headings are Orbitron 700.
+     There is no negative tracking here any more: Orbitron is wide and square as
+     it is, and pulling it together spoils the very thing it is read by. */
   .t-display {
     font-family: var(--font-display);
     font-weight: 700;
@@ -188,6 +300,10 @@
     text-wrap: balance;
   }
 
+  /* The page heading. In the system it is one size on every screen, Orbitron
+     900, 34 pixels, and that is what says "this is a new page", rather than a size
+     picked to suit the length of a word. It was in six places in three different
+     weights. */
   .t-page {
     font-family: var(--font-display);
     font-weight: 900;
@@ -197,6 +313,7 @@
     text-wrap: balance;
   }
 
+  /* The heaviest available: 900 on the hero and on a tier name. */
   .t-black {
     font-family: var(--font-display);
     font-weight: 900;
@@ -212,6 +329,9 @@
     letter-spacing: 0.1em;
   }
 
+  /* Everything that came from the chain. By the system, data is set in the same
+     Orbitron: it is geometric and square, so digits stand level in a column
+     without tabular figures. */
   .t-chain {
     font-family: var(--font-display);
     font-weight: 700;
@@ -219,6 +339,12 @@
     letter-spacing: 0.01em;
   }
 
+  /* Addresses and hashes, apart from the rest of the data.
+     The system gives data to Orbitron, and for numbers that is right: it is
+     square and a column stands level. But forty two hexadecimal characters in it
+     are wider than a phone, measured, the footer ran 11 pixels off screen. So
+     addresses are set in Inter with tabular figures: the same pair of families,
+     simply its other half. */
   .t-addr {
     font-family: var(--font-body);
     font-variant-numeric: tabular-nums;
@@ -227,8 +353,17 @@
     word-break: break-all;
   }
 
+  /* The caption under a number and a section name.
    *
+   * The worst possible combination stood here, one for all thirty seven uses:
+   * eleven pixels, CAPITALS, tracking of 0.14em and a dimmed colour. Each of the
+   * four is acceptable on its own; together they give a caption that is seen but
+   * not read, the eye recognises it as decoration and moves on.
    *
+   * Thirteen pixels and narrower tracking. The capitals stay: they are what makes
+   * the caption differ from the text under it, and that is its job. The tracking
+   * has to fall along with it: in caps it scatters a word into letters, and the
+   * smaller the size the more so. */
   .t-label {
     font-family: var(--font-display);
     font-size: 0.8125rem;
@@ -238,7 +373,10 @@
     color: var(--color-ink-dim);
   }
 
+  /* -- the surfaces --------------------------------------------------- */
 
+  /* The system panel: one surface #0F1712, a white border at 10%, corner 16.
+     One for the whole interface, .surface stays its synonym for older places. */
   .slab,
   .surface {
     background: rgb(15 23 18 / 0.72);
@@ -246,11 +384,14 @@
     border-radius: var(--radius-panel);
   }
 
+  /* A panel being pointed at: a green border and a diagonal gradient along it. */
   .surface--marked {
     border-color: rgb(57 255 136 / 0.4);
     background: linear-gradient(100deg, rgb(57 255 136 / 0.1), rgb(15 23 18 / 0.8) 55%);
   }
 
+  /* The instrument window: the same ground, deeper, and without transparency,
+     an item stands inside it and the background must not show through. */
   .frame {
     position: relative;
     background: rgb(6 10 6 / 0.8);
@@ -265,6 +406,10 @@
     border-radius: var(--radius-control);
   }
 
+  /* A small badge raises its tier colour to a lighter one.
+     On a chip the text is 12 pixels, and pure porphyry gave 3.92 against 4.5. We
+     raise not the whole palette but this use specifically: the tier stays
+     recognisable and the number becomes readable. */
   .chip--tier {
     color: color-mix(in oklab, var(--tier-ink, currentColor) 75%, white);
   }
@@ -283,6 +428,7 @@
     color: var(--color-ink);
   }
 
+  /* Soft coloured light under an item. */
   .glow {
     position: absolute;
     inset: 0;
@@ -297,6 +443,8 @@
     opacity: calc(var(--glow-strength, 0.5) * 1.75);
   }
 
+  /* The drops strip and any other horizontal row run without a visible
+     scrollbar, it would cut the cards in half. */
   .scrollbar-none {
     scrollbar-width: none;
   }
@@ -304,6 +452,7 @@
     display: none;
   }
 
+  /* -- the hall ------------------------------------------------------- */
 
   .floor {
     position: fixed;
@@ -320,6 +469,7 @@
     will-change: transform;
   }
 
+  /* -- motion --------------------------------------------------------- */
 
   .animate-fade-in {
     animation: fade-in 0.35s var(--ease-out-expo) both;
@@ -336,6 +486,10 @@
     }
   }
 
+  /* An empty result.
+     Nine opens out of ten end in nothing, and this is the frame a player sees most
+     often: the lid swings back exactly as on a win, then silence and one soft
+     drop in brightness. That is the answer. */
   @keyframes empty-sigh {
     0%, 62% { opacity: 1; }
     81% { opacity: 0.55; }
@@ -365,6 +519,7 @@
     100% { opacity: 0; transform: translateX(-50%) scaleY(1.15); }
   }
 
+  /* The prize comes out of the chest: rises, grows and hangs above it. */
   @keyframes prize-rise {
     0% { opacity: 0; transform: translate(-50%, 20%) scale(0.25); }
     45% { opacity: 1; }
@@ -377,6 +532,8 @@
     100% { transform: translateY(0); filter: brightness(1); }
   }
 
+  /* A highlight sweeping the prize card. Slow and infrequent: the strip must not
+     shimmer, it has to catch the eye on exactly what is worth something. */
   @keyframes prize-sheen {
     0%, 62% { background-position: -160% 0; }
     100% { background-position: 260% 0; }
@@ -393,7 +550,12 @@
   }
 
   /**
+   * A chest about to open.
    *
+   * Three levels instead of a smooth build up: a smooth curve over eight seconds
+   * is not noticed by the eye at all, while three distinct steps read as "it
+   * began / it is running / any moment now" with no caption and no progress bar,
+   * which we have no right to show: the decryption time does not belong to us.
    */
   .theatre__shake {
     will-change: transform;
@@ -431,9 +593,20 @@
   }
 }
 
+/* The focus ring.
  *
+ * It was written through :where(), that is, with specificity ZERO, and any
+ * Tailwind class overrode it. Measured in the browser: out of thirteen elements
+ * in the Tab chain three got somebody else's colour, including rgb(2,6,24) on an
+ * active filter pill, that is, a black ring on a black ground.
  *
+ * And <summary> was not in the list at all, although the two main header buttons
+ * hang on it, the wallet and the tickets.
  *
+ * Now these are ordinary selectors declared after the Tailwind layers, so they win
+ * both on specificity and on order. The colour is set explicitly next to the
+ * width: an outline without outline-color inherits currentColor, and that is
+ * exactly what made the ring invisible on a dark button with light text.
  */
 a:focus-visible,
 button:focus-visible,
@@ -443,9 +616,14 @@ summary:focus-visible,
   outline: 2px solid var(--color-accent-bright);
   outline-offset: 2px;
   border-radius: 6px;
+  /* The ring appears instantly.
+     transition-all in Tailwind animates both outline-width and outline-color, so
+     on tabs and pills the ring faded in over two hundred milliseconds, exactly the
+     two hundred in which a keyboard user has already pressed Tab again. */
   transition: none;
 }
 
+/* The disclosure arrow draws a ring of its own, so we remove ours to avoid two. */
 summary:focus-visible {
   outline-offset: 3px;
 }

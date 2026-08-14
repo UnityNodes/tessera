@@ -2,8 +2,19 @@ import type { Metadata } from "next";
 import { DemoPlayer } from "@/components/DemoPlayer";
 
 /**
+ * The demo film, on our own domain.
  *
+ * The submission form needs a public link to the video. Hosting sites give you
+ * one, but along with ads, a "next video" and an account that may one day
+ * disappear. The film weighs nine megabytes and is served perfectly well by the
+ * same server as the game; the link stays ours and stays alive for exactly as
+ * long as the site does.
  *
+ * The page is built to the same scheme as the demos of our other projects: a
+ * hero with the stack listed, a player with CHAPTERS by timecode, and three
+ * doors into the live product below it. The chapters are not decoration here:
+ * judges watch dozens of entries and have to be able to jump straight to what
+ * interests them rather than watching two minutes in a row.
  */
 export const metadata: Metadata = {
   title: "Demo · Tessera",
@@ -19,7 +30,13 @@ export const metadata: Metadata = {
 };
 
 /**
+ * The chapters come from the real frames of the film rather than from an
+ * intended plan.
  *
+ * Every `at` has been checked against what is really on screen at that second:
+ * the frames were taken and looked at. If the film is reshot these numbers have
+ * to be checked again, otherwise a chapter will promise one thing and show
+ * another.
  */
 const CHAPTERS = [
   { at: 0, title: "A finite pool", note: "The catalogue, and the claim the whole project rests on." },
@@ -94,7 +111,7 @@ export default function DemoPage() {
       <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-300">
         A recorded walkthrough of the running game. Watch a dollar buy a real Megapot lottery
         ticket in the same transaction that draws a card, wait out the covalidators exactly as a
-        player does, and see a deck that anyone can recount. Nothing here is a mockup, every open
+        player does, and see a deck that anyone can recount. Nothing here is a mockup: every open
         below is a transaction on chain.
       </p>
 

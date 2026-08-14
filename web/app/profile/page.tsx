@@ -16,8 +16,15 @@ import { specOf, isShard, isVault, ticketsFromWeight, WEIGHT_PER_TICKET } from "
 import { addressUrl } from "@/lib/chain";
 
 /**
+ * What you have in hand.
  *
+ * Everything on this page is read from the chain: the slots from the contract,
+ * their values from the covalidators, the tickets from Megapot itself. Nothing is
+ * stored on our side, so there is nothing to show here except what has already
+ * happened.
  *
+ * A slot is judged by the table of ITS OWN deck: seasons have different tables,
+ * and the same value number is worth different things in different decks.
  */
 export default function ProfilePage() {
   const { address, isConnected } = useAccount();
@@ -60,7 +67,7 @@ export default function ProfilePage() {
     return (
       <div className="w-full bg-[var(--color-section)] px-4 py-20 text-center lg:px-8">
         <p className="text-slate-300">
-          Connect a wallet to see what is yours. Nothing here is stored by us, it is read from
+          Connect a wallet to see what is yours. Nothing here is stored by us; it is read from
           the chain against your address.
         </p>
       </div>
@@ -84,6 +91,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* -- four numbers ---------------------------------------------- */}
         <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(12rem,1fr))]">
           <Stat
             value={String(Math.round(megapot.tickets))}
@@ -107,7 +115,15 @@ export default function ProfilePage() {
           <Stat value={String(mine.length)} label="battles fought" />
         </div>
 
+        {/* -- take what you collected ----------------------------------
+            The shelf showed TESA and "bonus tickets unclaimed", and had no button
+            at all. The exchange lived on the case page, under the heading "your
+            bonus", that is, where a player goes to spend a dollar rather than
+            where their property lies. Whoever came to look at what they had
+            collected saw a number and a dead end.
 
+            The panel is the same one as on the case page: one exchange behaviour
+            for the whole site rather than two that will drift apart later. */}
         {(ticketsFromWeight(weight) > 0 || tesa > 0 || stake.open || stake.bankedWeight > 0) && (
           <section className="slab p-6 sm:p-8">
             <p className="t-label mb-1">what you can claim</p>
@@ -142,7 +158,7 @@ export default function ProfilePage() {
             {toRedeem.length === 0 && tesa > 0 && !stake.open && (
               <p className="mt-4 text-sm text-slate-400">
                 Not a full ticket yet. {WEIGHT_PER_TICKET - (weight % WEIGHT_PER_TICKET)} more TESA
-                and this turns into a real ticket, {" "}
+                and this turns into a real ticket:{" "}
                 <Link href="/#decks" className="text-[var(--color-accent-hover)] hover:underline">
                   every deck says how many it still holds
                 </Link>
@@ -152,6 +168,7 @@ export default function ProfilePage() {
           </section>
         )}
 
+        {/* -- the inventory --------------------------------------------- */}
         <section>
           <p className="t-label mb-4">every slot you drew</p>
           {slots.length === 0 ? (
@@ -199,7 +216,7 @@ export default function ProfilePage() {
         </section>
 
         <p className="text-xs text-slate-400">
-          Slots the covalidators have not returned yet are not shown, they exist on chain and
+          Slots the covalidators have not returned yet are not shown. They exist on chain and
           appear here as soon as their value is readable. A slot committed to an unsettled battle
           stays on the shelf but cannot be spent until the battle is settled.
         </p>

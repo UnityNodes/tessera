@@ -15,8 +15,19 @@ import { useBattleList, type Battle } from "@/hooks/useBattles";
 import { bestTier } from "@/lib/deck";
 
 /**
+ * The battle arena.
  *
+ * On the left, creating a battle; on the right, all the rooms, as in the
+ * reference. In the reference the number of players and rounds is chosen in the
+ * same place; for us both are set by the contract: two at the table, one card
+ * each. Showing a choice that does not exist would mean selling a promise the
+ * game does not keep, so what stands in that place is what really is there,
+ * which deck both of them draw from.
  *
+ * There is no price in the row either: it is always the same, a dollar from
+ * each, and that dollar has already come back as a real ticket. Only the bonus
+ * is split, and how much of it there is nobody knows before the reveal,
+ * ourselves included.
  */
 export default function BattlesPage() {
   const { address } = useAccount();
@@ -26,8 +37,16 @@ export default function BattlesPage() {
   const [pick, setPick] = useState(0);
 
   /**
+   * You paid, so you are already at the table.
    *
+   * Until now a person stayed on the list after "Start battle". The dollar was
+   * charged, the card drawn and sealed, and on screen was the same catalogue of
+   * rooms in which one more row appeared somewhere near the top. Finding YOUR
+   * battle in it is a job of its own, and it was done by whoever had just paid.
    *
+   * The same on "Join": you enter somebody's room, both cards become public at
+   * that very moment, and there is nobody to show that moment to, because you
+   * stayed on the list.
    */
   const enter = async (open: Promise<bigint | undefined>) => {
     const id = await open;
@@ -50,8 +69,13 @@ export default function BattlesPage() {
   return (
     <div className="w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
       <div className="mx-auto flex max-w-[1320px] flex-col space-y-8">
+        {/* -- the header ---------------------------------------------------- */}
         <div className="flex flex-col justify-between gap-4 border-b border-slate-800 pb-6 md:flex-row md:items-center">
           <div className="max-w-2xl">
+            {/* There is no icon here any more. The pulsing one reported nothing,
+                it simply moved; and the one that stayed was green, that is, the
+                colour of an action on something that cannot be pressed. In the
+                system page headings stand without icons, all six of them. */}
             <h1 className="t-page text-white">Case battles arena</h1>
             <p className="mt-2 text-base leading-relaxed text-slate-300">
               Two cases open at once and the better card takes both prizes. Neither card can be
@@ -61,6 +85,11 @@ export default function BattlesPage() {
 
           <div className="flex items-center gap-6">
             <Tally label="waiting" value={battles.open.length} />
+            {/* A red one stood here, and it said the same thing as the error
+                messages on this same page. This number no longer owns a colour:
+                it is the largest in the row as it is, and "running now" is shown
+                by the pill inside the battle itself, with a pulse rather than a
+                shade. */}
             <Tally label="live" value={battles.live.length} />
             <Tally label="all time" value={battles.total} />
           </div>
@@ -83,7 +112,7 @@ export default function BattlesPage() {
                 <p className="mt-1 text-slate-200">
                   {mine.waiting
                     ? "Waiting for an opponent. Your card is sealed until someone pays."
-                    : "Your opponent is in, go turn the cards over."}
+                    : "Your opponent is in. Go turn the cards over."}
                 </p>
               </div>
               <Button variant="quiet">Open it</Button>
@@ -92,6 +121,7 @@ export default function BattlesPage() {
         )}
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+          {/* -- create a battle ----------------------------------------------- */}
           <div
             className="space-y-6 rounded-[var(--radius-window)] border p-6 lg:col-span-5"
             style={{
@@ -116,6 +146,11 @@ export default function BattlesPage() {
                 <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
                   {playable.map((d) => {
                     const best = bestTier(d);
+                    // A deck with its own skin is called by its own name, just
+                    // as in the catalogue and on the case page. Without this,
+                    // four seasons with porphyry at the top stood here as four
+                    // identical "Porphyry" buttons, and there was nothing to
+                    // choose between them.
                     const dress = skinOf(d.cid);
                     const on = chosen?.id === d.id;
                     return (
@@ -123,6 +158,10 @@ export default function BattlesPage() {
                         key={d.id}
                         type="button"
                         onClick={() => setPick(d.id)}
+                        // The chosen one in green, like everything chosen in
+                        // this language: the active header tab, the active
+                        // filter, a hovered button. It was red while the whole
+                        // panel was red; now red is left to errors.
                         className={`flex cursor-pointer flex-col items-center gap-1 rounded-[var(--radius-control)] border p-3 transition-all ${
                           on
                             ? "border-[rgb(57_255_136_/_0.4)] bg-[rgb(57_255_136_/_0.08)] text-white"
@@ -157,6 +196,11 @@ export default function BattlesPage() {
             <div className="border-t border-slate-800 pt-4">
               <div className="mb-4 flex items-baseline justify-between gap-4">
                 <span className="t-label">your entry</span>
+                {/* Here the player stakes a dollar rather than buying a ticket,
+                    and this is the only place on the site where the promise "$1 =
+                    a ticket" sounds different. It has to be written before
+                    payment and plainly: otherwise a person learns about the stake
+                    once they have already lost. */}
                 <span className="text-right">
                   <span className="t-chain text-2xl font-extrabold text-white">$1.00</span>
                   <span className="t-chain block text-sm text-slate-400">
@@ -165,6 +209,11 @@ export default function BattlesPage() {
                 </span>
               </div>
 
+              {/* StartHere without `what`: its usual explanation says "$1 buys
+                  you a real ticket", and in a battle the dollar precisely does
+                  NOT buy a ticket, the contract puts it in escrow and buys one
+                  for the winner at settlement. That this is a stake was just said
+                  by the line above the button. */}
               {!address || !game.canAfford ? (
                 <StartHere />
               ) : mine ? (
@@ -172,6 +221,11 @@ export default function BattlesPage() {
                   You already have a battle on the table. Settle it before opening another.
                 </p>
               ) : (
+                // The main action of this page, and it is green, like
+                // everything that can be pressed. It was red while red meant
+                // "battle"; now it means an error only, and "what game you are
+                // playing" is said by the page heading, the tab and the caption
+                // on the button itself.
                 <Button
                   block
                   className="py-4"
@@ -186,6 +240,7 @@ export default function BattlesPage() {
             </div>
           </div>
 
+          {/* -- the rooms ------------------------------------------------- */}
           <div className="space-y-4 lg:col-span-7">
             <h2 className="flex flex-wrap items-baseline justify-between gap-2 text-2xl font-bold text-white">
               <span>Active public battles</span>
@@ -194,7 +249,7 @@ export default function BattlesPage() {
 
             {battles.all.length === 0 ? (
               <p className="rounded-[var(--radius-panel)] border border-slate-800 bg-slate-900/60 p-10 text-center text-slate-300">
-                {battles.loading ? "Reading the chain…" : "No battles yet, open the first one."}
+                {battles.loading ? "Reading the chain…" : "No battles yet. Open the first one."}
               </p>
             ) : (
               battles.all.map((b) => (
@@ -227,8 +282,10 @@ function Row({
   onJoin,
 }: {
   battle: Battle;
+  /** The deck both of them draw from. Needed only to show its chest. */
   deck?: DeckInfo;
   me?: string;
+  /** The wallet is connected and there is money. */
   ready: boolean;
   canPlay: boolean;
   busy: boolean;
@@ -236,6 +293,8 @@ function Row({
 }) {
   const isMine = battle.a.toLowerCase() === me || battle.b.toLowerCase() === me;
 
+  // The state as a design system pill, in the same three words that later
+  // stand in the header of the battle itself.
   const status = battle.resolved ? "done" : battle.joined ? "live" : "waiting";
   const deckBest = deck ? bestTier(deck) : undefined;
   const deckInk = deckBest?.ink ?? "var(--color-tier-sealed)";
@@ -246,6 +305,12 @@ function Row({
       style={{ background: "var(--color-surface)", borderColor: "var(--edge)" }}
     >
       <div className="flex min-w-0 items-center gap-4">
+        {/* The chest of the deck being played for, rather than a swords icon.
+            The swords stood identical in every row and were coloured by state,
+            that is, they drew the same thing as the pill on the right, only
+            without words. The deck, by contrast, differs in every battle, and it
+            is the deck that decides what can be won at all; until now only the
+            number in the heading spoke of it. */}
         <span
           className="grid h-14 w-14 shrink-0 place-items-center rounded-[var(--radius-control)] border"
           style={{
@@ -268,10 +333,21 @@ function Row({
         </div>
       </div>
 
+      {/* The right hand group wraps its rows. It was shrink-0 and at 360 it
+          pushed the page 11 pixels off screen: the state pill, "Connect to join"
+          and "Watch" are together wider than a phone, and they were explicitly
+          not allowed to shrink. */}
       <div className="flex flex-wrap items-center justify-end gap-3">
         <StatusPill status={status} />
 
+        {/* A guest is offered a step here too rather than a grey button: the
+            reason "Join" is inactive is not the state of the battle but the state
+            of the wallet. */}
         {battle.waiting && !isMine && (ready ? (
+          // "$1" alone is not enough here: in a battle that dollar is a stake,
+          // not the purchase of a ticket. That is written on the creation panel,
+          // but a person enters FROM HERE, and they should learn about the stake
+          // before paying rather than from the wording of a loss.
           <span className="flex flex-col items-end gap-1">
             <Button size="sm" disabled={!canPlay || busy} onClick={onJoin}>
               Join • stake $1

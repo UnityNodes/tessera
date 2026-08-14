@@ -34,7 +34,12 @@ import {
 } from "@/lib/deck";
 
 /**
+ * Opening a case, a page of its own.
  *
+ * There is exactly one action here and everything that belongs to it: the case
+ * itself in the instrument window, the pool on the right, the result below it,
+ * and the contents table at the bottom. The home page stays a showcase, the
+ * battles stay their own game.
  */
 export default function CasePage() {
   const params = useParams<{ id: string }>();
@@ -60,6 +65,9 @@ export default function CasePage() {
   const megapot = useMegapot();
   const skinUrl = useSkins();
 
+  // The strip is in this list too. Without it your own open appeared in "live
+  // drops" only with the next poll, up to ten seconds after the player had
+  // already seen the prize full screen.
   const refresh = useCallback(async () => {
     await Promise.all([
       game.refetch(),
@@ -71,13 +79,30 @@ export default function CasePage() {
   }, [game, refreshInventory, refreshOpens, pool, megapot]);
 
   const open = useOpenCase(refresh);
+  // How many cases to open at a time. The contract takes up to MAX_BATCH per
+  // transaction; more is blocked not by gas but by the covalidators: every slot
+  // has to be decrypted, and a long queue would show a spinner instead of
+  // prizes.
   const [mult, setMult] = useState(1);
 
+  // How many cases the wallet can afford right now. The price is read from the
+  // chain, so this number is live rather than guessed.
   const affordable = game.ticketPrice > 0n ? Number(game.balance / game.ticketPrice) : 0;
 
+  // How many we open FOR REAL: the player's choice, clamped by what is in the
+  // wallet. A derived value rather than overwritten state, the choice stays
+  // theirs. The buttons do not let you press for more than you can afford
+  // anyway; this covers the case where the money shrank after the choice.
   const take = Math.max(1, Math.min(mult, affordable || 1));
 
+  // The item size comes from the free height rather than from a number in the
+  // code.
   //
+  // The page does not scroll, so the scene gets exactly what is left over from
+  // the header, the drops strip and the deck contents. How much that is depends
+  // on the window, and picking one number that suits both 720 and 1080 is
+  // impossible: on a large screen the item came out small, on a small one it
+  // spilled over the edge and brought back the scrolling this was all about.
   const stage = useRef<HTMLDivElement>(null);
   const [art, setArt] = useState(170);
   useEffect(() => {
@@ -85,19 +110,36 @@ export default function CasePage() {
     if (!el) return;
     const ro = new ResizeObserver(() => {
       const r = el.getBoundingClientRect();
+      // The ceiling was 260, and in a tall scene the item got lost: Chest
+      // itself draws at 0.8 of the size passed in, so about two hundred pixels
+      // were left in the middle of six hundred. Now there is one limit, the free
+      // height; the width holds it back only on very wide windows, so the item
+      // does not sprawl across the whole scene.
       setArt(Math.max(120, Math.floor(Math.min(r.height - 8, r.width * 0.42))));
     });
     ro.observe(el);
     return () => ro.disconnect();
+    // The dependency on the deck is mandatory: until it has been read from the
+    // chain the component renders "Reading the chain...", and there is no scene
+    // in the tree at all. An effect with an empty list ran at exactly that
+    // moment, reached for null, quietly bailed out and never came back, and the
+    // item size stayed at its initial value forever.
   }, [deck?.id]);
   const vault = useVault(refresh);
 
 
+  // A vault slot in hand and not yet spent, by state rather than by whether the
+  // player has just opened something. Otherwise whoever found the vault and
+  // closed the tab could never reach their money again.
   const vaultSlot = inventory.data?.find(
     (s) =>
       s.deckId === deckId &&
       s.value != null &&
       !s.spent &&
+      // A vault given to a battle is not paid out by the contract: claimVault
+      // checks the same thing the exchange does. A button that is guaranteed to
+      // revert is worse than no button: the money is not going anywhere and will
+      // wait for the settlement.
       !s.locked &&
       s.signatures?.length &&
       isVault(specOf(s.value, shape)),
@@ -111,6 +153,12 @@ export default function CasePage() {
   if (!deck) {
     return (
       <div className="w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
+        {/* "No such case" is an ASSERTION, and it can only be made after the
+            deck list has been read. Until now the page relied on isLoading, and
+            in a server render that is false: a guest who arrived first after a
+            restart got "No such case." in the markup for a live deck and decided
+            the link was broken. An empty list means exactly one thing, we do not
+            know yet. */}
         <p className="py-20 text-center text-slate-300">
           {game.isLoading || game.decks.length === 0 ? "Reading the chain…" : "No such case."}
         </p>
@@ -120,6 +168,9 @@ export default function CasePage() {
 
   const tiers = slotsPerTier(deck);
   const best = bestTier(deck);
+  // A deck with its own skin is called by its own name and glows in its own
+  // colour, on this page too, otherwise a person from a "kungfumode" card lands
+  // on a "Porphyry case" page and does not understand where they have come.
   const dress = skinOf(deck.cid);
   const ink = deck.empty
     ? "var(--color-tier-grout)"
@@ -128,8 +179,20 @@ export default function CasePage() {
   const paying = prizes + deck.vaultUpTo;
   const oneIn = paying > 0 ? Math.max(1, Math.round(deck.size / paying)) : 0;
   return (
+    /* The case page DOES NOT scroll.
      *
+     * This is not a layout preference but a property of the screen: there is one
+     * action here, and everything needed for it has to be in front of you at
+     * once, the item, the price, the multiplier, the button and the deck
+     * contents. Until now the page was twice the height of the window, and the
+     * deck contents, the very thing people come here to compare, lay below the
+     * fold.
      *
+     * Everything that duplicated other screens left this page: this deck's drops
+     * strip (the global one stands above on every page), the slots bar (the same
+     * number is already written in the header), the bonus and stake panel (it
+     * lives whole on /profile), the Megapot panel. The long explanatory paragraph
+     * too: it stands word for word on the home page, under the heading.
      */
     <div className="flex h-full w-full flex-col overflow-hidden bg-[var(--color-section)] px-4 py-3 lg:px-8 2xl:px-14">
       <OpenTheatre
@@ -141,6 +204,11 @@ export default function CasePage() {
       />
 
       <div className="mx-auto flex h-full w-full max-w-[1320px] min-h-0 flex-col gap-3">
+        {/* -- the header on one line ---------------------------------------
+            The heading, the number and the figures stand on one line rather than
+            in a three storey block. The figures here are labelled chips, because
+            each of them answers its own question and none is worth a storey of
+            its own. */}
         <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2">
           <div className="flex min-w-0 items-baseline gap-3">
             <Link
@@ -172,6 +240,10 @@ export default function CasePage() {
           </div>
         </div>
 
+        {/* -- the scene ----------------------------------------------------
+            The tier name above the item, the item, the multiplier below it and
+            one button. The same order a person decides in: what is this, how
+            many am I taking, go. */}
         <div
           className="frame relative flex min-h-0 flex-1 flex-col items-center px-4 py-3"
           style={{ borderColor: `color-mix(in oklab, ${ink} 20%, transparent)` }}
@@ -235,6 +307,11 @@ export default function CasePage() {
                         <button
                           key={n}
                           type="button"
+                          // A multiplier there is not enough money for goes
+                          // dim HERE rather than in the contract. Until now x10
+                          // looked available to a wallet with five dollars, and
+                          // the game's only answer was a red line "reverted
+                          // 0xe450d38c". The player had done nothing strange.
                           disabled={n > deck.remaining || n > affordable}
                           title={n > affordable ? `enough for ${affordable}` : undefined}
                           onClick={() => setMult(n)}
@@ -274,6 +351,12 @@ export default function CasePage() {
                       ? `Open again • $${take}`
                       : game.needsApproval
                         ? `Approve once • $${take}`
+                        : /* One case is labelled the same way as three:
+                             "Open - $1" rather than "Open a case - $1". Next to
+                             it in the same row stand x2 x3 x5, and on those the
+                             button says "Open 3 - $3", that is, a verb, a
+                             number, a price. "a case" stood out of that row as
+                             the only place with a word instead of a number. */
                           take > 1
                             ? `Open ${take} • $${take}`
                             : "Open • $1"}
@@ -281,6 +364,9 @@ export default function CasePage() {
 
               </div>
 
+              {/* The vault is taken right here rather than through a separate
+                  panel: the button appears only for someone who really has a
+                  vault slot. */}
               {vaultSlot && vault.state.phase !== "done" && (
                 <Button
                   className="px-6 py-3"
@@ -299,6 +385,10 @@ export default function CasePage() {
           {open.state.batch && <BatchResult state={open.state} deck={shape} />}
         </div>
 
+        {/* -- what is inside -----------------------------------------------
+            The deck contents as tiles rather than a list in a side column: this
+            is what people come here for, to compare what this deck gives against
+            the one next to it. */}
         <div>
           <div className="mb-2 flex flex-wrap items-baseline justify-between gap-3">
             <span className="t-label">what is in this case</span>
@@ -326,7 +416,7 @@ export default function CasePage() {
                       ? `$${Number(formatUnits(deck.vault, 6)).toFixed(2)}`
                       : t.spec.tickets > 0
                         ? `+${t.spec.tickets}`
-                        : ", "}
+                        : "nothing"}
                   </span>
                   <Chest rarity={t.spec.rarity} size={46} />
                   <span
@@ -347,6 +437,7 @@ export default function CasePage() {
   );
 }
 
+/** One labelled number in the case header. */
 function Chip({ label, value, tone }: { label: string; value: string; tone?: string }) {
   return (
     <span
@@ -368,11 +459,19 @@ function Chip({ label, value, tone }: { label: string; value: string; tone?: str
 
 
 /**
+ * The result of a batch, a row of cards rather than a performance.
  *
+ * Ten cases in a row cannot be shown as theatre: the theatre is built around a
+ * single card rising to fill the screen. This is a different genre, a summary:
+ * what dropped, and how much of it is worth anything.
  */
 function BatchResult({ state, deck }: { state: { batch?: { handle: string; index: number; value?: number }[]; phase: string }; deck: DeckShape }) {
   const items = state.batch ?? [];
   const known = items.filter((b) => b.value != null);
+  // isPrize rather than "tickets or the vault": TESA gives zero tickets and is
+  // still a bonus, five of them make a ticket. While the check stood here
+  // wrongly, the batch summary counted shards as emptiness and said "2 of 10
+  // carried a bonus" where four carried one.
   const worth = known.filter((b) => isPrize(specOf(b.value!, deck)));
 
   return (
@@ -421,7 +520,12 @@ function BatchResult({ state, deck }: { state: { batch?: { handle: string; index
 
 
 /**
+ * One paragraph about what just happened.
  *
+ * The first line is always about the ticket, because a ticket always happens.
+ * The second is about the case, which is usually empty. The order is exactly
+ * that way round and not the other, otherwise the game advertises the thing that
+ * almost never works out.
  */
 function Result({
   open,
@@ -430,6 +534,9 @@ function Result({
   open: ReturnType<typeof useOpenCase>["state"];
   deck: DeckShape;
 }) {
+  // The explanation under the case was 14 pixels in #7c9083, formally readable
+  // and in practice not. This is the only text that explains what has just
+  // happened to the money.
   const dim = "text-base leading-relaxed text-slate-200";
 
   switch (open.phase) {
@@ -443,7 +550,7 @@ function Result({
       return <p className={dim}>&nbsp;</p>;
     case "revealing":
       return open.resumed ? (
-        <p className={dim}>Welcome back, this case was already paid for. Fetching it.</p>
+        <p className={dim}>Welcome back. This case was already paid for. Fetching it.</p>
       ) : (
         <p className={dim}>
           Ticket bought. Now the covalidators decrypt your case, a few seconds we do not control.
@@ -472,13 +579,18 @@ function Result({
               and the case paid {spec.tickets} more
             </p>
           ) : isShard(spec) ? (
+            /* How much TESA exactly, from the deck table rather than a one in
+               the text. A shard weighs from one to four (five is already a whole
+               ticket), and a deck with twos is accepted by the contract just like
+               one with ones. The line said "paid 1 TESA" in any case, that is,
+               underpaid the player on screen where the chain paid more. */
             <p className="t-inscription mt-3 text-2xl" style={{ color: spec.ink }}>
-              and the case paid {weightOf(open.value!, deck)} TESA, {WEIGHT_PER_TICKET} make a
+              and the case paid {weightOf(open.value!, deck)} TESA, and {WEIGHT_PER_TICKET} make a
               ticket
             </p>
           ) : (
             <p className="mt-3 text-slate-400">
-              The case added nothing on top. Most do not, the ticket is the part that always
+              The case added nothing on top. Most do not; the ticket is the part that always
               arrives.
             </p>
           )}
@@ -494,6 +606,11 @@ function Result({
       );
     default:
       return (
+        /* Not "the same ticket sold on megapot.io": what is sold there is the
+           mainnet jackpot, and the game stands on Base Sepolia, the same contract,
+           a different deployment and test dollars. A precise fact is stronger than
+           an almost truth: the ticket is bought by Megapot itself and recorded to
+           the player's wallet in its own contract. */
         <p className={dim}>
           Bought for you by Megapot itself, in the same transaction that opens the case.
         </p>

@@ -17,12 +17,20 @@ import { usePool } from "@/hooks/usePool";
 import { useBattle } from "@/hooks/useBattles";
 import { specOf, isVault, type DeckShape, type TierSpec } from "@/lib/deck";
 
+/** How long to wait for an opponent before the card can be taken back. */
 const TIMEOUT_MS = 15 * 60 * 1000;
 
 /**
+ * One battle, an arena for two.
  *
+ * Both rolls face each other, with the player and their result under each; the
+ * winner is highlighted with a gold frame and a crown, as in the reference.
  *
+ * The rolls run exactly the six to eight seconds the covalidators spend on both
+ * cards, and brake together, because the values arrive together.
  *
+ * The link can be shared: the page holds nothing in the tab's memory,
+ * everything is read from the chain by battle number.
  */
 export default function BattlePage() {
   const params = useParams<{ id: string }>();
@@ -39,6 +47,8 @@ export default function BattlePage() {
   const fight = useBattle(id);
   const { battle, cards } = fight;
 
+  // The table of exactly the deck both of them drew from. Judging by someone
+  // else's would mean that "the higher card" stops meaning the higher one.
   const deck = game.decks.find((d) => d.id === battle?.deckId);
   const shape = useMemo(
     () => ({
@@ -53,12 +63,21 @@ export default function BattlePage() {
   const me = address?.toLowerCase();
   const iAmCreator = Boolean(battle && battle.a.toLowerCase() === me);
   const iAmIn = Boolean(battle && (iAmCreator || battle.b.toLowerCase() === me));
+  // "you" only for whoever is really at the table. Without this check the page
+  // signed the opponent with your name for anyone watching from the side.
   const who = (a: `0x${string}`) => (me && a.toLowerCase() === me ? "you" : short(a));
 
   const specA = cards ? specOf(cards.a.value, shape) : undefined;
   const specB = cards ? specOf(cards.b.value, shape) : undefined;
 
+  // Who won is computed here, because it decides the frame of both tables and
+  // not just the verdict line beneath them.
   //
+  // There are no draws. On equal weight the rarer slot wins, the lower value;
+  // the contract judges the same way. The values in a deck are unique and both
+  // fighters draw from one deck, so a third outcome does not happen. The same
+  // order is repeated in Verdict: these are two copies of one rule, and they
+  // must not diverge.
   const outcomeA =
     specA && specB && cards
       ? wins(power(specA), cards.a.value, power(specB), cards.b.value)
@@ -80,7 +99,12 @@ export default function BattlePage() {
   return (
     <div className="w-full bg-[var(--color-section)] px-4 py-10 lg:px-8 2xl:px-14">
       <div className="mx-auto flex max-w-[1320px] flex-col space-y-6">
+        {/* A header of the same build as on the arena and in the catalogue, and
+            with the same state pill that stood in the list row: a person clicked
+            "Waiting" and has to see "Waiting", not a different vocabulary.
 
+            The green "deck #N" chip left this place: green in this language
+            means "this can be pressed", and a deck number cannot be pressed. */}
         <div className="flex flex-col justify-between gap-5 border-b border-slate-800 pb-6 md:flex-row md:items-end">
           <div>
             <Link
@@ -101,7 +125,7 @@ export default function BattlePage() {
                 ? "Settled on chain. Both cards are public, and so is the arithmetic that decided them."
                 : battle.joined
                   ? "Both cards are on the table. Neither was readable until the second player had paid."
-                  : "The creator's card is sealed until someone pays to face it, not even they can read it."}
+                  : "The creator's card is sealed until someone pays to face it, and not even they can read it."}
             </p>
           </div>
 
@@ -180,7 +204,7 @@ export default function BattlePage() {
                 {fight.busy ? "Settling…" : "Settle the battle"}
               </Button>
               <p className="mt-2 text-center text-sm text-slate-400">
-                Anyone can settle it, the loser cannot freeze it by staying away.
+                Anyone can settle it: the loser cannot freeze it by staying away.
               </p>
             </div>
           )}
@@ -201,8 +225,17 @@ export default function BattlePage() {
 type Outcome = "won" | "lost";
 
 /**
+ * A seat at the table.
  *
+ * A card of the same shape as a catalogue tile: corner 20, the system surface, a
+ * border in the colour of the tier lying on the table. While the card is not
+ * revealed the border is neutral: there is no tier yet, and nothing to paint.
  *
+ * The winner is marked with the same "Won" pill as in the system rather than an
+ * amber frame: there is no amber in this language at all, and next to the vault
+ * gold it read as one more rarity tier. The one who lost is dimmed but not
+ * crossed out: the card stays theirs, and if it is a vault slot they will open
+ * the vault with it even after losing.
  */
 function Side({
   title,
@@ -216,6 +249,7 @@ function Side({
 }: {
   title: string;
   spec?: TierSpec;
+  /** The slot number that dropped. The roulette brakes onto exactly that. */
   value?: number;
   running: boolean;
   sealed?: boolean;
@@ -234,6 +268,11 @@ function Side({
 
   return (
     <div
+      // The tier name as an attribute, so that a check can compare IT with what
+      // the strip stopped on. Those two numbers arrive by different paths: one
+      // from the revealed value, the other from the braking arithmetic, and it
+      // was their divergence that once showed "+1" to someone who drew
+      // emptiness.
       data-card={spec ? spec.name : sealed ? "sealed" : "pending"}
       className="relative flex flex-col overflow-hidden rounded-[20px] border transition-all"
       style={{
@@ -289,6 +328,7 @@ function OpenSeat({
   busy,
   onJoin,
 }: {
+  /** The wallet is connected and there is money, all that is left is to sit down. */
   ready: boolean;
   canJoin: boolean;
   busy: boolean;
@@ -304,15 +344,24 @@ function OpenSeat({
     >
       <div className="w-full max-w-xs text-center">
         <p className="t-label">open seat</p>
+        {/* Sitting down at the table costs a dollar, and that dollar is the
+            stake. It has to be said here, above the button, and not after a
+            loss. */}
         <p className="mt-2 text-slate-300">
           Both dollars are on the table. The winner takes both tickets and the whole bonus.
         </p>
         <div className="mt-5 text-left">
           {ready ? (
+            // Sitting down at the table is an action, and an action in this
+            // language is green. Red stood here while it meant "battle"; now it
+            // means an error only, and there is no room for it on a "sit down"
+            // button.
             <Button block className="py-4" disabled={!canJoin || busy} onClick={onJoin}>
               {busy ? "…" : "Take the seat • $1"}
             </Button>
           ) : (
+            /* No explanation: both dollars on the table are covered just above
+               the button, and the usual "$1 = a ticket" would be untrue here. */
             <StartHere />
           )}
         </div>
@@ -322,7 +371,13 @@ function OpenSeat({
 }
 
 /**
+ * Who won and what exactly.
  *
+ * There is always a winner, so the line is always about somebody. The most
+ * frequent battle is the one where both cards are empty: there is no weight, and
+ * the prize is the two tickets themselves. That is exactly why they are named
+ * separately from the bonus rather than hidden under a "pot" that is zero in
+ * such a battle.
  */
 function Verdict({
   specA,
@@ -371,12 +426,17 @@ function Verdict({
   );
 }
 
+/** The vault weighs zero tickets but outranks everything in a battle. */
 function power(spec: TierSpec): number {
   return isVault(spec) ? Number.MAX_SAFE_INTEGER : spec.tickets;
 }
 
 /**
+ * Whether the first side wins. The same order as in `resolveBattle`.
  *
+ * On equal weight the value itself judges: the lower one is the rarer one, so it
+ * wins. A draw is impossible, because the pool is shuffled without return and
+ * both fighters draw from one deck.
  */
 function wins(powerA: number, valueA: number, powerB: number, valueB: number): boolean {
   return powerA === powerB ? valueA < valueB : powerA > powerB;
