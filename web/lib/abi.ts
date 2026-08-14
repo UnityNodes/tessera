@@ -1,3 +1,4 @@
+// Generated from contracts/out by scripts/sync-abi.cjs. Do not edit by hand.
 export const TESSERA_DECK_ABI =
   [
     {

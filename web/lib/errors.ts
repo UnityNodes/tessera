@@ -2,8 +2,15 @@ import { BaseError, ContractFunctionRevertedError, UserRejectedRequestError } fr
 import type { TESSERA_DECK_ABI } from "@/lib/abi";
 
 /**
+ * The names of errors the contract can actually throw.
  *
+ * A type rather than a list: the ABI is generated from `contracts/out` and
+ * declared `as const`, so the names come out of it by themselves. An entry under
+ * a name the contract does not have no longer compiles, which is exactly how
+ * `NotAShard` and `WrongShardCount` lived here for months without anyone ever
+ * throwing them.
  *
+ * `import type` keeps the ABI out of the bundle when all we want is the check.
  */
 type DeckError = Extract<(typeof TESSERA_DECK_ABI)[number], { type: "error" }>["name"];
 
@@ -45,13 +52,22 @@ export type Fault =
 
 export interface Explained {
   fault: Fault;
+  /** What happened, in human words. */
   title: string;
+  /** What to do about it. Empty when there is nothing to do. */
   next?: string;
+  /** Whether simply trying again makes sense. */
   retryable: boolean;
 }
 
 /**
+ * The names are checked against the deck ABI rather than written from memory.
  *
+ * `NotAShard` and `WrongShardCount` sat here for a long time, errors the contract
+ * does not have and never had. They never fired once, and instead the player got
+ * a raw "The contract function reverted". Hence the rule: an entry in this table
+ * may exist only if `TESSERA_DECK_ABI` knows that name, otherwise it quietly
+ * lies about the case being handled.
  */
 const BY_NAME: Partial<Record<DeckError, Explained>> = {
   DeckEmpty: {
@@ -93,6 +109,11 @@ const BY_NAME: Partial<Record<DeckError, Explained>> = {
   TreasuryEmpty: {
     fault: "treasury-empty",
     title: "The game has not earned a ticket yet",
+    // "Half of that fee" had stood here since the days when vaults really took
+    // half. The share lives on chain (`vaultShareBps`) and is no longer a half;
+    // on the live board it is a tenth. Naming it as a number in a static table
+    // is wrong in principle: the line would lie the next time the owner changes
+    // it. The exact figure is shown by the budget panel, which reads the chain.
     next: "Prizes are funded by the referral fee the game earns, and part of that fee settles into the vaults. Nothing expires, the ticket lands once enough cases have been opened, by anyone.",
     retryable: false,
   },
@@ -115,7 +136,12 @@ const BY_NAME: Partial<Record<DeckError, Explained>> = {
     retryable: false,
   },
 
+  // ── battles ───────────────────────────────────────────────────────────────
   //
+  // A card staked in a battle is locked until the resolution: for redemption,
+  // for a stake and for the vault alike. The inventory already accounts for
+  // that, so a player only reaches here by racing: two tabs, or a battle
+  // resolved while they were reading the screen.
   SlotInBattle: {
     fault: "slot-in-battle",
     title: "That card is committed to a battle",
@@ -164,6 +190,7 @@ const BY_NAME: Partial<Record<DeckError, Explained>> = {
     retryable: false,
   },
 
+  // ── stake and vault ───────────────────────────────────────────────────────
   StakeAlreadyOpen: {
     fault: "stake-open",
     title: "You already have a stake riding",
@@ -205,6 +232,7 @@ const BY_NAME: Partial<Record<DeckError, Explained>> = {
     retryable: false,
   },
 
+  // ── other people's ────────────────────────────────────────────────────────
   ClaimFailed: {
     fault: "claim-failed",
     title: "Megapot refused the withdrawal",
@@ -217,6 +245,8 @@ const BY_NAME: Partial<Record<DeckError, Explained>> = {
     next: "Nothing was charged. Check the balance and the allowance, then try again.",
     retryable: true,
   },
+  // The array lengths disagree, which is our mistake rather than the player's.
+  // The only honest thing to say is that the screen is out of date.
   BadTierTable: {
     fault: "stale",
     title: "This page is out of step with the chain",
@@ -226,7 +256,12 @@ const BY_NAME: Partial<Record<DeckError, Explained>> = {
 };
 
 /**
+ * Token errors, by selector rather than by name.
  *
+ * The game's ABI does not contain them, so viem cannot name them and leaves a
+ * raw "0xe450d38c" in the text. And this is the most common refusal of all: the
+ * player pressed x10 with less than ten dollars. Showing them a hexadecimal
+ * string in red on black is accusing them of doing an ordinary thing.
  */
 const TOKEN_ERRORS: Record<string, Explained> = {
   "0xe450d38c": {
@@ -244,7 +279,12 @@ const TOKEN_ERRORS: Record<string, Explained> = {
 };
 
 /**
+ * A chain error to what is worth showing the player.
  *
+ * The distinction that matters is between "nothing happened" and "the money is
+ * gone". The contract is built so that any revert rolls the whole transaction
+ * back, payment included, so almost everywhere the honest answer is "nothing was
+ * charged".
  */
 export function explain(err: unknown): Explained {
   if (err instanceof UserRejectedRequestError) {
@@ -265,6 +305,11 @@ export function explain(err: unknown): Explained {
       if (known) return known;
     }
 
+    // viem cannot name token errors: they are declared in ERC-20 rather than in
+    // the game's ABI, and the decoder simply has no description for them. What
+    // is left is a selector in the text, and this is the most common refusal of
+    // all ("not enough dollars"), which must not be shown as a raw "0xe450d38c"
+    // in red on black.
     const text0 = err.shortMessage ?? err.message ?? "";
     for (const [sel, explained] of Object.entries(TOKEN_ERRORS)) {
       if (text0.includes(sel)) return explained;
@@ -291,6 +336,9 @@ export function explain(err: unknown): Explained {
   }
 
   if (err instanceof Error) {
+    // The second branch is our own: the covalidator answered 200 but without a
+    // value, and a minute later still had not produced one. For the player that
+    // is the same as silence, so the answer is the same too.
     if (
       /not found, it might not have been processed/i.test(err.message) ||
       /covalidators? (did not|have not)/i.test(err.message)
