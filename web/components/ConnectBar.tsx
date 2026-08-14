@@ -52,6 +52,7 @@ export function ConnectBar({
 }: {
   onMinted?: () => void;
   /** Everything that is "yours". The sum of the vaults is not included: it is
+      not yours, and it lives as a chip in the header. */
   balance?: bigint;
   tesa?: number;
   tickets?: number;
@@ -104,7 +105,8 @@ export function ConnectBar({
     return (
       <Disclosure
         summary={
-          /* While there is no wallet this is the page's main action, a solid
+          /* While there is no wallet this is the page's main action, solid
+             green with its own light, like everything that can be pressed. */
           <span className="flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] bg-[var(--color-accent)] px-4 py-2 text-sm font-bold text-slate-950 shadow-[var(--glow-accent)] transition-all hover:bg-[var(--color-accent-hover)] hover:shadow-[var(--glow-accent-lift)] sm:min-h-0">
             <Wallet className="h-[1.125rem] w-[1.125rem]" />
             {isPending ? "Connecting…" : "Connect wallet"}
@@ -137,7 +139,14 @@ export function ConnectBar({
         </span>
       }
     >
+      {/* The wallet disclosure is a small profile, not a list of menu items.
+          Three sections with captions, and exactly one thought in each: who
+          you are, what you have, what to do with it. Until now it was one
+          continuous column of rows in which the address, the money, the
+          tickets and "disconnect" weighed the same, that is, nothing
+          weighed anything. */}
       <Panel>
+        {/* -- who you are ------------------------------------------------- */}
         <div className="rounded-[var(--radius-control)] bg-[var(--color-bg)] px-3.5 py-3">
           <p className="t-label">your wallet</p>
           <a
@@ -152,6 +161,10 @@ export function ConnectBar({
           <p className="t-chain mt-1.5 text-xs text-slate-400">{CHAIN.name}</p>
         </div>
 
+        {/* -- what you have -----------------------------------------------
+            The number first and large, the name below it. In a list of values
+            the eye looks for the numbers, not the captions; until now they
+            stood on the right in small type and were read last. */}
         <p className="t-label mt-4 px-3.5">what you hold</p>
         <div className="mt-2 space-y-1.5">
           <Row
@@ -167,6 +180,17 @@ export function ConnectBar({
             value={String(tickets)}
             ink="var(--color-accent-hover)"
           />
+          {/* The row has to say what to DO with the shards.
+              It was "5 more make the next ticket", and that was all: neither
+              that the ticket has to be taken by hand, nor where the button is.
+              The person who built this got confused and asked whether it might
+              be automatic; a player all the more so. Now the row either calls
+              you to the shelf or says how much is left before it. */}
+          {/* Once the ticket is assembled the row becomes an ACTION rather than
+              advice. It used to say "take it on your shelf", and that was all:
+              the row itself led nowhere, and the shelf stood as a separate item
+              below. The question "I have five, now what" arose for exactly that
+              reason. */}
           {tesa >= WEIGHT_PER_TICKET ? (
             <Link href="/profile" className="block">
               <Row
@@ -191,6 +215,7 @@ export function ConnectBar({
           )}
         </div>
 
+        {/* -- what to do with it ------------------------------------------ */}
         <p className="t-label mt-4 px-3.5">what you can do</p>
         <div className="mt-2">
           <Act href="/profile" icon={<ShieldCheck className="h-6 w-6" />}>
@@ -243,7 +268,13 @@ export function ConnectBar({
 function Panel({ children }: { children: React.ReactNode }) {
   return (
     /* 23rem instead of 20: on a narrower panel the labels wrapped onto two or
+       three words, and the row "bought in the same transaction that opens a
+       case" took three steps of eleven pixels each. Width costs nothing, and
+       readability costs everything. */
     /* The panel grew to about 700 pixels tall, and on a laptop under the header
+       there is less than that. Without this limit the bottom items, "Disconnect"
+       and the faucet, were simply cut off by the edge of the screen, with no
+       hint that anything else was there. */
     <div className="scrollbar-none max-h-[calc(100vh-5.5rem)] w-[min(23rem,calc(100vw-1.5rem))] overflow-y-auto rounded-[var(--radius-panel)] border border-slate-800 bg-[var(--color-modal)] p-2.5 shadow-2xl">
       {children}
     </div>
@@ -297,6 +328,9 @@ function Row({
         <span className="mt-1 block truncate text-sm font-bold leading-tight text-slate-200">
           {name}
         </span>
+        {/* The explanation was eleven pixels in #5f7368, the same size and the
+            same grey we have already been caught on twice with "nothing is
+            visible". Thirteen pixels, one rung lighter. */}
         {note && (
           <span className="mt-0.5 block text-xs leading-snug text-slate-400">{note}</span>
         )}

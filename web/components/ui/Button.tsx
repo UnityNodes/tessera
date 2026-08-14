@@ -5,17 +5,26 @@ import { forwardRef } from "react";
 type Variant = "chisel" | "quiet" | "ghost";
 type Size = "sm" | "md";
 
+/** The touch target: a mouse hits thirty pixels, a finger does not. */
 const TOUCH = "min-h-11 sm:min-h-0 ";
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
+  /** A button across the full width of the block, the main action of the screen. */
   block?: boolean;
+  /** A transaction is on its way: show the ring and lock the button. */
   loading?: boolean;
 }
 
 /**
+ * The skin of the main action, separate from the button itself.
  *
+ * Needed by the places where being a button is not allowed: inside a <summary>
+ * a nested button is interactive inside interactive, and the keyboard breaks on
+ * it. Such places used to just repeat these classes locally, and the skin began
+ * to drift apart: in StartHere it already had a different shadow size. One
+ * source, one button for the whole site.
  */
 export const chiselSkin = (size: Size = "md") =>
   `${size === "sm" ? `${TOUCH}px-4 py-2 text-xs` : "px-6 py-4 text-base"} ` +
@@ -26,9 +35,21 @@ export const chiselSkin = (size: Size = "md") =>
   "hover:brightness-110 hover:shadow-[var(--glow-accent-lift)]";
 
 /**
+ * The button.
  *
+ * The main action in this language is solid turquoise with black text and its
+ * own light around it: on a dark page it is the only thing that glows, which is
+ * why it is seen before anything else. Hover adds light and lifts the button by
+ * two percent, a motion small by exactly enough to read as a response rather
+ * than a jump.
  *
+ * The second action does not argue with the first: a dim slab with a border
+ * that takes on turquoise on hover. The third is nothing but a patch under the
+ * text.
  *
+ * The "loading" state has its own look, because in this game it lasts a long
+ * time, six to eight seconds for the decryption. The ring spins evenly and
+ * promises no remaining time we do not know.
  */
 export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
   { variant = "chisel", size = "md", block, loading, className = "", children, disabled, ...rest },
@@ -68,6 +89,8 @@ export const Button = forwardRef<HTMLButtonElement, Props>(function Button(
   return (
     <button
       ref={ref}
+      // Without this the browser sets type="submit": inside any form the "open a
+      // case" button would submit it instead of doing its own action.
       type="button"
       disabled={disabled || loading}
       style={loading ? { cursor: "progress" } : undefined}

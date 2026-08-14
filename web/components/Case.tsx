@@ -93,6 +93,8 @@ export function Case({ phase, value, deck, size = 340, onClick, vault, skin, art
       className="relative grid w-full place-items-center"
       style={{ maxWidth: size, aspectRatio: "1 / 1" }}
     >
+      {/* The flash. Loud on a prize, almost silent on an empty one, so that the
+          hand knows the result before the eyes read the caption. */}
       {spec && !still && (
         <motion.div
           aria-hidden
@@ -177,8 +179,21 @@ export function Case({ phase, value, deck, size = 340, onClick, vault, skin, art
             <DeckHero deck={deck} size={size * 0.8} skin={skin} art={art} />
           )}
 
+          {/* The prize comes out of the chest.
 
+              This is the moment everything else exists for: the lid is thrown
+              back, light strikes from inside, and what lay in the box rises out
+              of it, the same item as in the opening scene.
 
+              An empty slot lifts no item: there is nothing to lift. The chest
+              itself speaks for it, open, with a ticket inside, and the caption
+              below it. */}
+          {/* A shard carries no item out, and that is not a gap: exactly two
+              things are drawn, a ticket and a vault bag. A whole ticket with a
+              zero on it would promise what the player does not have yet; a
+              shard becomes a ticket only as the fifth one. So only the shards
+              fly out of the chest, and the caption says the rest. The opening
+              scene does the same. */}
           {spec && won && !isShard(spec) && !still && (
             <Prize
               spec={spec}
@@ -192,6 +207,8 @@ export function Case({ phase, value, deck, size = 340, onClick, vault, skin, art
         </motion.div>
       </motion.button>
 
+      {/* The prize in words. The slot number never appears here: it is an
+          accounting unit of an encrypted deck and says nothing to a player. */}
       {spec && (
         <motion.div
           className="absolute inset-x-0 bottom-0 text-center"
@@ -199,6 +216,9 @@ export function Case({ phase, value, deck, size = 340, onClick, vault, skin, art
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.5 }}
         >
+          {/* The number is not duplicated: it has already been lifted out of the
+              chest on the token. Only the tier name stays here, the thing the
+              token does not carry. */}
           <div className="t-inscription text-xs" style={{ color: spec.ink }}>
             {isVault(spec)
               ? spec.name

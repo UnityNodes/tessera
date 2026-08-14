@@ -1,9 +1,12 @@
 interface PanelProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** A small caption above, like a label on a museum display. */
   label?: string;
   children: React.ReactNode;
 }
 
 /**
+ * The panel. One for the whole interface: the same translucent background, the
+ * same border, the same corner, everything described in .slab.
  */
 export function Panel({ label, children, className = "", ...rest }: PanelProps) {
   return (
@@ -19,7 +22,12 @@ export function Panel({ label, children, className = "", ...rest }: PanelProps) 
 }
 
 /**
+ * A "name and value" row.
  *
+ * The value is always monospaced: everything that came from the chain should
+ * look like a figure that can be checked. The row itself is a separate tile on a
+ * deeper background, like the drop table in the reference: that way the "name
+ * and number" pair stays a pair even when there are a dozen rows in a run.
  */
 export function DataRow({
   name,

@@ -19,11 +19,31 @@ import { fitsBudget, specFor, totalWeight, WEIGHT_PER_TICKET } from "@/lib/deck"
 import type { DeckInfo } from "@/hooks/useDeck";
 
 /**
+ * A fresh copy of a deck with the same drop table.
  *
+ * An already cut deck cannot be reshuffled, not here and not anywhere, and
+ * that is not an omission. The cards are shuffled once, encrypted, and that
+ * order stands to the last slot: the pool players paid into is not
+ * rewritten under them. So renewing a deck always means a NEW deck beside
+ * it, and the old one stays played out forever.
  *
+ * What gets copied is exactly what is written in the chain: the size, the
+ * tier table and how many slots open the vault. Nothing "almost the same"
+ * can live here, otherwise the copy would promise something the original
+ * did not.
  *
+ * Why the button is absent on other people's decks: `createDeck` sets the
+ * creator to zero. A copy of someone else's deck made from here would pay
+ * its share to nobody, that is, would quietly take from the creator what
+ * they paid for. A creator renews their own deck themselves, through
+ * /create, and the share stays theirs.
  *
+ * And the button is absent on decks whose table does not fit the budget.
+ * Those are left over from the old rule that forgot to subtract the vault
+ * share: the contract now rejects their copy, and offering it would lead
+ * the owner into a revert. Such a deck can only be renewed with a NEW table.
  *
+ * @param vaultShareBps the share of the fee that goes into vaults, right now.
  */
 export function canRecut(deck: DeckInfo, vaultShareBps: number): boolean {
   return !deck.creator && deck.tiers.length > 0 && fitsBudget(deck, vaultShareBps);
@@ -53,6 +73,7 @@ export function RecutPanel({ deck, onDone }: { deck: DeckInfo; onDone?: () => vo
     [deck.tiers],
   );
 
+  // The Inco fee for a shuffle, in ETH, and it depends on the deck size.
   const fee = useReadContract({
     address: DECK_ADDRESS,
     abi: TESSERA_DECK_ABI,
@@ -64,6 +85,9 @@ export function RecutPanel({ deck, onDone }: { deck: DeckInfo; onDone?: () => vo
     if (!address) return;
     setState({ phase: "signing" });
     try {
+      // Take the shuffle price right before sending rather than from the panel:
+      // between the page load and the signature Inco could have changed the
+      // tariff, and the transaction would fail underpaid inside the wallet.
       const incoFee = (await readContract(config, {
         address: DECK_ADDRESS,
         abi: TESSERA_DECK_ABI,
@@ -85,6 +109,9 @@ export function RecutPanel({ deck, onDone }: { deck: DeckInfo; onDone?: () => vo
       const receipt = await waitForTransactionReceipt(config, { hash });
       if (receipt.status !== "success") throw new Error("The transaction reverted on chain");
 
+      // The copy number comes from an event in OUR OWN receipt. deckCount()
+      // after the transaction would show somebody else's deck if another
+      // person cut theirs in the same block.
       const made = parseEventLogs({
         abi: TESSERA_DECK_ABI,
         eventName: "DeckCreated",
@@ -103,7 +130,7 @@ export function RecutPanel({ deck, onDone }: { deck: DeckInfo; onDone?: () => vo
   return (
     <div className="w-full rounded-[var(--radius-control)] border border-slate-800 bg-slate-950 p-4">
       <p className="text-sm leading-relaxed text-slate-300">
-        This does not refill deck #{deck.id}, nothing can. It cuts a{" "}
+        This does not refill deck #{deck.id}; nothing can. It cuts a{" "}
         <strong className="text-white">new deck</strong> with the same size, the same drop table and
         the same vault rule, and gives it the next number. Deck #{deck.id} stays exactly as it is.
       </p>
@@ -173,7 +200,10 @@ export function RecutPanel({ deck, onDone }: { deck: DeckInfo; onDone?: () => vo
 }
 
 /**
+ * The tier table on one line, in the same words as on the case page.
  *
+ * Showing raw upTo/weight would mean asking the owner to check the copy
+ * against the original in numbers that appear nowhere on a player's screen.
  */
 function describe(deck: DeckInfo): string {
   return deck.tiers

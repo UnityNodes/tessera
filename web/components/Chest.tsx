@@ -232,8 +232,10 @@ export function Chest({
   /** The lid thrown back, light and tickets inside. The moment of the result. */
   open?: boolean;
   /** The deck's skin. Overrides the rung's colour, but only where the case
+      ITSELF is shown, not its contents. */
   skin?: string;
   /** A picture uploaded by the creator. Overrides the skin too: this is no
+      longer "a case of that colour" but this deck's own image. */
   art?: string;
   className?: string;
 }) {

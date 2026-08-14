@@ -39,8 +39,19 @@ export function MegapotPanel({ mp }: { mp: ReturnType<typeof useMegapot> }) {
         </span>
       </div>
 
+      {/* "your tickets" moved from here into the wallet panel, together with
+          the rest of what is yours. The number was the same one from the same
+          hook, and showing it twice within two clicks of each other meant
+          asking the reader whether those might be different numbers.
 
+          "liquidity behind it" went away entirely. The Megapot liquidity pool
+          is a real number from the chain, but it changes no decision of the
+          player and explains nothing about their ticket. A number that stands
+          there only to make the panel look weighty is noise, however real it
+          may be.
 
+          Two are left: how much is in the pot, because that is the very lottery
+          the ticket was bought into, and the state of the draw. */}
       <DataRow
         name="draw"
         value={mp.stalled ? "stalled" : new Date(mp.endsAt).toUTCString().slice(5, 22)}
@@ -66,7 +77,7 @@ export function MegapotPanel({ mp }: { mp: ReturnType<typeof useMegapot> }) {
         </div>
       ) : mp.stalled ? (
         <p className="mt-5 border-t border-slate-800 pt-4 text-sm leading-relaxed text-slate-300">
-          Megapot&apos;s testnet draw is frozen, <span className="t-chain">runJackpot()</span>{" "}
+          Megapot&apos;s testnet draw is frozen: <span className="t-chain">runJackpot()</span>{" "}
           reverts even for its owner, so no winner is picked here. Your ticket is a real
           purchase against the real contract; it just has nothing to play in on Sepolia.
           On Base mainnet the same contract draws every day.
@@ -74,7 +85,7 @@ export function MegapotPanel({ mp }: { mp: ReturnType<typeof useMegapot> }) {
       ) : (
         <p className="mt-5 border-t border-slate-800 pt-4 text-sm leading-relaxed text-slate-300">
           Nothing to withdraw yet. If your ticket wins, the button to claim it appears
-          right here, you never have to leave.
+          right here, and you never have to leave.
         </p>
       )}
     </div>

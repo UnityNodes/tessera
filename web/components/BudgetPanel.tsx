@@ -124,7 +124,7 @@ export function BudgetPanel({ decks, owner }: { decks: DeckInfo[]; owner: boolea
           label="ceiling"
           value={
             maxShare == null
-              ? "the running logic cannot say, switch it first"
+              ? "the running logic cannot say; switch it first"
               : `the vault may take at most ${maxShare / 100}%`
           }
         />
@@ -135,7 +135,7 @@ export function BudgetPanel({ decks, owner }: { decks: DeckInfo[]; owner: boolea
         style={{ color: covered ? "var(--color-accent-hover)" : "var(--color-danger)" }}
       >
         {covered
-          ? `Covered, ${usd(funded - promised)} of slack.`
+          ? `Covered, with ${usd(funded - promised)} of slack.`
           : `Short by ${usd(promised - funded)}. Every prize on the board is not backed by money yet.`}
       </p>
 
@@ -156,7 +156,7 @@ export function BudgetPanel({ decks, owner }: { decks: DeckInfo[]; owner: boolea
             />
             {tooBig && (
               <p className="mt-2 text-sm text-[var(--color-danger)]">
-                Above the ceiling, the contract will refuse it. Prizes already promised are paid
+                Above the ceiling; the contract will refuse it. Prizes already promised are paid
                 out of what the vault does not take.
               </p>
             )}
@@ -186,7 +186,7 @@ export function BudgetPanel({ decks, owner }: { decks: DeckInfo[]; owner: boolea
 
       {state.phase === "done" && (
         <p className="mt-3 text-sm" style={{ color: "var(--color-accent-hover)" }}>
-          Set. Vaults already filled keep what they hold, only the split from here on changes.
+          Set. Vaults already filled keep what they hold; only the split from here on changes.
         </p>
       )}
       {state.error && <p className="mt-3 text-sm text-[var(--color-danger)]">{state.error}</p>}

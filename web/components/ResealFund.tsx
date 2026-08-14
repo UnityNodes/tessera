@@ -12,9 +12,22 @@ import { explain } from "@/lib/errors";
 import type { DeckInfo } from "@/hooks/useDeck";
 
 /**
+ * The reshuffle fund.
  *
+ * A deck reshuffles itself, when it has been played out or when the vault
+ * has been carried out of it. But a shuffle is not free: `shuffledRange`
+ * pays Inco covalidators in native ETH, exactly `deckFee(size)` per cut.
+ * The game, meanwhile, earns in the ticket token and cannot paint itself
+ * any ETH.
  *
+ * So the fund is the plain contract balance, and anyone can top it up with
+ * a simple transfer: no permission and no owner are needed for that. The
+ * panel sits in moderation not because rights live there, but because that
+ * is where the game is actually looked after.
  *
+ * An empty fund breaks nothing: the deck plays out to the end and stops
+ * exactly the way it always stopped. So there is no alarm here and no red,
+ * only a number, how many shuffles are paid for.
  */
 export function ResealFund({ decks }: { decks: DeckInfo[] }) {
   const config = useConfig();
@@ -25,6 +38,10 @@ export function ResealFund({ decks }: { decks: DeckInfo[] }) {
 
   const balance = useBalance({ address: DECK_ADDRESS, query: { refetchInterval: 15_000 } });
 
+  // The shuffle price depends on the deck size, so ask the chain about each
+  // one. Counting "by the largest" would look more honest and be worse in
+  // substance: the decks that reshuffle are the ones playing out, and those
+  // are mostly the small ones.
   const fees = useReadContracts({
     contracts: decks.map(
       (d) =>
@@ -77,7 +94,7 @@ export function ResealFund({ decks }: { decks: DeckInfo[] }) {
         <span>Reseal fund</span>
       </h2>
       <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300">
-        A deck deals itself again when its last card is drawn or when its vault is taken, nobody
+        A deck deals itself again when its last card is drawn or when its vault is taken. Nobody
         triggers it, the contract does it inside the next player&rsquo;s transaction. Dealing costs
         ETH, paid to the Inco covalidators who shuffle the cards, and it comes out of this balance.
         Anyone can top it up; when it runs dry the decks simply end, exactly as they used to.

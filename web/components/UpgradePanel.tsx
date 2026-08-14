@@ -12,13 +12,27 @@ import { DECK_ADDRESS, addressUrl, txUrl } from "@/lib/chain";
 import { explain } from "@/lib/errors";
 
 /**
+ * The ERC-1967 slot where the proxy keeps the logic address.
  *
+ * We read the storage itself rather than make some call: a proxy has no "show
+ * me the implementation" function, and it should not have one, otherwise every
+ * contract would pay for it in bytes.
  */
 const IMPL_SLOT = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc" as const;
 
 /**
+ * Switch the game to new logic.
  *
+ * Only the owner has the right to do this, as `_authorizeUpgrade` in the
+ * contract says, and the button here adds nothing to that: without the right
+ * wallet the transaction simply will not go through. The moderation page
+ * already asks the chain for `owner()`, which is why the panel lives here.
  *
+ * Why this is a separate button at all rather than a script's job: anyone can
+ * deploy the code, but the owner decides. The deployer does not hold the
+ * owner's key on purpose, otherwise the proxy would mean not "fixes without
+ * wiping the board" but "whoever assembled it changes the rules under slots
+ * that have already been sold".
  */
 export function UpgradePanel({ owner }: { owner: boolean }) {
   const config = useConfig();
@@ -45,6 +59,9 @@ export function UpgradePanel({ owner }: { owner: boolean }) {
   const run = useCallback(async () => {
     setState({ phase: "signing" });
     try {
+      // Simulate first. Being wrong here is expensive: an address with no code,
+      // or somebody else's contract in that slot, is a game that stops working
+      // for everyone at once.
       const sim = await simulateContract(config, {
         address: DECK_ADDRESS,
         abi: TESSERA_DECK_ABI,
@@ -78,7 +95,7 @@ export function UpgradePanel({ owner }: { owner: boolean }) {
       </h2>
       <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300">
         The game sits behind a proxy, so changing the rules replaces the logic and leaves the board
-        alone, decks, slots, vaults and open battles all stay exactly where they are. Only the
+        alone: decks, slots, vaults and open battles all stay exactly where they are. Only the
         owner can switch it.
       </p>
 

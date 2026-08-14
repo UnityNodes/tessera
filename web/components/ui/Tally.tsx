@@ -1,5 +1,10 @@
 /**
+ * A number with a caption, the right hand side of any header.
  *
+ * The setting comes from the system: an Orbitron caption, small and tracked out,
+ * with the number itself below it in the same Orbitron, heavy. It lived in the
+ * arena and was repeated across pages with small deviations; now there is one
+ * for all.
  */
 export function Tally({
   label,
@@ -10,6 +15,7 @@ export function Tally({
   label: string;
   value: string | number;
   ink?: string;
+  /** A small line under the number, when the number alone leaves something unsaid. */
   note?: string;
 }) {
   return (

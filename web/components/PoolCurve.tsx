@@ -4,9 +4,21 @@ import { useMemo } from "react";
 import type { OpenEvent } from "@/hooks/useOpens";
 
 /**
+ * How the deck pool drained.
  *
+ * Horizontally, real time in block numbers; vertically, how many slots
+ * have been drawn. The line can only fall: the pool is drawn from without
+ * return, and the curve draws exactly the rule the game rests on.
  *
+ * Time comes from blocks rather than from even steps of "one open, one
+ * pixel". Even steps would lie about the thing that matters: a batch of
+ * ten opens in a minute would look the same as ten opens over a week. And
+ * the difference between those two is the difference between a live deck
+ * and an abandoned one.
  *
+ * No charting library. There are two tags here, `polygon` and `polyline`;
+ * Recharts, which drags Tremor along with it, weighs more than the whole
+ * page, for a line that has no axes, no tooltips and no legend.
  */
 export function PoolCurve({
   deckId,
@@ -15,14 +27,21 @@ export function PoolCurve({
   opens,
   ink,
   height = 22,
+  /** The "half gone" and "empty" dashes. At the strip height they are dirt. */
   guides = false,
   className,
 }: {
   deckId: number;
   /**
+   * The cut number. The curve draws THIS pool, not every previous one at once.
    *
+   * A deck reshuffles itself when it has been played out or when the vault
+   * has been taken from it. Without this the curve would stay lying on the
+   * floor after every reshuffle even though the pool is full: the old opens
+   * in the history do not go anywhere.
    */
   cut?: number;
+  /** How many slots the deck holds. The vertical is measured by it. */
   size: number;
   opens: OpenEvent[];
   ink: string;
@@ -42,6 +61,8 @@ export function PoolCurve({
     const b0 = Number(mine[0].block);
     const span = Math.max(1, Number(mine[mine.length - 1].block) - b0);
 
+    // Start from a full pool at zero, otherwise the curve begins already
+    // broken and the first open is lost.
     const pts: [number, number][] = [[0, 0]];
     mine.forEach((e, i) => {
       pts.push([((Number(e.block) - b0) / span) * W, ((i + 1) / size) * H]);
@@ -52,6 +73,9 @@ export function PoolCurve({
     return { line, area: `0,0 ${line} ${W},${endY} ${W},0`, end: pts[pts.length - 1] };
   }, [deckId, cut, size, opens, H]);
 
+  // The deck has not been opened yet, so show an empty track of the same
+  // height rather than nothing: otherwise the card would jump in layout
+  // while the events are on their way.
   if (!path) {
     return (
       <div
@@ -71,7 +95,15 @@ export function PoolCurve({
         </linearGradient>
       </defs>
 
+      {/* The scale, without which the curve means nothing: a line just under the
+          top edge reads as "almost nothing" only when the floor is visible. The
+          upper dash is half the deck, the lower one is the end.
 
+          Lines alone, with no captions inside the SVG. A caption there would
+          have to be set at eight pixels, and the site has no text smaller than
+          twelve: that is a rule of its own, and the audit checks it on EVERY
+          text node, including those in SVG. What those two lines mean is said by
+          the number above the curve: "100 of 200 sealed". */}
       {guides && (
         <>
           <line x1="0" y1={H / 2} x2={W} y2={H / 2} stroke="currentColor" strokeOpacity="0.18"
@@ -81,6 +113,8 @@ export function PoolCurve({
         </>
       )}
 
+      {/* What has been drawn is the area on top: it grows downward, as what is
+          already gone should grow. */}
       <polygon points={path.area} fill={`url(#${id})`} />
       <polyline points={path.line} fill="none" stroke={ink} strokeWidth={guides ? 2 : 1.6}
                 strokeLinejoin="round" strokeLinecap="round" />

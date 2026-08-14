@@ -84,6 +84,7 @@ export function DemoPlayer({
 
   return (
     <div className="mt-9 grid gap-5 lg:grid-cols-[1.62fr_1fr]">
+      {/* -- the player ------------------------------------------------- */}
       <div>
         <div
           className="relative overflow-hidden rounded-[var(--radius-panel)] border bg-black"
@@ -107,6 +108,8 @@ export function DemoPlayer({
             onEnded={() => setPlaying(false)}
           />
 
+          {/* The big button over the poster, until we have started. After that it
+              disappears, so as not to cover what people came for. */}
           {!started && (
             <button
               type="button"
@@ -130,6 +133,11 @@ export function DemoPlayer({
             </button>
           )}
 
+          {/* The duration and the hint about sound, only before the start. The
+              film is narrated, and a viewer has to know that before deciding
+              there is no sound. After that the badge goes away: the native
+              controls are down there now, and putting something of ours over
+              them would mean taking buttons away again. */}
           {!started && (
             <span className="pointer-events-none absolute left-3 top-3 rounded-[var(--radius-chip)] bg-black/70 px-3 py-1.5">
               <span className="t-chain text-xs font-bold text-white">
@@ -169,6 +177,7 @@ export function DemoPlayer({
         </div>
       </div>
 
+      {/* -- chapters ---------------------------------------------------- */}
       <div className="rounded-[var(--radius-panel)] border border-slate-800 bg-slate-950/40 p-3">
         <div className="flex items-baseline justify-between px-3 pb-2 pt-1">
           <span className="t-label text-[var(--color-ink-dim)]">chapters</span>
@@ -176,6 +185,8 @@ export function DemoPlayer({
             {chapters.length} · {clock(total || 110)}
           </span>
         </div>
+        {/* No height limit: a chapter cropped mid sentence reads as an unfinished
+            page, and a panel taller than the player does not. */}
         <ol className="flex flex-col gap-1">
           {chapters.map((c, i) => {
             const on = i === active && started;

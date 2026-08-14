@@ -1,7 +1,22 @@
 /**
+ * A state in a single pill.
  *
+ * It stands both in an arena row and in the header of an individual battle, so
+ * that what a person clicked in the list is called the same on the page they
+ * landed on.
  *
+ * "Running" is no longer red. All seven error messages in this interface are set
+ * in red, and a battle that is running RIGHT NOW was highlighted in the same
+ * colour as a transaction that had just failed. Now it is white, and "now" is
+ * said by the pulse next to it: motion is a signal no other state has, and it
+ * does not borrow meaning from colour.
  *
+ * Five states, five different looks, no overlap:
+ *   waiting  gold
+ *   running  white with a pulse
+ *   won      green
+ *   lost     grey
+ *   settled  quiet
  */
 export type Status = "waiting" | "live" | "won" | "lost" | "done";
 
@@ -19,6 +34,7 @@ export function StatusPill({
   className = "",
 }: {
   status: Status;
+  /** Its own state name, when on this screen it is more precise than the general one. */
   children?: React.ReactNode;
   className?: string;
 }) {

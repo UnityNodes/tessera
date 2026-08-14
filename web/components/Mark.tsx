@@ -64,6 +64,9 @@ export function Mark({
 
       {!simple && (
         <defs>
+          {/* One mask per document, and that is not an oversight. The full mark
+              stands on the page exactly once, in the header; the simplified
+              footer one has no mask at all. */}
           <mask id="tessera-mark-slot">
             <rect x="32" y="53" width="15" height="15" rx="3" fill="#fff" />
             <rect x="37" y="58" width="5" height="5" rx="1" fill="#000" />
@@ -71,6 +74,7 @@ export function Mark({
         </defs>
       )}
 
+      {/* Still in the pool. */}
       <g fill="currentColor" opacity={0.62}>
         <rect x="74" y="11" width="15" height="15" rx="3" />
         <rect x="53" y="32" width="15" height="15" rx="3" />
@@ -83,6 +87,7 @@ export function Mark({
         <rect x="74" y="74" width="15" height="15" rx="3" />
       </g>
 
+      {/* The one being opened right now: the only one at full brightness. */}
       <rect
         x="32"
         y="53"
@@ -93,6 +98,7 @@ export function Mark({
         mask={simple ? undefined : "url(#tessera-mark-slot)"}
       />
 
+      {/* Already drawn, the frame alone. */}
       {!simple && (
         <g fill="none" stroke="currentColor" strokeOpacity={0.3} strokeWidth="1.3">
           <rect x="11" y="11" width="15" height="15" rx="3" />

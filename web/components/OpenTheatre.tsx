@@ -54,7 +54,7 @@ const ROLL_H = 204;
  * only smaller.
  */
 function rollScale(n: number, viewport: number) {
-  const room = viewport * 0.82 - 90; //
+  const room = viewport * 0.82 - 90; // minus the caption above and below
   return Math.max(0.26, Math.min(1, room / (n * (ROLL_H + 8))));
 }
 
@@ -165,6 +165,9 @@ export function OpenTheatre({
           aria-modal="true"
           aria-label="Opening a case"
         >
+          {/* The backdrop is not merely dark, it also blurs the page beneath it,
+              otherwise the headings read through it and the scene stays an
+              overlay rather than a frame of its own. */}
           <div
             className="absolute inset-0"
             style={{
@@ -173,7 +176,14 @@ export function OpenTheatre({
             }}
           />
 
+          {/* The pillar of light from under the lid. Before the opening it does
+              not exist at all.
 
+              The gradient fades vertically, but horizontally it faded with
+              nothing: twenty six pixels of blur on a strip thirty rem wide is
+              not a fade but a slightly softer corner. On screen stood a green
+              rectangle with visible sides. Now a mask eats the sides, and the
+              strip really does read as a beam. */}
           <AnimatePresence>
             {opened && won && (
               <motion.div
@@ -194,6 +204,14 @@ export function OpenTheatre({
             )}
           </AnimatePresence>
 
+          {/* A batch is its own genre, not the same frame n times.
+              A single open rests on the chest opening full screen once the strip
+              has stopped: one thing, one moment. Ten such moments in a row are
+              impossible, so what stays in a batch is the main thing, the roll,
+              and it runs one strip per case. They brake together: the
+              covalidators hand over every value in a single answer, and
+              pretending they arrive one by one would add a lie to the one place
+              in the game that fakes nothing. */}
           {open.batch ? (
             <div className="relative flex max-h-[80vh] w-full flex-col items-center gap-2 px-6 pb-8">
               <p className="t-label mb-1">
@@ -201,6 +219,12 @@ export function OpenTheatre({
                   ? `${open.batch.length} cases opened`
                   : `opening ${open.batch.length} cases`}
               </p>
+              {/* We do not rebuild the strip for a batch, we SCALE it.
+                  All of its geometry, the step, the stop, the marker position,
+                  is computed from the ITEM constant; touching that arithmetic
+                  so that ten strips fit the window means risking the one
+                  animation in the game that proves something. A CSS scale
+                  changes nothing inside it. */}
               {opened && allLanded ? (
                 /* The reveal moment for a batch.
                  *
@@ -329,7 +353,15 @@ export function OpenTheatre({
             </div>
           ) : (
           <div className="relative flex w-full flex-col items-center px-6 pb-10">
+            {/* The strip runs first, and only when it has stopped does the chest
+                open. This is a sequence, not two ways of showing one thing: the
+                roll holds the six to eight seconds we cannot shorten, and the
+                chest shows what came of them.
 
+                That is also why the strip is no longer on the page: there it
+                stood as a reference about the contents and took up half the
+                screen, while it became an event for exactly two seconds of the
+                whole session. */}
             {!opened ? (
               <div className="w-full">
                 <Roll
@@ -363,6 +395,18 @@ export function OpenTheatre({
                   <Chest rarity={spec?.rarity ?? "sealed"} size={520} open />
                 </div>
 
+                {/* The prize rises from inside: what the player came to take has
+                    to come out of the chest rather than simply appear as a
+                    caption under it. It starts where the tickets lie in the
+                    picture and goes up along the same pillar of light that is
+                    already drawn. The delay waits for the chest to arrive. */}
+                {/* A shard carries no item out, and that is not a gap.
+                    There is nothing to carry it with: exactly two things are
+                    drawn, a ticket and a vault bag. Showing a whole ticket with
+                    a zero on it would promise what the player does not have
+                    yet; a shard becomes a ticket only as the fifth one. So only
+                    the shards fly out of the chest, and the caption says the
+                    rest. */}
                 {won && !isShard(spec!) && (
                   <Prize
                     spec={spec!}
@@ -376,6 +420,8 @@ export function OpenTheatre({
               </motion.div>
             )}
 
+            {/* The shards fly only when there is something to fly: an empty case
+                does not explode, it simply opens. */}
             {opened && won && !still && <Shards ink={spec!.ink} />}
 
             <div className="relative mt-10 min-h-[9rem] text-center">
@@ -389,6 +435,19 @@ export function OpenTheatre({
                 >
                   {opened && spec ? (
                     <>
+                      {/* The number has already been lifted out of the chest on
+                          the token, so what stands here is what the token does
+                          not carry: the tier name. The same number twice side by
+                          side adds nothing but noise. */}
+                      {/* An empty case DOES NOT EXIST in an ordinary open.
+                          The dollar bought a real Megapot ticket in that same
+                          transaction, and it is already yours; the case comes on
+                          top. So "empty" across the whole screen was simply
+                          untrue: it said "you got nothing" to someone who had
+                          just got a ticket.
+                          "Empty" stays where it is honest: in a risk there is no
+                          ticket, and there an empty slot really does mean
+                          zero. */}
                       <p
                         className="t-display text-[clamp(2.4rem,6.5vw,4rem)] leading-none"
                         style={{
@@ -420,6 +479,8 @@ export function OpenTheatre({
                           ? "buying your ticket"
                           : "the covalidators are decrypting"}
                       </p>
+                      {/* Three breathing dots instead of a progress bar:
+                          exactly as much truth as we have about this time. */}
                       <span className="mt-4 flex justify-center gap-2">
                         {[0, 1, 2].map((i) => (
                           <span
@@ -448,7 +509,12 @@ export function OpenTheatre({
 }
 
 /**
+ * Shards out of an opened chest.
  *
+ * The angles and distances come from a table rather than Math.random:
+ * random numbers at render time would give a different layout on the
+ * server and in the browser, and React would throw a hydration error at
+ * exactly the moment of the prize.
  */
 const SHARDS = [
   { dx: -210, dy: -150, d: 0, s: 9 },

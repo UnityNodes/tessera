@@ -78,6 +78,9 @@ export function Drops({ deck, drawn, pool }: { deck: DeckShape; drawn: number; p
                 <span className="block truncate text-sm font-bold leading-tight" style={{ color: t.spec.ink }}>
                   {t.spec.name}
                 </span>
+                {/* The tier caption in white rather than the quietest grey: this
+                    is the row the table is looked at for, what this tier gives.
+                    It was 11 pixels in #5f7368. */}
                 <span className="block truncate text-xs leading-tight text-slate-300">
                   {t.spec.note}
                 </span>
@@ -100,13 +103,13 @@ export function Drops({ deck, drawn, pool }: { deck: DeckShape; drawn: number; p
 
       <p className="mt-4 border-t border-slate-800 pt-3 text-sm leading-relaxed text-slate-200">
         {!pool ? (
-          <>Counting what is still in the pool, every opened slot is public, so this is arithmetic anyone can repeat.</>
+          <>Counting what is still in the pool: every opened slot is public, so this is arithmetic anyone can repeat.</>
         ) : prizesLeft === 0 ? (
           <>Every prize in this deck has been drawn. What is left pays no bonus.</>
         ) : (
           <>
             <span className="t-chain font-bold text-white">{(odds * 100).toFixed(1)}%</span> of the
-            unopened slots still carry a bonus. Nobody set that number, it is what remains after{" "}
+            unopened slots still carry a bonus. Nobody set that number; it is what remains after{" "}
             {pool.drawn} opens.
           </>
         )}
