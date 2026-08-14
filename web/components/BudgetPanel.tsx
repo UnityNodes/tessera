@@ -13,12 +13,24 @@ import type { DeckInfo } from "@/hooks/useDeck";
 
 const deck = { address: DECK_ADDRESS, abi: TESSERA_DECK_ABI } as const;
 
+/** Megapot's referral commission: ten cents on the dollar. */
 const COMMISSION_PER_OPEN = 100_000n;
 
 /**
+ * Whether there is enough money for the prizes the decks have already promised.
  *
+ * Not an accounting question but the most important one in the game. A player's
+ * dollar goes whole into Megapot and buys a real ticket; what comes back is only
+ * the referral commission, ten cents. That is the ONLY money the game has. Part
+ * settles in the vaults, the rest buys bonus tickets.
  *
+ * So the sum of all promised weight, divided by five, is the game's promise in
+ * dollars, and it has to fit inside the treasury share of the commission from
+ * ALL slots. If it does not, a player sees "+5 tickets", presses redeem and gets
+ * a TreasuryEmpty revert. Won, but cannot collect.
  *
+ * The panel shows both numbers side by side precisely because neither means
+ * anything alone: a promise without cover looks like generosity.
  */
 export function BudgetPanel({ decks, owner }: { decks: DeckInfo[]; owner: boolean }) {
   const config = useConfig();
@@ -34,6 +46,10 @@ export function BudgetPanel({ decks, owner }: { decks: DeckInfo[]; owner: boolea
       { ...deck, functionName: "budgetWeight" },
       { ...deck, functionName: "paidWeight" },
       { ...deck, functionName: "vaultShareBps" },
+      // We ask the chain rather than the build: behind a proxy the owner
+      // changes the logic in a separate transaction, and while the old logic is
+      // in place this function simply does not exist in the contract. A silent
+      // zero here would be worse than an honest "switch the logic first".
       { ...deck, functionName: "maxVaultShare" },
     ],
     query: { refetchInterval: 15_000 },

@@ -1,7 +1,20 @@
 /**
+ * The light under the page.
  *
+ * In the reference, depth comes from two or three large colour blooms under a
+ * blur-3xl: teal at the top right, blue at the bottom left. The same here, only
+ * across the whole document rather than inside one section: the bands under the
+ * header and the sections with their own background sit on top, so a bloom shows
+ * through exactly where the background is transparent.
  *
+ * The dust motes went away along with the mosaic grid: the reference language
+ * has no small moving particles at all, and they were the only thing arguing
+ * with the clean planes beneath them.
  *
+ * The blooms are green now and twice as quiet. The blue ones were the most
+ * visible fragment of the old language: they painted the whole hero teal, that
+ * is, in the colour the system reserves for action, while here it spoke about
+ * nothing.
  */
 
 const POOLS = [

@@ -10,20 +10,32 @@ export type CasePhase = "idle" | "waiting" | "opened";
 
 interface Props {
   phase: CasePhase;
+  /** The slot's value. Present only when phase === "opened". */
   value?: number;
   deck: DeckShape;
   size?: number;
   onClick?: () => void;
+  /** How much is in the deck's vault. Needed only when the vault is what dropped. */
   vault?: bigint;
   /**
+   * The deck's skin. Applies to the SEALED chest only.
    *
+   * Sealed is the case itself, and it has every right to look its own way. An
+   * open one already shows the prize, and a prize is coloured by its rung: a
+   * skin over it would misstate the rarity of what the person just drew.
    */
   skin?: string;
+  /** The deck's uploaded picture. Applies the same way, to the sealed chest only. */
   art?: string;
 }
 
 /**
+ * Shards flying out of an opened chest.
  *
+ * The angles and distances come from a table rather than Math.random: random
+ * numbers during a render would give different markup on the server and in the
+ * browser, and React would throw a hydration error at the exact moment the
+ * player is looking at their prize.
  */
 const SHARDS = [
   { dx: "-120px", dy: "-96px", d: "0ms", s: 7 },
@@ -39,14 +51,29 @@ const SHARDS = [
 ];
 
 /**
+ * The case on the opening screen.
  *
+ * Three phases, and the nature of time differs in each:
  *
+ *   idle      the chest is locked and cold, its rarity still unknown
+ *   waiting   two dashed rings turn towards each other, 5.9 to 8.6 s,
+ *             and they can do so indefinitely
+ *   opened    a flash, shards, and the chest of whatever rung dropped
  *
+ * The ceiling on that time is not ours: there are two covalidators and the
+ * quorum is 2 of 2. So the waiting phase has no percentage, no bar and no
+ * countdown. The rings turn evenly and hint at nothing about what is left, which
+ * is the only honest animation for a wait whose length you do not know.
  */
 export function Case({ phase, value, deck, size = 340, onClick, vault, skin, art }: Props) {
   const still = useReducedMotion();
   const spec = phase === "opened" && value != null ? specOf(value, deck) : null;
   const clickable = Boolean(onClick) && phase === "idle";
+  // isPrize rather than "tickets or vault". TESA gives zero tickets and is
+  // still a prize, since five make a real ticket. As long as that check was
+  // written inline here, a shard got the quiet flash of emptiness and not a
+  // single shard of its own, which means the scene greeted a prize as a miss.
+  // That is exactly why `lib/deck` has a shared `isPrize`.
   const won = Boolean(spec && isPrize(spec));
   const paid = spec ? spec.tickets : 0;
 
@@ -106,6 +133,10 @@ export function Case({ phase, value, deck, size = 340, onClick, vault, skin, art
         type="button"
         onClick={clickable ? onClick : undefined}
         disabled={!clickable}
+        // The main action of the case page is the chest itself. Inside the
+        // button there is only an image with aria-hidden, so without a name it
+        // was mute. The name changes with the state: before opening it is an
+        // action, after it is a result.
         aria-label={
           spec
             ? `Opened: ${spec.name}${spec.tickets > 0 ? `, ${ticketsLabel(paid)}` : ""}`
@@ -114,6 +145,8 @@ export function Case({ phase, value, deck, size = 340, onClick, vault, skin, art
               : "A sealed case"
         }
         className="relative grid place-items-center disabled:cursor-default"
+        // After opening, the chest rises to make room for the caption:
+        // otherwise "+5" lands right on the bottom face of the cube.
         style={{ marginBottom: spec ? size * 0.18 : 0 }}
         whileHover={clickable ? { y: -10, scale: 1.05 } : undefined}
         whileTap={clickable ? { y: 3, scale: 0.98 } : undefined}
@@ -129,8 +162,18 @@ export function Case({ phase, value, deck, size = 340, onClick, vault, skin, art
           {spec ? (
             <Chest rarity={spec.rarity} size={size * 0.86} open />
           ) : (
+            /* Until the case is opened, THE SAME as on the catalogue tile.
              *
+             * At first there was a single "sealed" chest here, an object the
+             * game does not have at all. Then I replaced it with a single chest
+             * of the best rung, which was closer and still not right: the tile
+             * shows the LADDER, every rung of the deck, and the page showed one.
+             * A person saw two chests in the catalogue and arrived at one, that
+             * is, at a different thing.
              *
+             * DeckHero is the same component as on the tile, and it works this
+             * out itself: with its own picture it shows that, without one it
+             * draws the ladder. */
             <DeckHero deck={deck} size={size * 0.8} skin={skin} art={art} />
           )}
 

@@ -6,9 +6,22 @@ import { slotsPerTier, specFor, VAULT_SPEC, type DeckShape } from "@/lib/deck";
 import type { PoolState } from "@/hooks/usePool";
 
 /**
+ * What is in the deck and how much of it is left.
  *
+ * One list instead of two. The case page used to show the same table twice:
+ * "still in the pool" at the top right and "case drops & what is left of them"
+ * under the grid, in different frames and different sizes, with the same rungs
+ * and the same numbers. A reader had to compare two tables to work out they were
+ * about one thing, and the page did not fit on a screen because of it.
  *
+ * This is the project's central claim, and it is not a marketing one. The deck
+ * is shuffled once and drawn without replacement, and every opened value is
+ * publicly revealed, so anyone can recompute the same thing and get the same
+ * figure. Not "a one percent chance" but "it has not been drawn yet, and this
+ * many slots are left".
  *
+ * The empty rung is in the list too, and labelled: without it the row becomes
+ * the very advertising this project differs from.
  */
 export function Drops({ deck, drawn, pool }: { deck: DeckShape; drawn: number; pool?: PoolState }) {
   const tiers = slotsPerTier(deck);
@@ -17,6 +30,9 @@ export function Drops({ deck, drawn, pool }: { deck: DeckShape; drawn: number; p
   const grout = specFor(0);
   const byWeight = new Map((pool?.tiers ?? []).map((t) => [t.weight, t.left]));
 
+  // The vault and emptiness weigh zero, so the pool counter does not count them;
+  // it counts by weight. We add them here, otherwise the row would say "vault: 1
+  // left" after it had already been drawn.
   const vaultLeft = deck.vaultUpTo > 0 && !pool?.vaultTaken ? deck.vaultUpTo : 0;
   const groutLeft = pool ? Math.max(0, pool.remaining - pool.prizesLeft - vaultLeft) : undefined;
 

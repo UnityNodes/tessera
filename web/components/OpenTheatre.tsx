@@ -10,25 +10,55 @@ import type { OpenState } from "@/hooks/useOpenCase";
 import type { PoolState } from "@/hooks/usePool";
 
 /**
+ * Opening, full screen.
  *
+ * The main moment of the game used to happen inside a panel: the chest stood in
+ * a frame, a strip spun beside it, a paragraph of text changed on the left.
+ * Everything worked and nothing carried weight, because the frame was the same
+ * one as a second earlier, and there was nowhere to take a pause for those six
+ * to eight seconds.
  *
+ * Here the frame changes completely. The page dims, the strip runs full screen,
+ * and when the value arrives it brakes on the slot that dropped. Then comes the
+ * chest of that rung, a column of light, and the prize rising through it.
  *
+ * Three things deliberately NOT done here:
  *
+ * There is no progress bar. The decryption happens in somebody else's service,
+ * we do not know how long it will take, and any bar would be a lie about time.
+ * Instead the marker's light grows: it reports "something is happening" and
+ * promises nothing.
  *
+ * The theatre does not trap you. Escape and a click on the backdrop close it at
+ * any time; the slot is already drawn and paid for, so leaving the scene does
+ * not mean losing the prize.
  *
+ * The chest in the result frame is the same one that spun in the strip, only
+ * open: the same angle, the lid thrown back, a column of light and tickets
+ * inside. Which is why the transition reads as "it was opened" rather than as a
+ * swapped picture.
  */
 
+/** The natural height of one strip: ITEM plus the caption under it. */
 const ROLL_H = 204;
 
 /**
+ * How much to shrink a strip when there are several.
  *
+ * Computed from the window's REAL height rather than in steps by count. I did
+ * try steps: 0.4 for a ten looked equally fine on a laptop and left half the
+ * screen empty on a monitor, because ten strips is two thousand pixels, and how
+ * many of them fit depends on the window rather than on the ten.
  *
+ * Scaling hides nothing: the objects are the same and in the same proportion,
+ * only smaller.
  */
 function rollScale(n: number, viewport: number) {
   const room = viewport * 0.82 - 90; //
   return Math.max(0.26, Math.min(1, room / (n * (ROLL_H + 8))));
 }
 
+/** The phases in which the scene stands on screen. */
 const LIVE = new Set(["confirming", "revealing", "landing", "done"]);
 
 export function OpenTheatre({
@@ -40,20 +70,42 @@ export function OpenTheatre({
 }: {
   open: OpenState;
   deck: DeckShape;
+  /** How much is in the deck's vault. Needed only when the vault is what dropped. */
   vault?: bigint;
+  /** How much of what is still in the pool: the strip is assembled from this. */
   pool?: PoolState;
   onClose: () => void;
 }) {
   const still = useReducedMotion();
   const on = LIVE.has(open.phase);
 
+  // The window height the strip scale is computed from. We listen for resize,
+  // because the scene outlives one frame: a player may maximise the window
+  // mid roll.
+  // Which strips have ALREADY stopped, as a set of handles rather than a counter.
   //
+  // Showing the result by phase is not allowed: the phase becomes "done" the
+  // moment the chain returns a value, and the strips keep braking for almost a
+  // second after that, so the cards landed on top of strips still moving.
   //
+  // A set precisely because a counter would have to be reset between batches,
+  // and a reset is a setState in an effect, that is, an extra cascade of
+  // renders. A new batch brings new handles and the condition becomes false by
+  // itself.
   const [landed, setLanded] = useState<Set<string>>(new Set());
   const allLanded = Boolean(open.batch?.every((b) => landed.has(b.handle)));
   /**
+   * Whether the strip has stopped, in a single open too.
    *
+   * The single theatre used to change the frame on a TIMER: the phase became
+   * "done" SETTLE_MS after the value arrived. That worked exactly as long as
+   * braking lasted a fixed 950 ms. Its duration is now computed from the
+   * distance to the right card, from 0.6 to 2.3 seconds, and a timer would
+   * disagree with the strip by a second and a half: the chest would open on top
+   * of a strip still moving.
    *
+   * So here and in a batch alike the frame is changed by the STRIP itself, when
+   * it has really stopped.
    */
   const rollDone = open.batch ? allLanded : landed.has(open.handle ?? "single");
 
@@ -66,7 +118,13 @@ export function OpenTheatre({
   const opened = open.phase === "done" && rollDone;
 
   /**
+   * While the strip is moving the scene cannot be closed.
    *
+   * The temptation to allow an exit at any time is understandable, since the
+   * slot is paid for and cannot be lost. But the full screen roll is what the
+   * player came for; leaving halfway means missing the one event of the game and
+   * seeing the result as a line in a panel. So closing unlocks exactly when the
+   * strip has stopped.
    */
   useEffect(() => {
     if (!on || !opened) return;
@@ -81,7 +139,14 @@ export function OpenTheatre({
   const won = Boolean(spec && isPrize(spec));
   const paid = spec ? spec.tickets : 0;
 
+  // The tension grows in steps rather than smoothly: three distinct levels read
+  // as "it started / it is running / here it comes", while a smooth ramp over
+  // eight seconds simply goes unnoticed.
   //
+  // These steps used to shake the strip itself. Shaking something already moving
+  // horizontally is not allowed: two motions in one element add up, and instead
+  // of "here it comes" you see a rendering glitch. So the steps moved to the
+  // marker, which stays put, and on it the growth reads.
   const tier =
     open.phase !== "revealing" || still ? 0 : open.waitedMs > 5200 ? 3 : open.waitedMs > 2400 ? 2 : 1;
 
@@ -137,15 +202,30 @@ export function OpenTheatre({
                   : `opening ${open.batch.length} cases`}
               </p>
               {opened && allLanded ? (
+                /* The reveal moment for a batch.
                  *
+                 * A single open has one: the strip stops and the chest opens
+                 * full screen. A batch had nothing, the strips simply stopped
+                 * and that was that. So it gets its own frame: the cards fly out
+                 * in steps, each in its own colour, the empty ones dimmed. Not
+                 * decoration: without that pause ten opens are
+                 * indistinguishable from a failed click. */
                 <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-4 px-2">
                   {open.batch.map((b, i) => {
                     const sp = b.value != null ? specOf(b.value, deck) : null;
                     const prize = Boolean(sp && isPrize(sp));
+                    // The size comes from the count: two chests may be almost
+                    // as large as in a single open, ten have to fit in a row.
+                    // There are deliberately no frames around them: in x1 the
+                    // object stands alone, and a square around it turned the
+                    // event into a table.
                     const chest = Math.max(84, Math.min(260, Math.round(1180 / open.batch!.length)));
                     return (
                       <motion.div
                         key={i}
+                        // A hook for the audit: the rung shown to the player.
+                        // The grid computes it from `b.value` and animates
+                        // nothing, so there is nothing here to drift.
                         data-opened={sp ? sp.name : ""}
                         initial={{ scale: 0.5, opacity: 0, y: 26 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -218,8 +298,17 @@ export function OpenTheatre({
                         pool={pool}
                         urgency={tier}
                         variant={i}
+                        // A shorter strip in batches, and much shorter than it
+                        // seems it should be.
                         //
+                        // The strip is drawn COPIES times, so the tile count is
+                        // five times its length. Measured: three strips of 40
+                        // gave 780 tiles and 600 images on screen, and the frame
+                        // rate fell to SEVEN. That is what looks like "jumping":
+                        // not a logic failure but a shortage of frames.
                         //
+                        // Seven or eight tiles are visible at a time, so a
+                        // shorter strip takes nothing away except load.
                         length={open.batch!.length > 5 ? 12 : open.batch!.length > 2 ? 16 : 24}
                         onLanded={() => setLanded((s) => new Set(s).add(b.handle))}
                       />
@@ -258,6 +347,11 @@ export function OpenTheatre({
                 initial={{ scale: 0.72, y: 20, opacity: 0 }}
                 animate={{ scale: 1, y: 0, opacity: 1 }}
                 transition={{ duration: 0.65, ease: [0.16, 0.84, 0.28, 1] }}
+                // The token lives here, inside the chest, rather than in the
+                // scene's column. It used to be measured from the height of the
+                // whole column, and that depends on how many lines the caption
+                // under the chest takes, so on a long caption the prize started
+                // from the front face instead of the interior.
                 className="relative"
               >
                 <div

@@ -4,10 +4,22 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Download, Play, Pause } from "lucide-react";
 
 /**
+ * The demo player with chapters.
  *
+ * The chapters are ADDED to the browser's own controls rather than replacing
+ * them.
  *
+ * I first did the opposite, my own buttons instead of the native ones, and the
+ * result was a worse player: no volume, no fullscreen, no scrubbing with the
+ * mouse. Four familiar things removed for the sake of one convenience.
  *
+ * The chapters solve what a standard scrubber cannot: on it every second looks
+ * the same, and a judge watching dozens of entries has to be able to jump
+ * straight to "how exactly Inco is used". That is a reason to ADD something, not
+ * to take something away.
  *
+ * There is no autoplay. The film is narrated, and sound that starts by itself is
+ * the fastest way to make a person close the tab.
  */
 export interface Chapter {
   at: number;
@@ -36,6 +48,9 @@ export function DemoPlayer({
   const [at, setAt] = useState(0);
   const [total, setTotal] = useState(0);
 
+  // The active chapter is the last one whose start has passed. The last rather
+  // than the nearest: otherwise halfway through a chapter the next one would
+  // light up.
   const active = chapters.reduce((best, c, i) => (at + 0.25 >= c.at ? i : best), 0);
 
   const toggle = useCallback(() => {
@@ -53,6 +68,8 @@ export function DemoPlayer({
     void el.play();
   }, []);
 
+  // Space plays and pauses, but only when focus is not on another control,
+  // otherwise space on a chapter button would do two things instead of one.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.code !== "Space") return;

@@ -6,13 +6,20 @@ import { DataRow } from "./ui/Panel";
 import type { useMegapot } from "@/hooks/useMegapot";
 
 const usd = (v: bigint) =>
+  // minimumFractionDigits as well: without it $515.10 came out as "$515.1" and
+  // a sum of money looked truncated.
   `$${Number(formatUnits(v, 6)).toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
 
 /**
+ * A player's ticket, from purchase to payout, without a trip to Megapot's site.
  *
+ * Everything here is read from the jackpot itself and called by the player's own
+ * wallet directly; we only display it. Which is why "depth of integration" here
+ * is not about our calling purchaseTickets but about a person having nowhere
+ * else to go.
  */
 export function MegapotPanel({ mp }: { mp: ReturnType<typeof useMegapot> }) {
   const busy = mp.claim.phase === "signing" || mp.claim.phase === "confirming";
@@ -37,6 +44,9 @@ export function MegapotPanel({ mp }: { mp: ReturnType<typeof useMegapot> }) {
       <DataRow
         name="draw"
         value={mp.stalled ? "stalled" : new Date(mp.endsAt).toUTCString().slice(5, 22)}
+        // A stopped drawing used to be green, that is, the colour of action and
+        // luck. Green read as "all is well" when in fact it is a state in which
+        // winning is impossible.
         ink={mp.stalled ? "var(--color-ink-dim)" : "var(--color-ink)"}
       />
 

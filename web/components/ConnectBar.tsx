@@ -25,9 +25,23 @@ import { CHAIN, addressUrl } from "@/lib/chain";
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
 /**
+ * The wallet as one button rather than a row of them.
  *
+ * The header used to hold every connector at once, and after connecting, the
+ * address, the test dollar faucet and "disconnect", each its own button. Five
+ * elements under one action: a person who had not even played yet saw their
+ * wallet's settings menu first.
  *
+ * Now there is one button and one disclosure under it. Choosing a connector is a
+ * rare action done once; so are the faucet and signing out. What is permanently
+ * on screen should be only what is used permanently, and that is the address and
+ * nothing else.
  *
+ * On the <details> inside <Disclosure>: the disclosure itself gives keyboard and
+ * screen reader support out of the box, and the wrapper adds what it does NOT
+ * do, closing on an outside click, on Escape and on navigation. There used to be
+ * a bare <details> here with a comment claiming it did all of that; it did not,
+ * and the menu hung over the page until you poked it a second time.
  */
 export function ConnectBar({
   onMinted,
@@ -37,9 +51,11 @@ export function ConnectBar({
   megapotHref = "/case/0#megapot",
 }: {
   onMinted?: () => void;
+  /** Everything that is "yours". The sum of the vaults is not included: it is
   balance?: bigint;
   tesa?: number;
   tickets?: number;
+  /** Where to send someone for more about the lottery. */
   megapotHref?: string;
 } = {}) {
   const hydrated = useSyncExternalStore(
@@ -53,10 +69,25 @@ export function ConnectBar({
   const { switchChain } = useSwitchChain();
   const { mint, minting } = useMint(onMinted);
 
+  // Until we know for certain, we do not ask.
   //
+  // There are two separate moments here and both looked equally bad. First: on
+  // the SERVER nobody has a wallet, so a bright green "Connect wallet" button
+  // went into the markup, and on a phone it hung there for the full two and a
+  // half seconds until hydration. Second: right after hydration wagmi is still
+  // restoring the connection from memory, and the button blinked again.
   //
+  // useSyncExternalStore rather than useState in an effect: the server snapshot
+  // returns false, the client one true, and React tells the two worlds apart
+  // itself without an extra render and without a setState during mount.
   //
+  // The space stays the same size, otherwise instead of blinking text the page
+  // would jump. The placeholder is deliberately neutral: "0x····" would fake an
+  // address for somebody who has never connected.
   //
+  // For a person who genuinely has no wallet the button appears half a second
+  // later, exactly when it BECOMES functional. Before hydration pressing it did
+  // nothing, so the early green button was a promise the page could not keep.
   if (!hydrated || status === "connecting" || status === "reconnecting") {
     return (
       <span
@@ -73,6 +104,7 @@ export function ConnectBar({
     return (
       <Disclosure
         summary={
+          /* While there is no wallet this is the page's main action, a solid
           <span className="flex min-h-11 items-center gap-2 rounded-[var(--radius-control)] bg-[var(--color-accent)] px-4 py-2 text-sm font-bold text-slate-950 shadow-[var(--glow-accent)] transition-all hover:bg-[var(--color-accent-hover)] hover:shadow-[var(--glow-accent-lift)] sm:min-h-0">
             <Wallet className="h-[1.125rem] w-[1.125rem]" />
             {isPending ? "Connecting…" : "Connect wallet"}
@@ -192,6 +224,11 @@ export function ConnectBar({
         <button
           type="button"
           onClick={() => disconnect()}
+          // Hover highlights white rather than red. Disconnecting a wallet is
+          // neither an error nor a loss: you connect back in one click and
+          // nothing of yours goes anywhere, because it is on chain. Red in this
+          // interface means exactly one thing, that something went wrong, and a
+          // button working as intended does not get to wear it.
           className="mt-3 flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[var(--radius-control)] border-t border-slate-800 px-3.5 py-3 pt-3.5 text-left text-sm font-bold text-slate-400 transition-colors hover:text-white"
         >
           <LogOut className="h-6 w-6 shrink-0 text-white" />
@@ -202,8 +239,11 @@ export function ConnectBar({
   );
 }
 
+/** The shared disclosure under the wallet button. */
 function Panel({ children }: { children: React.ReactNode }) {
   return (
+    /* 23rem instead of 20: on a narrower panel the labels wrapped onto two or
+    /* The panel grew to about 700 pixels tall, and on a laptop under the header
     <div className="scrollbar-none max-h-[calc(100vh-5.5rem)] w-[min(23rem,calc(100vw-1.5rem))] overflow-y-auto rounded-[var(--radius-panel)] border border-slate-800 bg-[var(--color-modal)] p-2.5 shadow-2xl">
       {children}
     </div>
@@ -211,8 +251,16 @@ function Panel({ children }: { children: React.ReactNode }) {
 }
 
 /**
+ * One profile row: an icon, what it is, and the number itself.
  *
+ * The icon is ALWAYS white, whatever rung the thing in the row belongs to. It
+ * used to take the same colour as the number below it, and the row then said the
+ * same thing twice: a green ticket beside a green number, a green shard beside a
+ * green number. The second green added nothing, and the first dimmed the drawing
+ * itself: the thin facets of a shard blurred into a smear against muted green.
  *
+ * The division is this: the icon says WHAT it is, the number says how much and
+ * of what rung. Colour stays with the number, that is, where it is read.
  */
 function Row({
   icon,
@@ -224,9 +272,12 @@ function Row({
 }: {
   icon: React.ReactNode;
   name: string;
+  /** One line of explanation under the name, when the name is not enough. */
   note?: string;
   value: string;
+  /** The rung's colour. It belongs to the NUMBER, not the icon. */
   ink?: string;
+  /** A row that does something: it highlights under the cursor. */
   action?: boolean;
 }) {
   return (
@@ -254,6 +305,7 @@ function Row({
   );
 }
 
+/** An action link with a caption under it. */
 function Act({
   href,
   icon,
