@@ -1,7 +1,15 @@
+// Who holds a vault slot and whether they can really claim it.
 //
+// The contract does not see slot values, so the question "has the vault already
+// been drawn" has no on chain answer: it is computed from the public reveals.
+// This script does the same thing the front end does, but checks the result with
+// a claimVault simulation, that is, with the contract itself rather than a guess.
 //
 //   node vault.cjs <contract> <privateKey> [--deck N] [--claim]
 //
+// `--deck N` is a necessity rather than a convenience. The wallet the checks are
+// run with has hundreds of slots, and revealing each one goes to the covalidators
+// as a separate request: without the filter the run never finishes at all.
 
 const { Lightning } = require("@inco/lightning-js/lite");
 const { createWalletClient, createPublicClient, http, parseAbi, toHex, formatUnits } = require("viem");
@@ -32,6 +40,10 @@ const money = (v) => `$${Number(formatUnits(v, 6)).toFixed(2)}`;
 (async () => {
   const account = privateKeyToAccount(PK);
   const wallet = createWalletClient({ chain: baseSepolia, transport: http(RPC), account });
+  // Batching is mandatory rather than a precaution: the wallet has hundreds of
+  // slots, and every `slotDeck` as a separate request means hundreds of trips
+  // over the network, after which the script simply does not come back. multicall
+  // folds them into one.
   const pub = createPublicClient({
     chain: baseSepolia,
     transport: http(RPC, { batch: { wait: 16 } }),
@@ -48,13 +60,16 @@ const money = (v) => `$${Number(formatUnits(v, 6)).toFixed(2)}`;
   console.log(`slots  ${count}`);
   if (count === 0) return;
 
+  // The cheap chain reads first, which deck a slot belongs to, and only then the
+  // expensive trips to the covalidators. The other way round it was impossible to
+  // wait out.
   const all = await Promise.all(
     Array.from({ length: count }, (_, i) =>
       read("slotDeck", [account.address, BigInt(i)]).then((d) => ({ index: i, deckId: Number(d) })),
     ),
   );
   const owned = all.filter((o) => ONLY === null || o.deckId === ONLY).reverse();
-  console.log(`  ${ONLY ?? "-"}: ${owned.length}`);
+  console.log(`  of those in deck ${ONLY ?? "any"}: ${owned.length}`);
 
   const slots = await Promise.all(
     owned.map((o) =>
@@ -62,8 +77,17 @@ const money = (v) => `$${Number(formatUnits(v, 6)).toFixed(2)}`;
     ),
   );
 
+  // We ask in BATCHES and stop at the first find.
   //
+  // One at a time does not work here: the wallet the checks are run with has 175
+  // slots in a single deck, and a reveal goes to the covalidators at just over
+  // three seconds each, that is, ten minutes for a run that gives no sign of
+  // being alive. A batch of six is the same limit the site's server holds its own
+  // queue at.
   //
+  // A batch is all or nothing: one slot locked in a battle takes down the whole
+  // six. So a failed batch is re-asked one at a time, and the losses are limited
+  // to six rather than the whole run.
   const CHUNK = 6;
   const found = [];
   const upToOf = new Map();
@@ -78,6 +102,7 @@ const money = (v) => `$${Number(formatUnits(v, 6)).toFixed(2)}`;
         try {
           cards.push((await zap.attestedReveal([s.handle]))[0]);
         } catch {
+          // not revealed yet or locked in a battle, none of our business
         }
       }
     }
@@ -85,6 +110,9 @@ const money = (v) => `$${Number(formatUnits(v, 6)).toFixed(2)}`;
       const s = pack.find((x) => x.handle.toLowerCase() === card.handle.toLowerCase());
       if (!s) continue;
       const value = Number(card.plaintext.value);
+      // A slot is judged by the table of ITS OWN deck. A season used to stand
+      // here, a notion the contract no longer has: decks live in parallel, and
+      // each has a vault of its own.
       if (!upToOf.has(s.deckId)) {
         upToOf.set(s.deckId, Number((await read("deckAt", [s.deckId]))[3]));
       }
@@ -93,7 +121,7 @@ const money = (v) => `$${Number(formatUnits(v, 6)).toFixed(2)}`;
         found.push({ ...s, value, signatures: card.covalidatorSignatures.map(toBytes) });
       }
     }
-    process.stdout.write(`\r  ${Math.min(i + CHUNK, slots.length)}/${slots.length}`);
+    process.stdout.write(`\r  looked at ${Math.min(i + CHUNK, slots.length)}/${slots.length}`);
   }
   process.stdout.write("\n");
 
@@ -125,10 +153,13 @@ const money = (v) => `$${Number(formatUnits(v, 6)).toFixed(2)}`;
       const rcpt = await pub.waitForTransactionReceipt({ hash });
       console.log(`claimed in ${hash} (${rcpt.status})`);
 
+      // A vault carried out is one of the two triggers that make a deck reshuffle
+      // itself. We show it here because this is exactly where it happens: in THE
+      // SAME transaction that took the money.
       console.log(
-        `  deck #${v.deckId} → ${await read("reseals", [v.deckId])},` +
-          ` ${await read("remaining", [v.deckId])},` +
-          ` ${money(await read("vaultOf", [v.deckId]))}`,
+        `  deck #${v.deckId} -> cut ${await read("reseals", [v.deckId])},` +
+          ` in the pool ${await read("remaining", [v.deckId])},` +
+          ` vault ${money(await read("vaultOf", [v.deckId]))}`,
       );
     }
   }

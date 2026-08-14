@@ -1,4 +1,8 @@
+// Fill a live deck so the vault is not empty for the demo.
 //
+// Every open brings in ten cents of referral commission, half of which lands in
+// the vault. That is, "show a three dollar vault" means sixty real opens rather
+// than a constant in the code.
 //
 //   node seed.cjs <deck> <privateKey> <opensPerDeck> [battlesToLeaveWaiting]
 
@@ -36,6 +40,9 @@ const erc20 = parseAbi([
 
 (async () => {
   const account = privateKeyToAccount(PK);
+  // We leave the gas price to the network. A forced 2 gwei is three hundred
+  // times the Base Sepolia base fee, and seventy opens ate the deployer's whole
+  // balance on it.
   const wallet = createWalletClient({ chain: baseSepolia, transport: http(RPC), account });
   const pub = createPublicClient({ chain: baseSepolia, transport: http(RPC) });
 
@@ -62,6 +69,9 @@ const erc20 = parseAbi([
   });
   if (allowance < need) {
     await send(TOKEN, erc20, "approve", [ADDR, (1n << 256n) - 1n]);
+    // The public RPC lags 1 to 1.6 s behind a write, and the simulation of the
+    // next openCase sees the old allowance. The same case that once broke the
+    // very first open in every player's life.
     for (let i = 0; i < 30; i++) {
       const now = await pub.readContract({
         address: TOKEN, abi: erc20, functionName: "allowance", args: [account.address, ADDR],
@@ -73,9 +83,14 @@ const erc20 = parseAbi([
 
   const decks = Number(await read("deckCount"));
 
+  // DECK=3 plays exactly one season. Without it, all of them in a row, which is
+  // right for filling the vaults but expensive when only a fresh deck is needed:
+  // the old ones are spent for nothing, and their slots are finite.
   const only = process.env.DECK ? [Number(process.env.DECK)] : [...Array(decks).keys()];
-  console.log(`${decks} decks, : ${only.join(", ")}`);
+  console.log(`${decks} decks, playing: ${only.join(", ")}`);
 
+  // Every deck has to be played separately: the commission is split between them
+  // by opens, so an unseeded deck will be left with an empty vault.
   for (const d of only) {
     for (let i = 0; i < OPENS; i++) {
       const info = await read("deckAt", [d]);

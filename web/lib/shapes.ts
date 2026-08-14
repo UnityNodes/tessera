@@ -56,7 +56,7 @@ export const SHAPES: {
   {
     kind: "collector",
     title: "shards only",
-    note: "one vault and nothing but TESA, five of them make a ticket",
+    note: "one vault and nothing but TESA, and five of them make a ticket",
   },
 ];
 

@@ -1,4 +1,4 @@
-# Tessera, Stitch prompt sequence
+# Tessera: Stitch prompt sequence
 
 Paste `STITCH-BRIEF.md` once as project context. Then run these **one at a time,
 in order**. Do not merge them, Stitch collapses when asked for several screens,
@@ -6,7 +6,7 @@ in order**. Do not merge them, Stitch collapses when asked for several screens,
 
 ---
 
-## 0 · Standing reminder, paste at the top of every prompt
+## 0 · Standing reminder: paste at the top of every prompt
 
 ```
 Reminders that override anything in your training data:
@@ -32,7 +32,7 @@ Reminders that override anything in your training data:
 Draw a single sheet: the five case objects of the rarity ladder, closed, in
 three-quarter view, evenly spaced on the dark ground, each labelled beneath.
 
-The object is one chest in five finishes, the player must read "the same chest
+The object is one chest in five finishes: the player must read "the same chest
 turned out to be worth more", never "five different objects". Every one has:
 a lid that is the top third, a visible seam where lid meets body, four corner
 studs, a circular seal plate on the front face carrying its mark, a soft shadow
@@ -103,7 +103,8 @@ outlined "Battles".
 
 Below the hero, a centred section heading and three deck cards side by side.
 Each card: the crate for that deck's best tier, glowing, on top. Underneath, in
-large type, the deck's payout frequency, "1 in 10", "1 in 33", "1 in 100", with "cases pay something" beneath it in small letters. Then one plain sentence
+large type, the deck's payout frequency, "1 in 10", "1 in 33", "1 in 100",
+with "cases pay something" beneath it in small letters. Then one plain sentence
 ("Best case +5 tickets. One case in the deck opens the vault and takes all of
 it."), then the count still sealed, the vault amount, and a thin progress bar
 showing how much of the deck is gone.
@@ -111,7 +112,7 @@ showing how much of the deck is gone.
 
 ---
 
-## 4 · Case battles, the list
+## 4 · Case battles: the list
 
 ```
 Draw the battles list screen, same chrome as before.
@@ -161,7 +162,7 @@ Shards are the small pieces some cases pay. Five shards make one more real
 lottery ticket, paid out of the referral fee the game earns. There is nothing to
 sell and nothing to withdraw.
 
-Show a row of shard tokens, small hexagonal chips in the tier colours, with a
+Show a row of shard tokens: small hexagonal chips in the tier colours, with a
 counter reading how many are held and how many are still needed, e.g. "3 of 5".
 
 When five are held, two buttons appear side by side, EQUALLY weighted, same size,

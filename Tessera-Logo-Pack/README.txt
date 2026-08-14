@@ -1,4 +1,4 @@
-TESSERA, logo pack (concept "the draw")
+TESSERA: logo pack (concept "the draw")
 ========================================
 
 Concept: a finite mosaic pool drawn without replacement.

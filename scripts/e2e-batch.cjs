@@ -1,9 +1,26 @@
+// Every open multiplier, end to end in a real browser.
 //
 //   DECK=3 node e2e-batch.cjs
 //
+// It spends 25 real slots (1+2+3+4+5+10), so in audit.sh it sits behind the
+// BATCH=1 flag, like the other expensive runs.
 //
+// It checks three things per multiplier:
+//   - there are exactly as many strips as cases ordered;
+//   - each one LANDED on what the chain handed over rather than next to it;
+//   - the player's slots grew by exactly n.
 //
+// The second of those is the main one. This project has already had the strip
+// brake onto the wrong card with no error surfacing anywhere: neither in the
+// console nor in the tests. So Roll has data-landed, the tier it MUST land on
+// according to the chain, and the check compares it with what really ended up
+// under the marker.
 //
+// Separately about the measurement: the value from the covalidators arrives
+// EARLIER than the strip stops. The first version of this check took its reading
+// at once and called its own impatience a divergence, three multipliers out of
+// six "failed" on sound code. So here we first wait until the position stops
+// changing.
 
 const { chromium } = require("/root/tessera/scripts/node_modules/playwright-core");
 const { createWalletClient, createPublicClient, http, defineChain, parseGwei, parseAbi } =
@@ -63,6 +80,10 @@ const P = "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1";
   await p.getByRole("button", { name: "x1", exact: true }).waitFor({ timeout: 25000 });
 
   let bad = 0;
+  // Which multipliers to run. All six by default, which is 25 slots. MULTS=3
+  // gives exactly one run over three slots: that is enough when you are checking
+  // a specific fix rather than the whole set. The slots are real, and spending
+  // twenty five every time one component changes is expensive for no reason.
   const MULTS = (process.env.MULTS ?? "1,2,3,4,5,10").split(",").map(Number).filter(Boolean);
   for (const n of MULTS) {
     const before = await pub.readContract({ address: P, abi: deckAbi, functionName: "countOf", args: [acc.address] });
@@ -72,8 +93,13 @@ const P = "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1";
     const openBtn = p.getByRole("button", { name: n > 1 ? new RegExp(`Open ${n}`) : /^Open\b(?!\s*\d)/ }).first();
     await openBtn.click();
 
+    // First wait for the scene to APPEAR. Polling right after the click is
+    // pointless: the transaction is still being signed, there is no theatre in
+    // the DOM, and the loop spins idle and then reports "zero strips", that is,
+    // the check blames the code for its own impatience.
     await p.locator(".fixed[role=dialog]").waitFor({ timeout: 60000 });
 
+    // Wait until every strip has landed.
     let rows = [];
     let seen = [];
     for (let i = 0; i < 45; i++) {
@@ -90,8 +116,18 @@ const P = "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1";
       });
       if (rows.length) seen = rows;
       if (rows.length && rows.every((r) => r.expected)) {
+        // The value has arrived, but the strip is still BRAKING.
         //
+        // Here was the same trap as in the check itself: `every()` on an EMPTY
+        // array is true. As soon as every strip lands, the theatre swaps them for
+        // a grid of chests, `[data-roll]` disappears, the "everyone landed"
+        // condition fires on zero elements, and from then on a stale snapshot
+        // taken in flight was read. That is, the check blamed the game for its
+        // own blindness.
         //
+        // So there are two exits now, and both are legitimate:
+        //   the strips are still there and all have `data-endx`, we measure them;
+        //   the strips are gone, so everyone landed, and the grid tells the truth.
         let byGrid = null;
         for (let k = 0; k < 60; k++) {
           const snap = await p.evaluate(() => {
@@ -128,13 +164,22 @@ const P = "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1";
         rows = seen;
         break;
       }
+      // For x1 the theatre swaps the strip for a chest after the stop, so we
+      // catch that.
       const done = await p.evaluate(() => Boolean(document.querySelector(".fixed [data-card]")));
       if (done) break;
     }
 
     const single = n === 1;
     const okCount = single ? rows.length <= 1 : rows.length === n;
+    // rows.length > 0 is mandatory: every() on an empty array is true, and that
+    // is exactly how this check once said "they landed where they should" about
+    // nothing at all.
     const okLanded = rows.length > 0 && rows.every((r) => r.expected && r.expected === r.under);
+    // The public RPC lags 1 to 1.6 s behind a write, and a read right after the
+    // animation sees the world before the transaction. That has already looked
+    // twice like "slots +0" on sound code, that is, like a failure of the check
+    // rather than its impatience. We wait for the node to catch up.
     let after = before;
     for (let i = 0; i < 20; i++) {
       after = await pub.readContract({ address: P, abi: deckAbi, functionName: "countOf", args: [acc.address] });
@@ -146,18 +191,23 @@ const P = "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1";
     const verdict = okCount && (single || okLanded) && okSlots;
     if (!verdict) bad++;
     console.log(
-      `x${String(n).padEnd(2)} → ${rows.length}${single ? " ()" : `/${n}`}` +
-      ` ${okCount ? "✓" : "✗"} | ${single ? "" : okLanded ? "✓" : "✗"}` +
-      ` | +${Number(after - before)} ${okSlots ? "✓" : "✗"}`
+      `x${String(n).padEnd(2)} -> strips ${rows.length}${single ? " (single theatre)" : `/${n}`}` +
+      ` ${okCount ? "ok" : "no"} | landed where they should ${single ? "-" : okLanded ? "ok" : "no"}` +
+      ` | slots +${Number(after - before)} ${okSlots ? "ok" : "no"}`
     );
 
+    // What exactly did not add up, as a line rather than a guess. A run costs
+    // real slots, so it has to say everything the first time.
     if (rows.length && !single) {
       for (const [i, r] of rows.entries()) {
         const mark = r.expected === r.under ? "✓" : "✗";
-        console.log(`      ${i + 1}: ${r.expected}, ${r.under ?? ""}${mark}  [${r.idx}/${r.len}, ${r.reach} , ${r.want}| ${r.mounts}, ${r.drifts}, ${r.settles}, ${r.cut ?? 0}, ${r.endx}${r.fix ? ", " : ""}]`);
+        console.log(`      strip ${i + 1}: chain "${r.expected}", under the marker "${r.under ?? "-"}" ${mark}  [target ${r.idx}/${r.len}, brake ${r.reach} cards, wanted "${r.want}" | mounts ${r.mounts}, drifts ${r.drifts}, brakes ${r.settles}, aborted ${r.cut ?? 0}, landed at ${r.endx}${r.fix ? ", SAFETY NET PULLED IT" : ""}]`);
       }
     }
 
+    // We close the scene and WAIT for it to disappear: while the overlay is on
+    // the screen the buttons under it are unreachable, and the next click simply
+    // waits out its timeout. That is exactly what the run tripped on.
     for (let i = 0; i < 20; i++) {
       if (!(await p.locator(".fixed[role=dialog]").count())) break;
       await p.keyboard.press("Escape");
@@ -166,7 +216,7 @@ const P = "0x985520De2A14BD443d06DcA07A57Ef4F349bd8B1";
     }
     await p.waitForTimeout(2500);
   }
-  console.log(errs.length ? `: ${errs.slice(0, 3).join(" | ")}` : "");
-  console.log(bad === 0 ? "\n✓" : `\n: ${bad}`);
+  console.log(errs.length ? `page errors: ${errs.slice(0, 3).join(" | ")}` : "there are no page errors");
+  console.log(bad === 0 ? "\nevery multiplier is clean" : `\nmultipliers with problems: ${bad}`);
   await b.close();
-})().catch((e) => { console.error(":", e.message.split("\n")[0]); process.exit(1); });
+})().catch((e) => { console.error("FAILING:", e.message.split("\n")[0]); process.exit(1); });

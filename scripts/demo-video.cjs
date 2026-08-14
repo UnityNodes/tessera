@@ -1,6 +1,14 @@
+// The demo film: a real run of the live site, recorded by a browser.
 //
+//   node demo-video.cjs            -> a .webm in DEMO_DIR (/tmp/tessera-demo by default)
 //
+// This is not an edit and not a mockup. The wallet is injected (the same way as
+// in the end to end checks), but every open here is a real transaction: it buys a
+// ticket from Megapot and draws a card from Inco's encrypted list. So the run
+// SPENDS slots out of the deck, like any other player.
 //
+// The pauses are set for a viewer rather than for a machine: where a check waits
+// exactly as long as it must, a film has to let the eye finish reading.
 
 const { chromium } = require("/root/tessera/scripts/node_modules/playwright-core");
 const { createWalletClient, createPublicClient, http, defineChain, parseGwei } =
@@ -61,13 +69,17 @@ const say = (s) => console.log(`  ${s}`);
   const p = await ctx.newPage();
   const wait = (ms) => p.waitForTimeout(ms);
 
-  say("");
+  // -- 1. The catalogue -------------------------------------------------------
+  say("the catalogue");
   await p.goto(SITE, { waitUntil: "networkidle", timeout: 60000 });
   await wait(4500);
   await p.evaluate(() => window.scrollBy({ top: 620, behavior: "smooth" }));
   await wait(4000);
 
-  say("");
+  // -- 2. The drain curve: a deck is a finite pile ------------------------------
+  // This is the project's main claim, and it is shown by a CARD rather than by
+  // words: on the back of every deck is drawn how it was taken apart.
+  say("how the deck drained");
   const flip = p.locator("button[aria-label*='Show how this deck emptied']").first;
   try {
     await p.locator("button[aria-label*='emptied']").first().click({ timeout: 4000 });
@@ -75,10 +87,11 @@ const say = (s) => console.log(`  ${s}`);
     await p.locator("button[aria-label*='Show the case']").first().click({ timeout: 4000 });
     await wait(1500);
   } catch {
-    say("  ()");
+    say("  (no flip button, skipping)");
   }
 
-  say(`#${DECK}`);
+  // -- 3. The deck page: what exactly lies in it --------------------------------
+  say(`deck #${DECK}`);
   await p.goto(`${SITE}/case/${DECK}`, { waitUntil: "networkidle", timeout: 60000 });
   await wait(4000);
   await p.evaluate(() => window.scrollBy({ top: 700, behavior: "smooth" }));
@@ -86,7 +99,8 @@ const say = (s) => console.log(`  ${s}`);
   await p.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }));
   await wait(1500);
 
-  say("");
+  // -- 4. The wallet -----------------------------------------------------------
+  say("the wallet");
   const connect = p.getByRole("button", { name: /connect/i }).first();
   if (await connect.count()) {
     await connect.click();
@@ -101,15 +115,20 @@ const say = (s) => console.log(`  ${s}`);
   }
   await wait(3500);
 
-  say("");
+  // -- 5. One open -------------------------------------------------------------
+  say("one open");
   await p.getByRole("button", { name: /^Open\b(?!\s*\d)/ }).first().click();
+  // The theatre runs by itself: the signature, the confirmation, 6 to 9 seconds
+  // of covalidators, the strip braking, the chest. We do not hurry it, this IS
+  // the film.
   await p.locator(".fixed[role=dialog]").waitFor({ timeout: 90000 });
   await wait(22000);
   await p.keyboard.press("Escape");
   await p.mouse.click(30, 30);
   await wait(2500);
 
-  say("×5");
+  // -- 6. A batch of five --------------------------------------------------------
+  say("a batch of 5");
   const x5 = p.getByRole("button", { name: "x5", exact: true });
   if (await x5.count()) {
     await x5.click();
@@ -122,11 +141,13 @@ const say = (s) => console.log(`  ${s}`);
     await wait(2500);
   }
 
-  say("");
+  // -- 7. The pool counter went down ----------------------------------------------
+  say("the pool after the opens");
   await p.reload({ waitUntil: "networkidle" });
   await wait(5000);
 
-  say("");
+  // -- 8. Anyone can cut their own deck ---------------------------------------------
+  say("cutting your own deck");
   await p.goto(`${SITE}/create`, { waitUntil: "networkidle", timeout: 60000 });
   await wait(5000);
   await p.evaluate(() => window.scrollBy({ top: 500, behavior: "smooth" }));
@@ -135,8 +156,8 @@ const say = (s) => console.log(`  ${s}`);
   const video = p.video();
   await ctx.close();
   await b.close();
-  console.log(`\n: ${await video.path()}`);
+  console.log(`\ndone: ${await video.path()}`);
 })().catch((e) => {
-  console.error(":", e.message.split("\n")[0]);
+  console.error("FAILING:", e.message.split("\n")[0]);
   process.exit(1);
 });

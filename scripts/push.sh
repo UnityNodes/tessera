@@ -1,27 +1,27 @@
 #!/usr/bin/env bash
-# GitHub 0xFearless-1.
+# Push to GitHub as 0xFearless-1.
 #
-#   ./scripts/push.sh            #
-#   ./scripts/push.sh main       #
-#   DRY=1 ./scripts/push.sh      # ,
+#   ./scripts/push.sh            # the current branch
+#   ./scripts/push.sh main       # a particular branch
+#   DRY=1 ./scripts/push.sh      # only show what would go
 #
-# , `git push`.
+# Why a script of its own rather than a plain `git push`.
 #
-# , GitHub UnityNodes/tessera, /root/.ssh
-# root. claude.
-# , :
+# The key GitHub accepts for UnityNodes/tessera lives in /root/.ssh and can only
+# be read as root. The repository itself belongs to the claude user. So a push
+# consists of three steps, and every one of them is easy to forget:
 #
-#   1. sudo ssh ;
-#   2. safe.directory git root
-#      (detected dubious ownership);
-#   3. chown claude git root
-#      .git, .
+#   1. sudo, otherwise ssh will not read the key;
+#   2. safe.directory, git as root refuses to work in somebody else's directory
+#      ("detected dubious ownership");
+#   3. chown back to claude, git as root leaves root owned files behind in .git,
+#      and the VERY NEXT ordinary command fails.
 #
-# : ,
-# .
+# The third step is the most treacherous: the push goes through all the same, and
+# everything breaks afterwards and apparently for no reason.
 #
-# /root/.ssh : github_deploy_key deploy-
-# custis, github_deploy_rsa claude_ssh_key GitHub .
+# The other keys in /root/.ssh do not fit: github_deploy_key is a deploy key for
+# the custis repository, and GitHub rejects github_deploy_rsa and claude_ssh_key.
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
@@ -29,11 +29,11 @@ KEY=/root/.ssh/fearless
 BRANCH="${1:-$(git -C "$REPO" rev-parse --abbrev-ref HEAD)}"
 
 if ! sudo -n test -r "$KEY" 2>/dev/null; then
-  echo "$KEY sudo " >&2
+  echo "cannot read $KEY, passwordless sudo is required" >&2
   exit 2
 fi
 
-# .git , .
+# Who .git will belong to afterwards: we take it beforehand rather than guess.
 OWNER="$(stat -c '%u:%g' "$REPO/.git")"
 
 run() {
@@ -42,11 +42,11 @@ run() {
     push "$@"
 }
 
-echo "▶ $BRANCH → origin (fearless, 0xFearless-1)"
+echo "> $BRANCH -> origin (fearless key, account 0xFearless-1)"
 run --dry-run origin "$BRANCH"
 
 if [ -n "${DRY:-}" ]; then
-  echo "DRY=1 "
+  echo "DRY=1, going no further"
 else
   run origin "$BRANCH"
 fi

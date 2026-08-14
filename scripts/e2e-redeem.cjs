@@ -1,4 +1,8 @@
+// A live exchange of shards for a real ticket.
+// It reveals all of its slots through the covalidators, picks out the shards by
+// the public drop table and sends five attestations in one redeem().
 //
+// This is what the front end will do on the "exchange" button.
 const { Lightning } = require('@inco/lightning-js/lite');
 const { createWalletClient, createPublicClient, http, defineChain, parseGwei, parseAbi, toHex } = require('viem');
 const { privateKeyToAccount } = require('viem/accounts');
@@ -17,6 +21,8 @@ const abi = parseAbi([
   'function redeem(uint256[] slotIndexes, uint256[] values, bytes[][] signatures) returns (uint256)',
 ]);
 
+// The SDK hands the signature over as an object {0: byte, 1: byte, ...} rather
+// than as a Uint8Array.
 const toBytes = (sig) => toHex(Uint8Array.from(Object.values(sig)));
 
 (async () => {
@@ -30,34 +36,34 @@ const toBytes = (sig) => toHex(Uint8Array.from(Object.values(sig)));
   const zap = await Lightning.baseSepoliaTestnet();
 
   const [count, shardMax] = await Promise.all([read('countOf', [account.address]), read('shardSlots', [])]);
-  console.log(`: ${count}, : 1..${shardMax}`);
+  console.log(`the player has ${count} slots, shard values: 1..${shardMax}`);
 
   const handles = [];
   for (let i = 0n; i < count; i++) handles.push(await read('handleOf', [account.address, i]));
 
-  console.log('…');
+  console.log('revealing through the covalidators...');
   const revealed = await zap.attestedReveal(handles);
 
   const shards = [];
   for (let i = 0; i < revealed.length; i++) {
     const value = Number(revealed[i].plaintext.value);
     const spent = await read('shardSpent', [handles[i]]);
-    const kind = spent ? '' : value <= Number(shardMax) ? '' : '';
-    console.log(`  ${i}: ${String(value).padStart(3)}  ${kind}`);
+    const kind = spent ? 'spent' : value <= Number(shardMax) ? 'SHARD' : 'cosmetics';
+    console.log(`  slot ${i}: ${String(value).padStart(3)}  ${kind}`);
     if (!spent && value <= Number(shardMax)) {
       shards.push({ index: BigInt(i), value: BigInt(value), sigs: revealed[i].covalidatorSignatures.map(toBytes) });
     }
   }
 
-  console.log(`\n: ${shards.length} 5 `);
+  console.log(`\nshards: ${shards.length} of the 5 needed`);
   if (shards.length < 5) {
-    console.log(`${5 - shards.length} `);
+    console.log(`short by ${5 - shards.length}, open more cases`);
     return;
   }
 
   const treasury = await read('treasury', []);
   const claimable = await read('feesClaimable', []);
-  console.log(`: ${treasury}, Megapot: ${claimable}`);
+  console.log(`treasury: ${treasury}, not claimed from Megapot: ${claimable}`);
 
   const five = shards.slice(0, 5);
   const T = Date.now();
@@ -72,7 +78,7 @@ const toBytes = (sig) => toHex(Uint8Array.from(Object.values(sig)));
   const hash = await wallet.writeContract(request);
   const rcpt = await pub.waitForTransactionReceipt({ hash });
 
-  console.log(`\n⏱ redeem: ${Date.now() - T} ms, ${rcpt.gasUsed}, ${rcpt.status}`);
-  console.log(`   ${five.map((s) => s.index).join(', ')} -> Megapot`);
+  console.log(`\nredeem: ${Date.now() - T} ms, gas ${rcpt.gasUsed}, status ${rcpt.status}`);
+  console.log(`   slots ${five.map((s) => s.index).join(', ')} burned -> a real Megapot ticket`);
   console.log(`   ${hash}`);
-})().catch((e) => console.error(':', String(e.shortMessage || e.message).split('\n')[0]));
+})().catch((e) => console.error('FATAL:', String(e.shortMessage || e.message).split('\n')[0]));

@@ -1,4 +1,4 @@
-# Tessera, context brief for Stitch
+# Tessera: context brief for Stitch
 
 Paste this whole file as the project context before asking for any screen.
 
@@ -7,7 +7,7 @@ Paste this whole file as the project context before asking for any screen.
 ## What this product is
 
 **Tessera** is an on-chain case-opening game on Base. One dollar buys the player a
-**real Megapot lottery ticket**, the same ticket sold on megapot.io, bought in the
+**real Megapot lottery ticket**: the same ticket sold on megapot.io, bought in the
 same transaction. **The case comes free on top of the ticket.**
 
 The name is Roman: a *tessera* is a single tile in a mosaic, and also the token a
@@ -32,11 +32,11 @@ finite and countable, it is the wrong screen.
 
 ## Screens to design
 
-1. **Home**, the promise, and the shelf of decks.
-2. **All cases**, the same shelf, on its own route.
-3. **Open a case**, the main screen. One action.
-4. **Case battles**, list of open/live battles.
-5. **A battle**, two seats, two cards, one winner.
+1. **Home**: the promise, and the shelf of decks.
+2. **All cases**: the same shelf, on its own route.
+3. **Open a case**: the main screen. One action.
+4. **Case battles**: list of open/live battles.
+5. **A battle**: two seats, two cards, one winner.
 
 ## Persistent chrome, on every screen
 
@@ -66,7 +66,7 @@ pays money, not tickets. It should read as a light source, not as "more gold".
 An **unopened** case is cold blue, the same blue as buttons and links. Rarity is
 unknown, so it wears the interface colour, not a prize colour.
 
-## Palette (already committed, keep it)
+## Palette (already committed: keep it)
 
 Near-black ground with a whisper of blue. Warm light pools drift across it.
 No grid, no scanlines, no glass panels.
@@ -94,14 +94,15 @@ objects".
 
 ## The opening, second by second
 
-1. **Idle**, the sealed crate, clickable. One button: `Open a case · $1`.
-2. **Paying**, wallet confirmation, then the ticket purchase.
-3. **Revealing**, two Inco covalidators decrypt the slot. This takes **6 to 9
+1. **Idle**: the sealed crate, clickable. One button: `Open a case · $1`.
+2. **Paying**: wallet confirmation, then the ticket purchase.
+3. **Revealing**: two Inco covalidators decrypt the slot. This takes **6 to 9
    seconds and we do not control it**. A horizontal strip of possible outcomes
-   scrolls at constant speed. **No progress bar, no percentage, no countdown**, any of those would be a lie about a duration we cannot know.
-4. **Landing**, the chain answers, and only then does the strip brake onto the
+   scrolls at constant speed. **No progress bar, no percentage, no countdown**:
+   any of those would be a lie about a duration we cannot know.
+4. **Landing**: the chain answers, and only then does the strip brake onto the
    result. Never the other way round.
-5. **Done**, burst of the tier colour, shards fly out, the crate is now that tier,
+5. **Done**: burst of the tier colour, shards fly out, the crate is now that tier,
    and the payout is spelled out in words.
 
 The strip shows rare tiers more often than they actually occur, the same as any
@@ -131,7 +132,7 @@ side: **take it** or **risk it**. Never one loud button and one quiet one. The c
 always names the cost of the choice in figures: "double it" without "or lose it" is
 incitement, not an offer.
 
-## Absolute bans, these break the product's only claim
+## Absolute bans: these break the product's only claim
 
 - **No marketplace.** No Sell, no Withdraw item, no item price in dollars, no
   "Factory New" / wear grades, no trade. Prizes are lottery tickets and the vault.
@@ -145,7 +146,7 @@ incitement, not an offer.
   *which slot belongs to whom*, never *what exists*.
 - **No progress bar during the reveal.** See above.
 - **No neon-cyberpunk pass.** Not magenta-on-black arcade. The reference is
-  Ravenna and Hagia Sophia, gold leaf, lapis, porphyry, cinnabar on a dark ground.
+  Ravenna and Hagia Sophia: gold leaf, lapis, porphyry, cinnabar on a dark ground.
   Lit like a room, not like a nightclub.
 
 ## Tone of the copy

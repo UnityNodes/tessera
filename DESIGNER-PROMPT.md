@@ -1,4 +1,4 @@
-# Tessera, design brief
+# Tessera: design brief
 
 Paste everything below into a fresh conversation.
 
@@ -19,7 +19,7 @@ A player pays **$1** and gets two things in one transaction:
    extra tickets. One slot in the deck opens a vault of accumulated money.
 
 There is a second, rarer choice: **give the ticket up**. The same $1, but no
-Megapot ticket, the dollar goes into the deck's vault instead, and whatever
+Megapot ticket: the dollar goes into the deck's vault instead, and whatever
 you draw is worth double. Most draws are still empty, and double nothing is
 nothing.
 
@@ -49,7 +49,7 @@ The name is Roman: *tessera* was a token, for entry, for rations, for
 identification. Tier names follow: Grout, Denarius, Aureus, Porphyry, and
 The Vault.
 
-## What exists now (keep or replace, your call, but say which)
+## What exists now (keep or replace: your call, but say which)
 
 - **Stack:** Next.js 16, React 19, Tailwind v4, `motion` v12. All colour in
   OKLCH, defined as CSS custom properties in one file.
@@ -65,7 +65,7 @@ The Vault.
 
 ## What I need from you
 
-### 1. The chest, this is the biggest problem
+### 1. The chest: this is the biggest problem
 
 The chest is the one object in the whole product, and it is currently built
 as CSS 3D: six faces, a separate lid on a hinge, metal fittings, studs, a
@@ -89,7 +89,7 @@ the result, then the chest opens and a token rises out. The player cannot
 close it until the reel stops.
 
 Show me how this should look and move. Three or four frames is enough.
-**Include the empty result**, nine draws in ten are empty, so that frame is
+**Include the empty result**: nine draws in ten are empty, so that frame is
 the one players see most, and it currently looks like a bug.
 
 ### 3. The pool, made visible

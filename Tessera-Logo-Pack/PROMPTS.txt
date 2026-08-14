@@ -1,4 +1,4 @@
-TESSERA, AI generation prompts (for raster / alternative explorations)
+TESSERA: AI generation prompts (for raster / alternative explorations)
 =======================================================================
 
 Keep the concept intact with these keywords:

@@ -114,7 +114,7 @@ const BY_NAME: Partial<Record<DeckError, Explained>> = {
     // on the live board it is a tenth. Naming it as a number in a static table
     // is wrong in principle: the line would lie the next time the owner changes
     // it. The exact figure is shown by the budget panel, which reads the chain.
-    next: "Prizes are funded by the referral fee the game earns, and part of that fee settles into the vaults. Nothing expires, the ticket lands once enough cases have been opened, by anyone.",
+    next: "Prizes are funded by the referral fee the game earns, and part of that fee settles into the vaults. Nothing expires: the ticket lands once enough cases have been opened, by anyone.",
     retryable: false,
   },
   BadAttestation: {
@@ -145,7 +145,7 @@ const BY_NAME: Partial<Record<DeckError, Explained>> = {
   SlotInBattle: {
     fault: "slot-in-battle",
     title: "That card is committed to a battle",
-    next: "It comes back the moment the battle is settled, anyone can settle it.",
+    next: "It comes back the moment the battle is settled, and anyone can settle it.",
     retryable: false,
   },
   BattleTaken: {
@@ -205,7 +205,7 @@ const BY_NAME: Partial<Record<DeckError, Explained>> = {
   StakeNotSettled: {
     fault: "stake-unsettled",
     title: "The deciding case is not open yet",
-    next: "Open one more case, that is what settles the stake.",
+    next: "Open one more case: that is what settles the stake.",
     retryable: false,
   },
   NothingBanked: {

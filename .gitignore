@@ -1,12 +1,12 @@
-#
+# secrets
 .env
 .env.*
 !.env.example
 
-# '
+# the agent's personal settings, tied to this machine
 .claude/settings.local.json
 
-#
+# dependencies
 node_modules/
 
 # foundry
@@ -18,18 +18,24 @@ broadcast/
 .next/
 dist/
 
-#
+# artefacts of the browser checks
 .playwright-mcp/
 *.png
 !web/public/**/*.png
-# , .
-# , ,
-# .
+# The logo pack is a supplied source rather than a check artefact. The rasters in
+# it were printed from the same vectors, but somebody else printed them, and
+# reproducing them exactly from scratch is no longer possible.
 !Tessera-Logo-Pack/png/*.png
 
+# layouts pulled out of Stitch: a source, not a build
 stitch/
 
+# layout archives and the demo music: the same, a source, only packed.
+# They live in the root and are needed for the work (tessera2.zip is the current
+# design), but they have no business in the history: 12 MB in git already cost us
+# clone weight that not a single line is built from.
 *.zip
 *.mp3
 
+# Pictures uploaded by creators and the history cache. This is server data, not code.
 .data/

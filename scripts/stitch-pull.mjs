@@ -1,14 +1,20 @@
 #!/usr/bin/env node
 /**
+ * Pulling screens out of Stitch.
  *
+ * The Stitch web interface hands over screenshots only. The code of each screen
+ * lies next to it in the htmlCode field and is available over the MCP endpoint,
+ * but only in list_screens: get_screen often returns it empty for those same
+ * screens. So we take the list once and pull down everything that has a link.
  *
  *   STITCH_KEY=... node scripts/stitch-pull.mjs [projectId ...]
  *
+ * With no arguments it pulls every project the key can reach.
  */
 
 const KEY = process.env.STITCH_KEY;
 if (!KEY) {
-  console.error("STITCH_KEY");
+  console.error("no STITCH_KEY");
   process.exit(1);
 }
 
@@ -32,14 +38,14 @@ async function call(name, args = {}) {
     }),
   });
   const body = await res.json();
-  if (body.result?.isError) throw new Error(body.result.content?.[0]?.text ?? "Stitch");
+  if (body.result?.isError) throw new Error(body.result.content?.[0]?.text ?? "a Stitch error");
   return JSON.parse(body.result.content[0].text);
 }
 
 const slug = (s) =>
   s
     .toLowerCase()
-    .replace(/[^a-z0-9-]+/gi, "-")
+    .replace(/[^a-z0-9]+/gi, "-")
     .replace(/^-|-$/g, "")
     .slice(0, 60) || "screen";
 
@@ -62,7 +68,7 @@ for (const project of targets) {
     const short = screen.name.split("/").pop().slice(0, 8);
     if (!url) {
       skipped++;
-      console.log(`  --   ${screen.title} (${short}) `);
+      console.log(`  --   ${screen.title} (${short}) no code`);
       continue;
     }
     await mkdir(dir, { recursive: true });
@@ -74,4 +80,4 @@ for (const project of targets) {
   }
 }
 
-console.log(`\n${saved}, ${skipped}`);
+console.log(`\nsaved ${saved}, without code ${skipped}`);
