@@ -7,19 +7,19 @@ evm_version = "cancun"
 optimizer = true
 optimizer_runs = 200
 
-# EIP-170: 25 006
-# 24 576, CreateContractSizeLimit.
+# Custom decks pushed the contract past the EIP-170 limit: 25,006 bytes against
+# the 24,576 allowed, and the deploy failed with CreateContractSizeLimit.
 #
-# , :
-#   runs = 1              24 780   204   ,
-#   runs = 50             24 883   307
-#   via_ir, runs = 200    21 847  +2 729
+# Three ways out were measured rather than picked by ear:
+#   runs = 1              24,780   -204   still too large, and gas costs everyone more
+#   runs = 50             24,883   -307   the same
+#   via_ir, runs = 200    21,847  +2,729  fits with room to spare
 #
-# via_ir : ,
-# , .
-# : , .
+# via_ir compiles through an intermediate representation: it builds longer but
+# optimises across a whole function rather than block by block. Hence the size of
+# the win: not "a little less" but three kilobytes.
 #
-# runs 200.
-# runs = 1
-# , .
+# Gas optimisation was not lowered in the process, runs stayed at 200. The runs = 1
+# option would have cost every player a more expensive open forever for the sake of
+# fitting into the deploy once.
 via_ir = true

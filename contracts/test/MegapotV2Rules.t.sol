@@ -10,6 +10,9 @@ interface IERC721Like {
     function balanceOf(address owner) external view returns (uint256);
 }
 
+/// The rules of the new Base mainnet jackpot (0x3bAe6430...42a2), from behaviour
+/// rather than from the documentation. The documentation has already lied about
+/// the 8% referral: referralFee() on the contract is 1e17, that is, 10%.
 contract V2Caller {
     function buy(
         IMegapotV2 m,
@@ -38,6 +41,9 @@ contract MegapotV2RulesTest is Test {
     uint256 price;
 
     function setUp() public {
+        // The block is pinned: the public mainnet RPC returns 429 on ten fork
+        // tests in a row, and with a pinned block forge takes everything from
+        // the cache.
         vm.createSelectFork(
             vm.envOr("BASE_MAINNET_RPC_URL", Fork.BASE_MAINNET),
             vm.envOr("BASE_MAINNET_FORK_BLOCK", uint256(49488308))
@@ -94,6 +100,7 @@ contract MegapotV2RulesTest is Test {
         console.log("drawing id:", JACKPOT.currentDrawingId());
     }
 
+    /// Does the new contract forbid referring yourself, as the legacy one does?
     function test_B_selfReferral() public {
         (address[] memory r, uint256[] memory s) = _one(address(caller));
         try caller.buy(JACKPOT, USDC, _ticket(6, 7, 8, 9, 10, 3), player, r, s, price) {
@@ -184,6 +191,8 @@ contract MegapotV2RulesTest is Test {
         }
     }
 
+    /// The same numbers as in test_E but in ascending order, so as to tell
+    /// "not sorted" from "an invalid set".
     function test_I_sortedSameNumbers() public {
         (address[] memory r, uint256[] memory s) = _one(referrer);
         caller.buy(JACKPOT, USDC, _ticket(2, 5, 9, 17, 30), player, r, s, price);
@@ -192,6 +201,8 @@ contract MegapotV2RulesTest is Test {
 
     function test_J_bonusballUpperBound() public {
         (address[] memory r, uint256[] memory s) = _one(referrer);
+        // getDrawingState()[10] is the bonus ball ceiling of the current draw.
+        // It matches neither bonusballMin nor soft/hardCap, it grows with the pool.
         console.log("bonusball cap from drawing state:", JACKPOT.bonusballCapNow());
         uint8[4] memory candidates = [uint8(9), 10, 11, 65];
         for (uint256 i = 0; i < candidates.length; i++) {
@@ -203,6 +214,7 @@ contract MegapotV2RulesTest is Test {
         }
     }
 
+    /// Two identical tickets in one draw, allowed?
     function test_K_duplicateTicketAcrossBuys() public {
         (address[] memory r, uint256[] memory s) = _one(referrer);
         caller.buy(JACKPOT, USDC, _ticket(7, 8, 9, 10, 11), player, r, s, price);

@@ -10,6 +10,8 @@ interface IMintable {
     function mint(address to, uint256 amount) external;
 }
 
+/// Who may be whose referrer, established on the live contract.
+/// Megapot is not verified, so we take the rules from behaviour.
 contract Caller {
     function buy(IMegapot m, IERC20 t, address referrer, address recipient, uint256 value) external {
         t.approve(address(m), value);
@@ -60,6 +62,7 @@ contract MegapotRulesTest is Test {
         console.log("E ok (zero referrer accepted)");
     }
 
+    /// An EOA player pays for themselves, the referrer is a third party contract.
     function test_F_playerPaysDirectly_contractIsReferrer() public {
         vm.startPrank(player);
         MPUSDC.approve(address(MEGAPOT), price);

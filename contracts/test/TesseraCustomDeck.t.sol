@@ -13,9 +13,19 @@ interface IMintable {
     function mint(address to, uint256 amount) external;
 }
 
+/// A custom deck, one cut by a player rather than by the house.
 ///
+/// What is checked is not "does the button work" but the ways this ability could
+/// harm the game:
 ///
+///   1. can a deck be cut that is more generous than its own earnings;
+///   2. does the creator take a share of the player's DOLLAR instead of the
+///      commission;
+///   3. does their share eat the treasury the exchanges are paid from;
+///   4. can that same share be taken twice.
 ///
+/// The first three are ways to pull more out of the game than it earned. The
+/// fourth is simply theft.
 contract TesseraCustomDeckTest is Test {
     IMegapot constant MEGAPOT = IMegapot(0x6f03c7BCaDAdBf5E6F5900DA3d56AdD8FbDac5De);
     IERC20 constant MPUSDC = IERC20(0xA4253E7C13525287C56550b8708100f93E60509f);
@@ -38,7 +48,10 @@ contract TesseraCustomDeckTest is Test {
         IMintable(address(MPUSDC)).mint(player, 1000e6);
         IMintable(address(MPUSDC)).mint(maker, 1000e6);
 
+        // The Inco fee is computed BEFORE the prank: the call in the brackets is
+        // external too, and it is what would eat the prank instead of createDeck.
         uint256 fee = deck.deckFee(SIZE);
+        // The house deck: slots 1 to 10 a ticket each, the rest empty.
         vm.prank(owner);
         deck.createDeck{value: fee}(SIZE, _upTo(10), _weight(5), 0);
     }
@@ -53,6 +66,7 @@ contract TesseraCustomDeckTest is Test {
         a[0] = v;
     }
 
+    /// A custom deck of the same shape as the house one, with a creator share in bps.
     function _custom(uint16 bps) internal returns (uint32 id) {
         uint256 fee = deck.deckFee(SIZE);
         vm.startPrank(maker);
@@ -70,11 +84,12 @@ contract TesseraCustomDeckTest is Test {
         vm.stopPrank();
     }
 
+    // -- who can cut one at all ----------------------------------------------
 
     function test_custom_anyoneCanCut() public {
         uint32 id = _custom(2000);
-        assertEq(id, 1, unicode", ");
-        assertEq(deck.deckMeta(id), "bafyCID", unicode"");
+        assertEq(id, 1, "the deck stood beside the house one rather than in its place");
+        assertEq(deck.deckMeta(id), "bafyCID", "the pointer to the name and picture is written");
     }
 
     function test_custom_feeGoesToTreasuryNotToOwner() public {
@@ -83,11 +98,11 @@ contract TesseraCustomDeckTest is Test {
 
         _custom(2000);
 
-        assertEq(MPUSDC.balanceOf(owner), ownerBefore, unicode"");
+        assertEq(MPUSDC.balanceOf(owner), ownerBefore, "the owner gets nothing out of it");
         assertEq(
             MPUSDC.balanceOf(address(deck)) - contractBefore,
             deck.customDeckFee(),
-            unicode", "
+            "the fee stayed on the contract, that is, went to prizes"
         );
     }
 
@@ -102,12 +117,19 @@ contract TesseraCustomDeckTest is Test {
         vm.stopPrank();
     }
 
+    // -- the main safeguard: generosity cannot be bought ----------------------
 
+    /// The break even limit applies to a custom deck exactly as to a house one.
     ///
+    /// This is the answer to "what if somebody cuts themselves a deck of nothing
+    /// but jackpots": they do not. Not because we did not approve it, but because
+    /// the total weight of the prizes has no right to exceed half the slots,
+    /// which is exactly what the deck earns in commission.
     function test_custom_cannotOutSpendItsOwnCommission() public {
         uint256 fee = deck.deckFee(SIZE);
         vm.startPrank(maker);
         MPUSDC.approve(address(deck), type(uint256).max);
+        // 100 slots, 60 of them at weight 1, so a total weight of 60 > 100/2.
         vm.expectRevert(TesseraDeck.TooManyShardSlots.selector);
         deck.createCustomDeck{value: fee}(SIZE, _upTo(60), _weight(1), 0, 0, "bafyCID");
         vm.stopPrank();
@@ -123,8 +145,14 @@ contract TesseraCustomDeckTest is Test {
         vm.stopPrank();
     }
 
+    // -- where the creator's money comes from ---------------------------------
 
+    /// The player's dollar does not get any thinner.
     ///
+    /// The most important test in the file. The whole of Tessera rests on "a
+    /// dollar buys a REAL ticket", and the creator's share has no right to bite a
+    /// cent off it: it is taken from the commission Megapot returns to the
+    /// referrer AFTER the purchase.
     function test_custom_playerDollarBuysTheSameTicketAsAlways() public {
         uint32 id = _custom(deck.maxCreatorBps());
 
@@ -133,32 +161,36 @@ contract TesseraCustomDeckTest is Test {
         (uint256 afterCustom,,) = MEGAPOT.usersInfo(player);
         uint256 got = afterCustom - before;
 
+        // The same as the house deck would have given for the same ten dollars.
         _open(0, 10);
         (uint256 afterHouse,,) = MEGAPOT.usersInfo(player);
         uint256 house = afterHouse - afterCustom;
 
-        assertEq(got, house, unicode"");
+        assertEq(got, house, "a custom deck buys exactly the same ticket");
     }
 
     function test_custom_creatorEarnsOnlyFromCommission() public {
-        uint32 id = _custom(5000); //
-        _open(id, 20); // $20 → ~$2
+        uint32 id = _custom(5000); // half of the treasury half
+        _open(id, 20); // $20 gives about $2 of commission
         deck.sweepFees();
 
         uint256 owed = deck.creatorClaimable(maker);
-        assertGt(owed, 0, unicode"");
+        assertGt(owed, 0, "something was credited to the creator");
 
-        assertLe(owed, 0.5e6, unicode"");
+        // The ceiling: half of the treasury half, that is, a quarter of the whole
+        // commission. The commission on twenty dollars is about two, so the
+        // creator cannot receive more than 50 cents by construction.
+        assertLe(owed, 0.5e6, "no more than a quarter of the commission");
     }
 
     function test_custom_houseDeckPaysNoCreator() public {
         _custom(5000);
-        _open(0, 20); //
+        _open(0, 20); // the HOUSE deck was played
         deck.sweepFees();
         assertEq(
             deck.creatorClaimable(maker),
             0,
-            unicode""
+            "somebody else's deck brings the creator nothing"
         );
     }
 
@@ -169,12 +201,20 @@ contract TesseraCustomDeckTest is Test {
         deck.sweepFees();
 
         uint256 owed = deck.creatorClaimable(maker);
-        assertGt(owed, 0, unicode"");
-        assertLt(owed, 0.2e6, unicode"");
+        // The creator's deck gave a quarter of the opens, so a quarter of the
+        // treasury share too, and half of that. The exact cents depend on the
+        // Megapot commission, so we check the order rather than the number.
+        assertGt(owed, 0, "something was credited after all");
+        assertLt(owed, 0.2e6, "a quarter of the opens does not give a share of the whole game");
     }
 
+    // -- does this eat the treasury -------------------------------------------
 
+    /// The creator's share is set aside the same way the vault is.
     ///
+    /// Without this the treasury would spend money that already belongs to
+    /// somebody on TESA exchanges, and the first creator to come for theirs would
+    /// be refused, with the contract balance full.
     function test_custom_creatorMoneyIsNotSpendable() public {
         uint32 id = _custom(5000);
         _open(id, 20);
@@ -183,13 +223,13 @@ contract TesseraCustomDeckTest is Test {
         deck.sweepFees();
 
         uint256 owed = deck.creatorClaimable(maker);
-        assertGt(owed, 0, unicode"");
+        assertGt(owed, 0, "there is something to set aside");
         assertEq(
             deck.spendable(),
             MPUSDC.balanceOf(address(deck)) - deck.vault() - owed,
-            unicode"spendable "
+            "spendable counts balance minus vaults minus what is owed to creators"
         );
-        assertGt(deck.spendable(), spendableBefore, unicode"");
+        assertGt(deck.spendable(), spendableBefore, "the treasury grew all the same");
     }
 
     function test_custom_bookkeepingHolds() public {
@@ -201,10 +241,11 @@ contract TesseraCustomDeckTest is Test {
         assertLe(
             deck.vault() + deck.creatorOwed() + deck.spendable(),
             MPUSDC.balanceOf(address(deck)),
-            unicode"+ + "
+            "vaults plus what is owed to creators plus treasury is no more than the balance"
         );
     }
 
+    // -- the payout ------------------------------------------------------------
 
     function test_custom_claimPaysExactlyOnce() public {
         uint32 id = _custom(5000);
@@ -217,9 +258,9 @@ contract TesseraCustomDeckTest is Test {
         vm.prank(maker);
         deck.claimCreator();
 
-        assertEq(MPUSDC.balanceOf(maker) - before, owed, unicode"");
-        assertEq(deck.creatorClaimable(maker), 0, unicode"");
-        assertEq(deck.creatorOwed(), 0, unicode"");
+        assertEq(MPUSDC.balanceOf(maker) - before, owed, "took exactly what was theirs");
+        assertEq(deck.creatorClaimable(maker), 0, "the debt is settled");
+        assertEq(deck.creatorOwed(), 0, "the total debt too");
 
         vm.prank(maker);
         vm.expectRevert(TesseraDeck.NothingToClaim.selector);
@@ -236,6 +277,7 @@ contract TesseraCustomDeckTest is Test {
         deck.claimCreator();
     }
 
+    // -- the owner's knobs -------------------------------------------------------
 
     function test_custom_ownerCannotLiftTheCapAboveHalf() public {
         vm.prank(owner);
@@ -243,7 +285,11 @@ contract TesseraCustomDeckTest is Test {
         deck.setCustomDeckRules(1e6, 5001, 50);
     }
 
+    /// A deck already cut keeps its share forever.
     ///
+    /// Otherwise the owner could zero out the creators' share retroactively while
+    /// a creator went on believing the arrangement held. A deck is irreversible in
+    /// full: both the drop table and the share.
     function test_custom_rulesChangeDoesNotTouchExistingDecks() public {
         uint32 id = _custom(5000);
 
@@ -255,7 +301,7 @@ contract TesseraCustomDeckTest is Test {
         assertGt(
             deck.creatorClaimable(maker),
             0,
-            unicode""
+            "the old deck pays its creator on the old arrangement"
         );
     }
 }

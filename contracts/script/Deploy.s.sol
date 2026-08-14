@@ -8,11 +8,16 @@ import {MegapotLegacyAdapter} from "../src/adapters/MegapotLegacyAdapter.sol";
 import {IMegapot} from "../src/interfaces/IMegapot.sol";
 import {IMegapotAdapter} from "../src/interfaces/IMegapotAdapter.sol";
 
+/// The first and last deploy of the game.
 ///
 ///   forge script script/Deploy.s.sol:Deploy \
 ///     --rpc-url "$BASE_SEPOLIA_RPC_URL" --broadcast
 ///
+/// After this only the logic changes, see Upgrade below. The address the site
+/// knows never changes again: it is the address of the PROXY.
 ///
+/// Variables: DEPLOYER_PRIVATE_KEY, OWNER (who owns the game), MEGAPOT,
+/// ADAPTER (optional, otherwise we bring up a new one).
 contract Deploy is Script {
     function run() external {
         uint256 pk = vm.envUint("DEPLOYER_PRIVATE_KEY");
@@ -26,8 +31,13 @@ contract Deploy is Script {
             ? IMegapotAdapter(existingAdapter)
             : IMegapotAdapter(address(new MegapotLegacyAdapter(IMegapot(megapot))));
 
+        // The implementation is code only. It holds neither money nor slots, so
+        // its address does not have to be written down anywhere.
         TesseraDeck impl = new TesseraDeck();
 
+        // Initialisation happens IN THE SAME transaction as the proxy creation.
+        // As a separate call, somebody else's wallet could get in first and
+        // become the owner of the game between the two transactions.
         ERC1967Proxy proxy =
             new ERC1967Proxy(address(impl), abi.encodeCall(TesseraDeck.initialize, (adapter, owner)));
 
@@ -40,11 +50,18 @@ contract Deploy is Script {
     }
 }
 
+/// Deploy a new implementation and show what the OWNER has to sign.
 ///
 ///   forge script script/Deploy.s.sol:DeployImpl \
 ///     --rpc-url "$BASE_SEPOLIA_RPC_URL" --broadcast
 ///
+/// Needed because the wallet that deploys and the wallet that owns the game are
+/// not the same: the right to upgrade deliberately follows ownership. Anyone can
+/// deploy an implementation, it is code only, with no money and no slots; only
+/// the owner can switch the game onto it, and it is their signature that is
+/// prepared here.
 ///
+/// Variables: DEPLOYER_PRIVATE_KEY, PROXY.
 contract DeployImpl is Script {
     function run() external {
         uint256 pk = vm.envUint("DEPLOYER_PRIVATE_KEY");
@@ -63,11 +80,16 @@ contract DeployImpl is Script {
     }
 }
 
+/// Changing the rules of the game. The board stays where it is.
 ///
 ///   forge script script/Deploy.s.sol:Upgrade \
 ///     --rpc-url "$BASE_SEPOLIA_RPC_URL" --broadcast
 ///
+/// Variables: DEPLOYER_PRIVATE_KEY (the OWNER's wallet), PROXY.
 ///
+/// Before every upgrade: in a new implementation storage fields may only be
+/// APPENDED at the end. A reordered or deleted field will not revert, it will
+/// quietly start reading somebody else's bytes of already sold slots.
 contract Upgrade is Script {
     function run() external {
         uint256 pk = vm.envUint("DEPLOYER_PRIVATE_KEY");
@@ -81,6 +103,9 @@ contract Upgrade is Script {
         game.upgradeToAndCall(address(impl), "");
         vm.stopBroadcast();
 
+        // The cheapest check that the storage is in place: the decks have not
+        // gone anywhere. If we had accidentally deployed a proxy instead of an
+        // upgrade, this would be zero.
         require(game.deckCount() == decksBefore, "state lost");
 
         console.log("implementation", address(impl));

@@ -14,13 +14,18 @@ interface IMintable {
     function mint(address to, uint256 amount) external;
 }
 
+/// Risk it or take it.
 ///
+/// The main thing checked here is not "it works" but "it cannot do harm": a
+/// player never loses money, somebody else's stake cannot be closed, a stake
+/// cannot be settled with an already known slot, and the game cannot pay out more
+/// than it set aside in the decks.
 contract TesseraStakeTest is Test {
     IMegapot constant MEGAPOT = IMegapot(0x6f03c7BCaDAdBf5E6F5900DA3d56AdD8FbDac5De);
     IERC20 constant MPUSDC = IERC20(0xA4253E7C13525287C56550b8708100f93E60509f);
 
     uint16 constant DECK = 80;
-    uint16 constant PRIZE_MAX = 20; // 1..20
+    uint16 constant PRIZE_MAX = 20; // values 1 to 20 weigh one each
 
     TesseraDeck deck;
     address owner = makeAddr("owner");
@@ -43,6 +48,9 @@ contract TesseraStakeTest is Test {
         vm.prank(owner);
         deck.createDeck{value: fee}(DECK, upTo, weight, 0);
 
+        // These tests are about ordinary prizes, so the vault is switched off
+        // explicitly: otherwise half the commission would go past them and the
+        // arithmetic would drift.
         vm.prank(owner);
         deck.setVaultShare(0);
 
@@ -68,6 +76,7 @@ contract TesseraStakeTest is Test {
         vm.stopPrank();
     }
 
+    /// A stake on n of the player's slots, each with value 1 (weight 1).
     function _stakeArgs(uint256 n)
         internal
         pure
@@ -87,6 +96,7 @@ contract TesseraStakeTest is Test {
         s = new bytes[](2);
     }
 
+    // -- the basic path ---------------------------------------------------------
 
     function test_stake_burnsSlotsAndOpensAStake() public {
         _open(player, 12);
@@ -98,12 +108,13 @@ contract TesseraStakeTest is Test {
         (uint256 weight, uint64 deciding) = deck.stake(idx, vals, sigs);
 
         assertEq(weight, 5);
-        assertEq(deciding, 12, unicode", ");
-        assertTrue(deck.shardSpent(h0), unicode"");
+        assertEq(deciding, 12, "the next slot decides it, and there is none yet");
+        assertTrue(deck.shardSpent(h0), "the staked slots burned at once");
         (,, bool open) = deck.stakeOf(player);
         assertTrue(open);
     }
 
+    /// Won, so the weight doubled.
     function test_settle_winDoublesTheWeight() public {
         _open(player, 12);
         _attest(true);
@@ -111,18 +122,19 @@ contract TesseraStakeTest is Test {
         vm.prank(player);
         deck.stake(idx, vals, sigs);
 
-        _open(player, 1); // 12 ,
+        _open(player, 1); // slot 12 is the deciding one
 
         vm.prank(player);
-        (bool won, uint256 banked) = deck.settleStake(3, _sigs()); // 3 <= PRIZE_MAX,
+        (bool won, uint256 banked) = deck.settleStake(3, _sigs()); // 3 <= PRIZE_MAX, so a prize
 
         assertTrue(won);
-        assertEq(banked, 10, unicode"'");
+        assertEq(banked, 10, "five staked became ten");
         assertEq(deck.bankedWeight(player), 10);
         (,, bool open) = deck.stakeOf(player);
         assertFalse(open);
     }
 
+    /// Lost, so the weight burned, but the tickets bought with dollars stayed.
     function test_settle_lossBurnsWeightButKeepsTickets() public {
         _open(player, 12);
         (uint256 ticketsBefore,,) = MEGAPOT.usersInfo(player);
@@ -134,18 +146,27 @@ contract TesseraStakeTest is Test {
         _open(player, 1);
 
         vm.prank(player);
-        (bool won, uint256 banked) = deck.settleStake(PRIZE_MAX + 1, _sigs()); //
+        (bool won, uint256 banked) = deck.settleStake(PRIZE_MAX + 1, _sigs()); // empty
 
         assertFalse(won);
         assertEq(banked, 0);
         assertEq(deck.bankedWeight(player), 0);
 
         (uint256 ticketsAfter,,) = MEGAPOT.usersInfo(player);
-        assertGt(ticketsAfter, ticketsBefore, unicode"");
+        assertGt(ticketsAfter, ticketsBefore, "the tickets for the dollars paid went nowhere");
     }
 
+    /// A vault card wins a stake too, it is not empty either.
     ///
+    /// A vault slot weighs zero, because its payout is money rather than tickets.
+    /// While settlement looked only at weight, the best card in the deck BURNED
+    /// the stake: a player found the vault and lost what they had staked at the
+    /// same time. A battle had known this exception for a long time (`_power`),
+    /// stake settlement had not, and no test caught it, because there is no vault
+    /// in the other tests at all.
     function test_settle_theVaultCardWinsTheStake() public {
+        // A deck with a vault: value 1 opens the vault and weighs zero, 2 to 21
+        // weigh one each.
         uint16[] memory upTo = new uint16[](2);
         uint16[] memory weight = new uint16[](2);
         upTo[0] = 1;
@@ -163,6 +184,7 @@ contract TesseraStakeTest is Test {
         for (uint256 i = 0; i < 6; i++) deck.openCase(vaulted);
         vm.stopPrank();
 
+        // We stake five ordinary prizes of the same deck, value 2.
         _attest(true);
         uint256[] memory idx = new uint256[](5);
         uint256[] memory vals = new uint256[](5);
@@ -178,20 +200,21 @@ contract TesseraStakeTest is Test {
         assertEq(deciding, 6);
 
         vm.prank(player);
-        deck.openCase(vaulted); // 6 ,
+        deck.openCase(vaulted); // slot 6 is the deciding one
 
         vm.prank(player);
-        (bool won, uint256 banked) = deck.settleStake(1, _sigs()); // 1
+        (bool won, uint256 banked) = deck.settleStake(1, _sigs()); // 1 is the vault card
 
-        assertTrue(won, unicode"");
-        assertEq(banked, 10, unicode"'");
+        assertTrue(won, "a vault card is not empty");
+        assertEq(banked, 10, "five staked became ten");
         assertFalse(
             deck.shardSpent(deck.handleOf(player, 6)),
-            unicode""
+            "settling a stake does not burn the vault itself, it is still to be claimed"
         );
     }
 
     function test_claimBanked_buysRealTickets() public {
+        // 25 opens is $2.50 of commission, and two tickets cost $2.
         _open(player, 25);
         _attest(true);
         (uint256[] memory idx, uint256[] memory vals, bytes[][] memory sigs) = _stakeArgs(5);
@@ -207,13 +230,15 @@ contract TesseraStakeTest is Test {
         (uint256 tickets, uint256 paid) = deck.claimBanked();
         (uint256 later,,) = MEGAPOT.usersInfo(player);
 
-        assertEq(tickets, 2, unicode"");
+        assertEq(tickets, 2, "ten weight is two tickets");
         assertEq(paid, 2_000_000);
         assertEq(later - before, 2 * 8500);
         assertEq(deck.bankedWeight(player), 0);
     }
 
+    // -- what cannot be done -----------------------------------------------------
 
+    /// A stake cannot be settled with a slot the player has already seen.
     function test_settle_revertsBeforeTheDecidingSlotExists() public {
         _open(player, 12);
         _attest(true);
@@ -252,6 +277,8 @@ contract TesseraStakeTest is Test {
         deck.settleStake(1, _sigs());
     }
 
+    /// Somebody else's stake cannot be closed: a stake lives at the address of
+    /// whoever staked it.
     function test_settle_isPerPlayer() public {
         _open(player, 12);
         _attest(true);
@@ -265,6 +292,7 @@ contract TesseraStakeTest is Test {
         deck.settleStake(3, _sigs());
     }
 
+    /// Staking what is already staked will not work.
     function test_stake_rejectsSpentSlot() public {
         _open(player, 12);
         _attest(true);
@@ -282,6 +310,7 @@ contract TesseraStakeTest is Test {
         deck.stake(again, v2, s2);
     }
 
+    /// Without the covalidators' signature a stake is not accepted.
     function test_stake_rejectsBadAttestation() public {
         _open(player, 12);
         _attest(false);
@@ -298,8 +327,11 @@ contract TesseraStakeTest is Test {
         deck.claimBanked();
     }
 
+    /// Doubling can outrun the treasury: the budget is measured in weight, and
+    /// the dollars come in ten cents at a time per open. Then the payout has to
+    /// refuse honestly and wait rather than issue a ticket on credit.
     function test_claimBanked_waitsForTheTreasuryToCatchUp() public {
-        _open(player, 12); // $1.20
+        _open(player, 12); // only $1.20
         _attest(true);
         (uint256[] memory idx, uint256[] memory vals, bytes[][] memory sigs) = _stakeArgs(5);
         vm.prank(player);
@@ -312,20 +344,25 @@ contract TesseraStakeTest is Test {
         vm.expectRevert(abi.encodeWithSelector(TesseraDeck.TreasuryEmpty.selector, 1_300_000, 2_000_000));
         deck.claimBanked();
 
+        // The game catches up, and the same weight is taken with no changes at all.
         _open(player, 10);
         vm.prank(player);
         (uint256 tickets,) = deck.claimBanked();
-        assertEq(tickets, 2, unicode", ");
+        assertEq(tickets, 2, "the weight went nowhere, it simply waited");
     }
 
+    // -- the solvency limit --------------------------------------------------------
 
+    /// The main guarantee: however much anyone doubles, the game cannot hand out
+    /// more weight than it set aside in the decks.
     function test_budget_cannotPayMoreThanTheDecksHold() public {
-        assertEq(deck.budgetWeight(), PRIZE_MAX, unicode"= ");
+        assertEq(deck.budgetWeight(), PRIZE_MAX, "budget equals the deck's total weight");
         assertEq(deck.budgetLeft(), PRIZE_MAX);
 
         _open(player, 40);
         _attest(true);
 
+        // Double until we hit the ceiling.
         uint256 guard = 0;
         while (deck.budgetLeft() > 0 && guard < 6) {
             guard++;
@@ -340,14 +377,17 @@ contract TesseraStakeTest is Test {
             try deck.claimBanked() {} catch {}
         }
 
-        assertLe(deck.paidWeight(), deck.budgetWeight(), unicode"");
+        assertLe(deck.paidWeight(), deck.budgetWeight(), "the payouts did not exceed the budget");
         console.log("paid:", deck.paidWeight(), "budget:", deck.budgetWeight());
     }
 
+    /// When the budget is exhausted the payout refuses honestly rather than
+    /// quietly printing.
     function test_claimBanked_stopsAtTheCeiling() public {
         _open(player, 40);
         _attest(true);
 
+        // Eat the budget away with ordinary exchanges.
         for (uint256 round = 0; round < 4; round++) {
             (uint256[] memory idx, uint256[] memory vals, bytes[][] memory sigs) = _stakeArgs(5);
             for (uint256 i = 0; i < 5; i++) idx[i] = round * 5 + i;
@@ -355,8 +395,9 @@ contract TesseraStakeTest is Test {
             try deck.redeem(idx, vals, sigs) {} catch {}
         }
 
-        assertEq(deck.budgetLeft(), 0, unicode"");
+        assertEq(deck.budgetLeft(), 0, "the budget is exhausted");
 
+        // Now no stake is able to pull out more.
         (uint256[] memory idx2, uint256[] memory vals2, bytes[][] memory sigs2) = _stakeArgs(5);
         for (uint256 i = 0; i < 5; i++) idx2[i] = 20 + i;
         vm.prank(player);
@@ -365,7 +406,7 @@ contract TesseraStakeTest is Test {
         vm.prank(player);
         deck.settleStake(1, _sigs());
 
-        assertEq(deck.bankedWeight(player), 10, unicode"");
+        assertEq(deck.bankedWeight(player), 10, "the weight is won");
         vm.prank(player);
         vm.expectRevert(abi.encodeWithSelector(TesseraDeck.NotEnoughWeight.selector, 0, 5));
         deck.claimBanked();

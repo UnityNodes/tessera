@@ -16,7 +16,12 @@ interface IERC721Balance {
     function balanceOf(address owner) external view returns (uint256);
 }
 
+/// The same TesseraDeck, a Base mainnet fork, a different adapter.
+/// This is the proof that deploying to mainnet on day 12 is swapping one
+/// constructor argument rather than rewriting the game.
 ///
+/// Inco is at the same address on mainnet as on Sepolia (deterministic CREATE2),
+/// so the deck works here without a single change.
 contract TesseraDeckMainnetForkTest is Test {
     IMegapotV2 constant JACKPOT_V2 = IMegapotV2(0x3bAe643002069dBCbcd62B1A4eb4C4A397d042a2);
     IMegapot constant JACKPOT_LEGACY = IMegapot(0xbEDd4F2beBE9E3E636161E644759f3cbe3d51B95);
@@ -44,10 +49,13 @@ contract TesseraDeckMainnetForkTest is Test {
         weight[0] = 1;
         vm.prank(owner);
         deck.createDeck{value: fee}(20, upTo, weight, 0);
+        // a test about ordinary prizes, the vault takes no share
         vm.prank(owner);
         deck.setVaultShare(0);
     }
 
+    /// The new jackpot: the ticket is issued as an NFT, the numbers are generated
+    /// by the adapter.
     function test_openCase_onNewMainnetJackpot() public {
         TesseraDeck deck = _deck(new MegapotV2Adapter(JACKPOT_V2));
 
@@ -60,13 +68,15 @@ contract TesseraDeckMainnetForkTest is Test {
 
         assertEq(index, 0);
         assertTrue(handle != bytes32(0));
-        assertEq(TICKET_NFT.balanceOf(player), nftBefore + 1, unicode"NFT-");
-        assertEq(deck.feesClaimable(), 100_000, unicode"10% , Sepolia");
-        assertEq(USDC.balanceOf(address(deck)), 0, unicode"");
+        assertEq(TICKET_NFT.balanceOf(player), nftBefore + 1, "the NFT ticket is with the player");
+        assertEq(deck.feesClaimable(), 100_000, "10% of the dollar, same as on Sepolia");
+        assertEq(USDC.balanceOf(address(deck)), 0, "the contract does not hold the player's money");
 
         console.log("v2 referral claimable:", deck.feesClaimable());
     }
 
+    /// The same game contract against the legacy jackpot, which is still alive on
+    /// mainnet.
     function test_openCase_onLegacyMainnetJackpot() public {
         TesseraDeck deck = _deck(new MegapotLegacyAdapter(JACKPOT_LEGACY));
 
@@ -90,12 +100,13 @@ contract TesseraDeckMainnetForkTest is Test {
         legacy.openCase(0);
         vm.stopPrank();
 
-        assertEq(v2.sweepFees(), 100_000, unicode"claimReferralFees() ABI");
-        assertEq(legacy.sweepFees(), 100_000, unicode"withdrawReferralFees() ABI");
+        assertEq(v2.sweepFees(), 100_000, "claimReferralFees() of the new ABI");
+        assertEq(legacy.sweepFees(), 100_000, "withdrawReferralFees() of the legacy ABI");
         assertEq(v2.treasury(), 100_000);
         assertEq(legacy.treasury(), 100_000);
     }
 
+    /// Quick pick has to give valid sets every time rather than on average.
     function test_quickPick_manyOpensAllValid() public {
         TesseraDeck deck = _deck(new MegapotV2Adapter(JACKPOT_V2));
 
@@ -108,7 +119,7 @@ contract TesseraDeckMainnetForkTest is Test {
         vm.stopPrank();
 
         assertEq(deck.deckAt(0).drawn, 15);
-        assertEq(TICKET_NFT.balanceOf(player), 15, unicode"15 , ");
+        assertEq(TICKET_NFT.balanceOf(player), 15, "15 tickets, not one revert");
         assertEq(deck.feesClaimable(), 15 * 100_000);
     }
 }
