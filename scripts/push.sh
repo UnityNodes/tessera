@@ -4,6 +4,12 @@
 #   ./scripts/push.sh            # the current branch
 #   ./scripts/push.sh main       # a particular branch
 #   DRY=1 ./scripts/push.sh      # only show what would go
+#   FORCE=1 ./scripts/push.sh    # after a history rewrite, and only then
+#
+# FORCE uses --force-with-lease rather than --force: the lease refuses if
+# somebody else pushed since we last fetched, which is the one case where
+# overwriting really would destroy work. Plain --force cannot tell that case
+# from a rewrite of our own commits.
 #
 # Why a script of its own rather than a plain `git push`.
 #
@@ -42,13 +48,16 @@ run() {
     push "$@"
 }
 
-echo "> $BRANCH -> origin (fearless key, account 0xFearless-1)"
-run --dry-run origin "$BRANCH"
+LEASE=()
+[ -n "${FORCE:-}" ] && LEASE=(--force-with-lease)
+
+echo "> $BRANCH -> origin (fearless key, account 0xFearless-1)${FORCE:+ [rewrite]}"
+run --dry-run "${LEASE[@]}" origin "$BRANCH"
 
 if [ -n "${DRY:-}" ]; then
   echo "DRY=1, going no further"
 else
-  run origin "$BRANCH"
+  run "${LEASE[@]}" origin "$BRANCH"
 fi
 
 sudo chown -R "$OWNER" "$REPO/.git"
